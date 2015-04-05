@@ -27,6 +27,9 @@
     <option name="SKIP_IMPORT_STATEMENTS" value="false" />
   </component>
   <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false" />
+  <component name="EntryPointsManager">
+    <entry_points version="2.0" />
+  </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
     <OptionsSetting value="true" id="Remove" />
@@ -40,7 +43,7 @@
   <component name="ProjectModuleManager">
     <modules />
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="IDEA IC-139.1117.1" project-jdk-type="IDEA JDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="PyCharm PE-139.903 (1)" project-jdk-type="IDEA JDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="PropertiesComponent">

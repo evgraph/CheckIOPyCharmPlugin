@@ -1,0 +1,11 @@
+*.class
+
+*.properties
+*.jar
+*.war
+*.ear
+
+.idea/workspace.xml
+.DS
+out/
+*.DS_Store

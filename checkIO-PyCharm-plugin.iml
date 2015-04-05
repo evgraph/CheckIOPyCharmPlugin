@@ -1,13 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PLUGIN_MODULE" version="4">
   <component name="DevKit.ModuleBuildProperties" url="file://$MODULE_DIR$/META-INF/plugin.xml" />
-  <component name="NewModuleRootManager" inherit-compiler-output="true">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_6" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="PyCharm PE-139.903 (1)" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="groovy-2.4.1" level="application" />
+    <orderEntry type="library" exported="" name="educational" level="project" />
+    <orderEntry type="library" name="jetty-continuation-8.1.16.v20140903" level="project" />
+    <orderEntry type="library" name="commons-logging-1.1.1" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/json-jena-1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="jetty-io-8.1.16.v20140903" level="project" />
+    <orderEntry type="library" name="jetty-server-8.1.16.v20140903" level="project" />
+    <orderEntry type="library" name="json-20131018" level="project" />
+    <orderEntry type="library" name="servlet-api-3.0" level="project" />
   </component>
 </module>

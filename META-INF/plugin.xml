@@ -1,6 +1,6 @@
 <idea-plugin version="2">
   <id>com.yourcompany.unique.plugin.id</id>
-  <name>checkIO-pyCharm-plugin</name>
+  <username>checkIO-pyCharm-plugin</username>
   <version>1.0</version>
   <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
@@ -14,7 +14,9 @@
       <em>most HTML tags may be used</em>
     ]]>
   </change-notes>
-
+  <depends>com.intellij.modules.lang</depends>
+  <depends>com.intellij.modules.python</depends>
+  <depends>com.intellij.modules.platform</depends>
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
   <idea-version since-build="131"/>
 
@@ -25,7 +27,8 @@
   -->
 
   <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
+    <directoryProjectGenerator implementation="CheckIOProjectGenerator"/>
+    <toolWindow id = "Task Info" anchor = "right" factoryClass = "CheckIOTaskToolWindowFactory" />
   </extensions>
 
   <application-components>
@@ -38,7 +41,6 @@
   </project-components>
 
   <actions>
-    <!-- Add your actions here -->
   </actions>
 
 </idea-plugin>
