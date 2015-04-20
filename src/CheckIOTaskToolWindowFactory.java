@@ -9,7 +9,6 @@ import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -155,16 +154,20 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     final JPanel badgesPanel = new JPanel(new GridLayout());
     tasksAndBadgesPanel.add(tasksProgressPanel);
     tasksAndBadgesPanel.add(badgesPanel);
+    CheckIOUser user = CheckIOTaskManager.getInstance(project).getUser();
+    if (user != null) {
+    }
 
-    GridBagConstraints constraints = new GridBagConstraints(0, 0, 1, 2, 1.0, 1.0,
-                                                            GridBagConstraints.CENTER,
-                                                            GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
+    final GridBagConstraints constraints = new GridBagConstraints(0, 0, 1, 2, 1.0, 1.0,
+                                                                  GridBagConstraints.CENTER,
+                                                                  GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
     infoPanel.add(new JLabel("1 badge"), constraints);
     constraints.gridx = 1;
     constraints.gridy = 0;
     constraints.gridwidth = 1;
     constraints.gridheight = 1;
-    infoPanel.add(new JLabel("2 LVL"), constraints);
+    //infoPanel.add(new JLabel(String.valueOf(myUser.getLevel()) + " LVL"), constraints);
+    infoPanel.add(new JLabel(user.getLevel() + " LVL"), constraints);
     constraints.gridx = 1;
     constraints.gridy = 1;
     constraints.gridwidth = 1;
@@ -173,7 +176,8 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     levelProgressBar.setValue(25);
     constraints.anchor = GridBagConstraints.LAST_LINE_END;
     infoPanel.add(levelProgressBar, constraints);
-    infoPanel.setBorder(BorderFactory.createTitledBorder("Sergei Python"));
+    //infoPanel.setBorder(BorderFactory.createTitledBorder(myUser.getUsername()));
+    infoPanel.setBorder(BorderFactory.createTitledBorder(user.getUsername()));
 
     islandsProgressPanel.add(new JLabel("Home"));
     islandsProgressPanel.add(new JLabel("Elementary"));
@@ -189,7 +193,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     tasksProgressPanel.add(createTaskProgressPanel("Missions", new String[]{"Median", "Fizz Buzz"}));
     tasksProgressPanel.add(createTaskProgressPanel("Publications", new String[]{"First"}));
 
-    ImageIcon badgeIcon = createImageIcon("/resources/good_start.png");
+    final ImageIcon badgeIcon = createImageIcon("/resources/good_start.png");
     final JLabel badgeLabel = new JLabel(badgeIcon);
     badgesPanel.setLayout(new BoxLayout(badgesPanel, BoxLayout.PAGE_AXIS));
     badgesPanel.add(badgeLabel);
@@ -203,7 +207,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     profilePanel.add(islandsProgressPanel);
     profilePanel.add(tasksAndBadgesPanel);
 
-    contentPanel.add(TASK_DESCRIPTION, taskDescriptionPanel);
+    contentPanel.add(TASK_DESCRIPTION, taskDescriptionPanel.myTaskDescriptionPanel);
     contentPanel.add(SOLUTIONS, solutionsPanel);
     contentPanel.add(PROFILE, profilePanel);
 
@@ -217,18 +221,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
         cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
       }
     });
-    showSolutionButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        cardLayout.swipe(contentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO);
-      }
-    });
-    viewProfileButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        cardLayout.swipe(contentPanel, PROFILE, JBCardLayout.SwipeDirection.AUTO);
-      }
-    });
+
 
     backFromProfileButton.addActionListener(new ActionListener() {
       @Override
@@ -238,8 +231,9 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     });
   }
 
+
   private ImageIcon createImageIcon(String path) {
-    URL imgURL = getClass().getResource(path);
+    final URL imgURL = getClass().getResource(path);
     if (imgURL != null) {
       return new ImageIcon(imgURL);
     }

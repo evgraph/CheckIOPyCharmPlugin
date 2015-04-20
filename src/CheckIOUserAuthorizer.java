@@ -37,7 +37,7 @@ public class CheckIOUserAuthorizer {
   private static final String TOKEN_URL = "http://www.checkio.org/oauth/token/";
   private static final String AUTHORIZATION_URL = "http://www.checkio.org/oauth/authorize/";
   private static final String USER_INFO_URL = "http://www.checkio.org/oauth/information/";
-  private static Properties ourProperties;
+  private static Properties ourProperties = new Properties();
   private static final String CLIENT_ID_PROPERTY = "clientId";
   private static final String CLIENT_SECRET_PROPERTY = "clientSecret";
   private static final String PARAMETER_CLIENT_ID = "client_id";
@@ -123,7 +123,7 @@ public class CheckIOUserAuthorizer {
     return myAccessToken;
   }
 
-  public void startServer() throws Exception {
+  private void startServer() throws Exception {
     myServer = new Server(ourPort);
     MyContextHandler contextHandler = new MyContextHandler();
     myServer.setHandler(contextHandler);
@@ -131,13 +131,13 @@ public class CheckIOUserAuthorizer {
   }
 
   public CheckIOUser authorizeUser() throws Exception {
-    ourProperties = new Properties();
     InputStream is = this.getClass().getResourceAsStream("/oauthData.properties");
     ourProperties.load(is);
 
     startServer();
     openAuthorizationPage();
-    myServer.join(); ;
+    myServer.join();
+
     return getUser(myAccessToken);
   }
 
@@ -155,7 +155,7 @@ public class CheckIOUserAuthorizer {
         myAccessToken = getAccessToken(code);
       }
       catch (JSONException e) {
-        e.printStackTrace();
+        LOG.warn(e.getMessage());
       }
 
       new Thread() {

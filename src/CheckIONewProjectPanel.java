@@ -21,9 +21,10 @@ public class CheckIONewProjectPanel {
   private JComboBox myIslandComboBox;
   private static final Logger LOG = Logger.getInstance(CheckIONewProjectPanel.class.getName());
   private FacetValidatorsManager myValidationManager;
-  public String myAccessToken = "";
+
 
   public CheckIONewProjectPanel() {
+
     final JBCardLayout cardLayout = new JBCardLayout();
     myContentPanel = new JPanel(cardLayout);
     final JPanel authorizationPanel = new JPanel(new BorderLayout());
@@ -66,13 +67,9 @@ public class CheckIONewProjectPanel {
   }
 
 
-
-
-
   public void registerValidators(FacetValidatorsManager manager) {
     myValidationManager = manager;
   }
-
 
 
   private class MyItemListener implements ItemListener {

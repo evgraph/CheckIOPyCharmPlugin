@@ -29,7 +29,10 @@
   <extensions defaultExtensionNs="com.intellij">
     <directoryProjectGenerator implementation="CheckIOProjectGenerator"/>
     <toolWindow id = "Task Info" anchor = "right" factoryClass = "CheckIOTaskToolWindowFactory" />
+    <projectService serviceInterface="CheckIOTaskManager" serviceImplementation="CheckIOTaskManager" />
   </extensions>
+
+
 
   <application-components>
     <!-- Add your application components here -->

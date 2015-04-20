@@ -114,7 +114,6 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Override
   public ValidationResult validate(@NotNull String baseDirPath) {
     String message = "";
-    //message = StringUtil.isEmptyOrSpaces(mySettingsPanel.getIslandName()) ? "Select an island" : "";
 
     return message.isEmpty() ? ValidationResult.OK : new ValidationResult(message);
   }

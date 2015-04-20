@@ -1,8 +1,7 @@
-
 public class CheckIOUser {
-  public String username = "";
-  public int uid;
-  public int level;
+  private String username = "";
+  private int uid;
+  private int level;
 
   public CheckIOUser(String username, int uid, int level) {
     this.username = username;
