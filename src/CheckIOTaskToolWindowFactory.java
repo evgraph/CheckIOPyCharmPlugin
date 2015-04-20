@@ -25,7 +25,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final String PROFILE = "Profile";
 
   private static Tree createSolutionsTree(String rootName) {
-    DefaultMutableTreeNode top = new DefaultMutableTreeNode(rootName);
+    final DefaultMutableTreeNode top = new DefaultMutableTreeNode(rootName);
 
     for (int i = 0; i < 5; i++) {
       top.add(new DefaultMutableTreeNode("Solutions " + (i + 1)));
@@ -36,7 +36,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   }
 
   private static JBList createList(String[] missionNames) {
-    DefaultListModel tasksListModel = new DefaultListModel();
+    final DefaultListModel tasksListModel = new DefaultListModel();
     for (String name : missionNames) {
       tasksListModel.addElement(name);
     }
@@ -44,10 +44,52 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     return new JBList(tasksListModel);
   }
 
+
+  private class TaskInfoPanel extends JPanel {
+    public final JPanel myTaskDescriptionPanel;
+    final JEditorPane myTaskDescriptionPane;
+    public final JButton myShowSolutionButton;
+    public final JButton myPublishSolutionButton;
+    final JButton myViewProfileButton;
+    final JPanel myButtonPanel;
+
+
+    public TaskInfoPanel() {
+      myTaskDescriptionPanel = new JPanel();
+      myTaskDescriptionPane = new JEditorPane();
+      myShowSolutionButton = new JButton("Show solutions");
+      myTaskDescriptionPanel.setLayout(new BoxLayout(myTaskDescriptionPanel, BoxLayout.PAGE_AXIS));
+      myPublishSolutionButton = new JButton("Publish solution");
+      myViewProfileButton = new JButton("View Profile");
+      myButtonPanel = new JPanel(new GridBagLayout());
+
+      myTaskDescriptionPane.setPreferredSize(new Dimension(900, 900));
+      myTaskDescriptionPane.setEditable(false);
+      myPublishSolutionButton.setEnabled(false);
+
+      myButtonPanel.add(myShowSolutionButton);
+      myButtonPanel.add(myPublishSolutionButton);
+      myButtonPanel.add(myViewProfileButton);
+
+      myTaskDescriptionPanel.add(myTaskDescriptionPane);
+      myTaskDescriptionPanel.add(myButtonPanel);
+    }
+
+    public void setTaskName(String taskName) {
+      myTaskDescriptionPanel.add(new JBLabel(taskName));
+    }
+
+    public void setTaskDescription(String contentType, String taskDescription) {
+      myTaskDescriptionPane.setContentType(contentType);
+      myTaskDescriptionPane.setText(taskDescription);
+    }
+  }
+
+
   private static JPanel createTaskProgressPanel(String name, String[] itemNames) {
-    JPanel panel = new JPanel();
+    final JPanel panel = new JPanel();
     //panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-    JBList completedTasksList = createList(itemNames);
+    final JBList completedTasksList = createList(itemNames);
     completedTasksList.setPreferredSize(new Dimension(200, 180));
     completedTasksList.add(new JBScrollBar());
     panel.add(completedTasksList);
@@ -57,35 +99,32 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
 
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
-    final String taskName = UIUtil.toHtml("<b>Median</b>", 5);
-    final String taskText = "Text";
     // Panels used as cards in card layout
     final JBCardLayout cardLayout = new JBCardLayout();
     final JPanel contentPanel = new JPanel(cardLayout);
-    final JPanel taskDescriptionPanel = new JPanel();
-    taskDescriptionPanel.setLayout(new BoxLayout(taskDescriptionPanel, BoxLayout.PAGE_AXIS));
+    final TaskInfoPanel taskDescriptionPanel = new TaskInfoPanel();
+
+
     final JPanel solutionsPanel = new JPanel();
     solutionsPanel.setLayout(new BoxLayout(solutionsPanel, BoxLayout.PAGE_AXIS));
-    final JPanel profilePanel = new JPanel();
+    JPanel profilePanel = new JPanel();
     profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
 
 
     //Constructing task description panel
-    final JFormattedTextField taskTextField = new JFormattedTextField(taskText);
-    taskTextField.setPreferredSize(new Dimension(900, 900));
-    taskTextField.setEditable(false);
-    final JButton showSolutionButton = new JButton("Show solutions");
-    final JButton publishSolutionButton = new JButton("Publish solution");
-    //showSolutionButton.setEnabled(false);
-    publishSolutionButton.setEnabled(false);
-    final JButton viewProfileButton = new JButton("View Profile");
-    final JPanel buttonPanel = new JPanel(new GridBagLayout());
-    buttonPanel.add(showSolutionButton);
-    buttonPanel.add(publishSolutionButton);
-    buttonPanel.add(viewProfileButton);
-    taskDescriptionPanel.add(new JBLabel(taskName));
-    taskDescriptionPanel.add(taskTextField);
-    taskDescriptionPanel.add(buttonPanel);
+
+    taskDescriptionPanel.myShowSolutionButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        cardLayout.swipe(contentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO);
+      }
+    });
+    taskDescriptionPanel.myViewProfileButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        cardLayout.swipe(contentPanel, PROFILE, JBCardLayout.SwipeDirection.AUTO);
+      }
+    });
 
 
     // Constructing solutions panel
