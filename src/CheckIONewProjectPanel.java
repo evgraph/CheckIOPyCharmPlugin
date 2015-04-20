@@ -39,18 +39,17 @@ public class CheckIONewProjectPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         try {
-          CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
-          CheckIOUser user = authorizer.authorizeUser();
+          CheckIOConnector checkIOConnector = new CheckIOConnector();
+          CheckIOUser user = checkIOConnector.authorizeUser();
           if (user != null) {
-            myAccessToken = authorizer.getAccessToken();
-            //authorizationButton.setEnabled(false);
             myIslandComboBox.setEnabled(true);
 
             myDescription.setText("Username: " + user.getUsername());
+
             cardLayout.swipe(myContentPanel, PROJECT_CREATION_PANEL, JBCardLayout.SwipeDirection.AUTO);
           }
           else {
-            authorizationDescriptionLabel.setText("You're not authorized. Try again");
+            JOptionPane.showMessageDialog(myPanel, "You're not authorized. Try again");
           }
         }
         catch (Exception e1) {
