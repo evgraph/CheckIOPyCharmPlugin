@@ -34,6 +34,11 @@ public class CheckIOConnector {
     return user;
   }
 
+  public static CheckIOUser authorizeUser() throws Exception {
+    CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
+    myUser = authorizer.authorizeUser();
+    myAccessToken = authorizer.getAccessToken();
+    return myUser;
   private boolean publishSolution() {
     return false;
   }
