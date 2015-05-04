@@ -8,16 +8,6 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="a46de" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="80" height="-1"/>
-          </grid>
-        </constraints>
-        <properties>
-          <text value="Island Name"/>
-        </properties>
-      </component>
       <component id="463ab" class="javax.swing.JTextArea" binding="myDescription">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
@@ -29,12 +19,12 @@
           <enabled value="false"/>
         </properties>
       </component>
-      <component id="1aa8e" class="javax.swing.JComboBox" binding="myIslandComboBox">
+      <component id="bc779" class="javax.swing.JButton" binding="authorizationButton">
         <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <enabled value="false"/>
+          <text value="Authorize"/>
         </properties>
       </component>
       <component id="75266" class="javax.swing.JLabel">
