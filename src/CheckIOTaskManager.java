@@ -7,10 +7,10 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.util.containers.hash.HashMap;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import com.jetbrains.edu.courseFormat.*;
+import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,21 +26,31 @@ import java.util.Map;
   storages = {
     @Storage(
       //id = "others",
-      file = StoragePathMacros.WORKSPACE_FILE
+      file = StoragePathMacros.MODULE_FILE
       //scheme = StorageScheme.DIRECTORY_BASED
     )}
 )
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
-  public Course myCourse;
   public CheckIOUser myUser;
   public String accessToken;
-  public Map<AnswerPlaceholder, StudyStatus> myStudyStatusMap = new HashMap<AnswerPlaceholder, StudyStatus>();
+  public Map<Task, TaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
+  public HashMap<Task, StudyStatus> myTaskStatusMap = new HashMap<>();
+  public Map<Task, Integer> myTaskIds = new HashMap<>();
 
   private CheckIOTaskManager() {
   }
 
-  public void setCourse(@NotNull final Course course) {
-    myCourse = course;
+  public void setTaskStatus(Task task, StudyStatus status) {
+    myTaskStatusMap.put(task, status);
+  }
+
+  public StudyStatus getTaskStatus(Task task) {
+    return myTaskStatusMap.get(task);
+  }
+
+  public static CheckIOTaskManager getInstance(@NotNull final Project project) {
+    final Module module = ModuleManager.getInstance(project).getModules()[0];
+    return ModuleServiceManager.getService(module, CheckIOTaskManager.class);
   }
 
   public String getAccessToken() {
@@ -59,93 +69,30 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     myUser = user;
   }
 
-  @Nullable
 
-  public Course getCourse() {
-    return myCourse;
-  }
 
-  public void setStatus(AnswerPlaceholder placeholder, StudyStatus status) {
-    if (myStudyStatusMap == null) {
-      myStudyStatusMap = new HashMap<AnswerPlaceholder, StudyStatus>();
+  public void setTaskId(Task task, Integer id) {
+    if (myTaskIds == null) {
+      myTaskIds = new HashMap<>();
     }
-    myStudyStatusMap.put(placeholder, status);
+    myTaskIds.put(task, id);
   }
 
+  public Integer getTaskId(Task task) {
+    return myTaskIds.get(task);
+  }
 
-  public void setStatus(Task task, StudyStatus status) {
-    for (TaskFile taskFile : task.getTaskFiles().values()) {
-      setStatus(taskFile, status);
+  public void setPublicationStatus(Task task, TaskPublicationStatus publicationStatus) {
+    if (myPublicationStatusMap == null) {
+      myPublicationStatusMap = new HashMap<>();
     }
+    myPublicationStatusMap.put(task, publicationStatus);
   }
 
-  public void setStatus(TaskFile file, StudyStatus status) {
-    for (AnswerPlaceholder answerPlaceholder : file.getAnswerPlaceholders()) {
-      setStatus(answerPlaceholder, status);
-    }
+  public TaskPublicationStatus getPublicationStatus(Task task) {
+    return myPublicationStatusMap.get(task);
   }
 
-  public StudyStatus getStatus(AnswerPlaceholder placeholder) {
-    StudyStatus status = myStudyStatusMap.get(placeholder);
-    if (status == null) {
-      status = StudyStatus.Unchecked;
-      myStudyStatusMap.put(placeholder, status);
-    }
-    return status;
-  }
-
-
-  public StudyStatus getStatus(@NotNull final Lesson lesson) {
-    for (Task task : lesson.getTaskList()) {
-      StudyStatus taskStatus = getStatus(task);
-      if (taskStatus == StudyStatus.Unchecked || taskStatus == StudyStatus.Failed) {
-        return StudyStatus.Unchecked;
-      }
-    }
-    return StudyStatus.Solved;
-  }
-
-  public StudyStatus getStatus(@NotNull final Task task) {
-    for (TaskFile taskFile : task.getTaskFiles().values()) {
-      StudyStatus taskFileStatus = getStatus(taskFile);
-      if (taskFileStatus == StudyStatus.Unchecked) {
-        return StudyStatus.Unchecked;
-      }
-      if (taskFileStatus == StudyStatus.Failed) {
-        return StudyStatus.Failed;
-      }
-    }
-    return StudyStatus.Solved;
-  }
-
-  private StudyStatus getStatus(@NotNull final TaskFile file) {
-    for (AnswerPlaceholder answerPlaceholder : file.getAnswerPlaceholders()) {
-      StudyStatus windowStatus = getStatus(answerPlaceholder);
-      if (windowStatus == StudyStatus.Failed) {
-        return StudyStatus.Failed;
-      }
-      if (windowStatus == StudyStatus.Unchecked) {
-        return StudyStatus.Unchecked;
-      }
-    }
-    return StudyStatus.Solved;
-  }
-
-
-  public JBColor getColor(@NotNull final AnswerPlaceholder placeholder) {
-    final StudyStatus status = getStatus(placeholder);
-    if (status == StudyStatus.Solved) {
-      return JBColor.GREEN;
-    }
-    if (status == StudyStatus.Failed) {
-      return JBColor.RED;
-    }
-    return JBColor.BLUE;
-  }
-
-  public boolean hasFailedAnswerPlaceholders(@NotNull final TaskFile taskFile) {
-    return taskFile.getAnswerPlaceholders().size() > 0 && getStatus(taskFile) == StudyStatus.Failed;
-  }
 
   @Nullable
   @Override
@@ -156,13 +103,5 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   @Override
   public void loadState(CheckIOTaskManager state) {
     XmlSerializerUtil.copyBean(state, this);
-    if (myCourse != null) {
-      myCourse.initCourse(true);
-    }
-  }
-
-  public static CheckIOTaskManager getInstance(@NotNull final Project project) {
-    final Module module = ModuleManager.getInstance(project).getModules()[0];
-    return ModuleServiceManager.getService(module, CheckIOTaskManager.class);
   }
 }
