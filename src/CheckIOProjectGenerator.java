@@ -1,5 +1,3 @@
-import com.intellij.facet.ui.FacetEditorValidator;
-import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.facet.ui.ValidationResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -231,15 +229,15 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Override
   public JPanel extendBasePanel() throws ProcessCanceledException {
     mySettingsPanel = new CheckIONewProjectPanel();
-    mySettingsPanel.registerValidators(new FacetValidatorsManager() {
-      public void registerValidator(FacetEditorValidator validator, JComponent... componentsToWatch) {
-        throw new UnsupportedOperationException();
-      }
-
-      public void validate() {
-        fireStateChanged();
-      }
-    });
+    //mySettingsPanel.registerValidators(new FacetValidatorsManager() {
+    //  public void registerValidator(FacetEditorValidator validator, JComponent... componentsToWatch) {
+    //    throw new UnsupportedOperationException();
+    //  }
+    //
+    //  public void validate() {
+    //    fireStateChanged();
+    //  }
+    //});
     return mySettingsPanel.getMainPanel();
   }
 }
