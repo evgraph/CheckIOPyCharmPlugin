@@ -4,16 +4,25 @@ import com.intellij.facet.ui.ValidationResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.DefaultLogger;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowEP;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.platform.DirectoryProjectGenerator;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
@@ -31,11 +40,12 @@ import java.net.URISyntaxException;
 public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implements DirectoryProjectGenerator {
 
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
+  private static final String TOOL_WINDOW_ID = "Task Info";
   CheckIONewProjectPanel mySettingsPanel;
   private File myCoursesDir;
 
   private static CheckIOTaskManager setTaskManager(@NotNull Project project) throws IOException, URISyntaxException {
-    if (!checkIfParametersAreNull(project)) {
+    if (!checkIfUserOrAccessTokenIsNull()) {
       CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
       CheckIOUser user = CheckIOConnector.getMyUser();
       String accessToken = CheckIOConnector.getMyAccessToken();
@@ -46,21 +56,23 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     return null;
   }
 
-  private static StudyTaskManager setStudyManager(@NotNull Project project) throws IOException, URISyntaxException {
-    if (!checkIfParametersAreNull(project)) {
+  private static void setCourseInStudyManager(@NotNull Project project) throws IOException, URISyntaxException {
+    if (!checkIfUserOrAccessTokenIsNull()) {
       StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-      Course course = CheckIOConnector.getCourseForProject(project);
-      studyManager.setCourse(course);
-      return studyManager;
+      if (studyManager.getCourse() == null) {
+        Course course = CheckIOConnector.getCourseForProject(project);
+
+        if (course == null) {
+          LOG.error("Course is null");
+          return;
+        }
+        studyManager.setCourse(course);
+      }
     }
-    return null;
   }
 
-  private static boolean checkIfParametersAreNull(@NotNull final Project project) throws IOException, URISyntaxException {
-    if (CheckIOConnector.getCourseForProject(project) == null) {
-      LOG.warn("Course object is null");
-      return true;
-    }
+  private static boolean checkIfUserOrAccessTokenIsNull() throws IOException, URISyntaxException {
+
     if (CheckIOConnector.getMyUser() == null) {
       LOG.warn("User object is null");
       return true;
@@ -73,6 +85,73 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     return false;
   }
 
+  private static void setTaskFilesStatusFromTask(CheckIOTaskManager taskManager, StudyTaskManager studyManager) {
+    Course course = studyManager.getCourse();
+    if (course != null) {
+      for (Lesson lesson : course.getLessons()) {
+        for (Task task : lesson.getTaskList()) {
+          studyManager.setStatus(task, taskManager.getTaskStatus(task));
+        }
+      }
+    }
+
+
+  }
+
+  private static CheckIOTaskToolWindowFactory getCheckIOToolWindowFactory(ToolWindowEP[] toolWindowEPs) {
+    for (ToolWindowEP toolWindowEP : toolWindowEPs) {
+      if (toolWindowEP.id.equals(TOOL_WINDOW_ID)) {
+        return (CheckIOTaskToolWindowFactory)toolWindowEP.getToolWindowFactory();
+      }
+    }
+    return null;
+  }
+
+  private static void addListener(final Project project, final CheckIOTaskToolWindowFactory toolWindowFactory) {
+    project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+
+      @Override
+      public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        ToolWindow taskInfoToolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
+        TaskFile taskFile;
+        if ((taskFile = StudyUtils.getTaskFile(project, file)) == null) {
+          LOG.error("Error: task file is null");
+          return;
+        }
+        taskInfoToolWindow.show(null);
+        Task task = taskFile.getTask();
+
+        String taskText = task.getText();
+        String taskName = task.getName();
+        toolWindowFactory.taskInfoPanel.setTaskText("text/html", taskText);
+        toolWindowFactory.taskInfoPanel.setTaskNameLabelText(taskName);
+
+      }
+
+      @Override
+      public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        //taskInfoToolWindow.hide(null);
+      }
+
+      @Override
+      public void selectionChanged(@NotNull FileEditorManagerEvent event) {
+        VirtualFile file;
+        TaskFile taskFile;
+        if ((file = event.getNewFile()) == null || (taskFile = StudyUtils.getTaskFile(project, file)) == null) {
+          LOG.warn("Error while getting task file: file or task file is null");
+          return;
+        }
+
+        Task task = taskFile.getTask();
+
+        String taskText = task.getText();
+        String taskName = task.getName();
+
+        toolWindowFactory.taskInfoPanel.setTaskText("text/html", taskText);
+        toolWindowFactory.taskInfoPanel.setTaskNameLabelText(taskName);
+      }
+    });
+  }
 
   @Nls
   @NotNull
@@ -91,7 +170,9 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
     try {
       setTaskManager(project);
-      final Course course = setStudyManager(project).getCourse();
+      setCourseInStudyManager(project);
+      final Course course = StudyTaskManager.getInstance(project).getCourse();
+
 
       if (course != null) {
 
@@ -110,6 +191,13 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
                   course.setCourseDirectory(myCoursesDir.getAbsolutePath());
                   setTaskFilesStatusFromTask(CheckIOTaskManager.getInstance(project), StudyTaskManager.getInstance(project));
                   VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
+                  ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
+                  CheckIOTaskToolWindowFactory toolWindowFactory = getCheckIOToolWindowFactory(toolWindowEPs);
+                  addListener(project, toolWindowFactory);
+
+
+                  toolWindowFactory.createToolWindowContent(project, ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID));
+
                   StudyProjectGenerator.openFirstTask(course, project);
                 }
               });
@@ -130,7 +218,6 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   public Icon getLogo() {
     return PythonIcons.Python.Python_logo;
   }
-
 
   @NotNull
   @Override
@@ -154,17 +241,5 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
       }
     });
     return mySettingsPanel.getMainPanel();
-  }
-
-  private static void setTaskFilesStatusFromTask(CheckIOTaskManager taskManager, StudyTaskManager studyManager) {
-    Course course = studyManager.getCourse();
-    if (course != null) {
-      for (Lesson lesson : course.getLessons()) {
-        for (Task task : lesson.getTaskList()) {
-          studyManager.setStatus(task, taskManager.getTaskStatus(task));
-        }
-      }
-    }
-
   }
 }

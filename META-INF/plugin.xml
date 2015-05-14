@@ -1,6 +1,6 @@
 <idea-plugin version="2">
   <id>com.yourcompany.unique.plugin.id</id>
-  <username>CheckIOpyCharmPlugin</username>
+  <name>CheckIOPyCharmPlugin</name>
   <version>1.0</version>
   <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
@@ -29,8 +29,9 @@
   <extensions defaultExtensionNs="com.intellij">
     <directoryProjectGenerator implementation="CheckIOProjectGenerator"/>
     <toolWindow id = "Task Info" anchor = "right" factoryClass = "CheckIOTaskToolWindowFactory" />
-    <moduleService serviceInterface="CheckIOTaskManager" serviceImplementation="CheckIOTaskManager" />
+
     <projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />
+    <projectService serviceInterface="CheckIOTaskManager" serviceImplementation="CheckIOTaskManager"/>
     <treeStructureProvider implementation="com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider"/>
   </extensions>
 

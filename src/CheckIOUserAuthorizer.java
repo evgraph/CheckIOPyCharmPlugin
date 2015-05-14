@@ -37,7 +37,6 @@ public class CheckIOUserAuthorizer {
   private static final String TOKEN_URL = "http://www.checkio.org/oauth/token/";
   private static final String AUTHORIZATION_URL = "http://www.checkio.org/oauth/authorize/";
   private static final String USER_INFO_URL = "http://www.checkio.org/oauth/information/";
-  private static Properties ourProperties = new Properties();
   private static final String CLIENT_ID_PROPERTY = "clientId";
   private static final String CLIENT_SECRET_PROPERTY = "clientSecret";
   private static final String PARAMETER_CLIENT_ID = "client_id";
@@ -54,6 +53,7 @@ public class CheckIOUserAuthorizer {
   private static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
   private static final String SUCCESS_AUTHORIZATION_MESSAGE = "Authorization succeeded. You may return to PyCharm";
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
+  private static Properties ourProperties = new Properties();
   private static int ourPort = 36655;
   private static final String REDIRECT_URI = "http://localhost:" + ourPort;
   private Server myServer;
@@ -70,10 +70,7 @@ public class CheckIOUserAuthorizer {
       try {
         desktop.browse(new URI(url.toString()));
       }
-      catch (IOException e) {
-        LOG.warn(e.getMessage());
-      }
-      catch (URISyntaxException e) {
+      catch (IOException | URISyntaxException e) {
         LOG.warn(e.getMessage());
       }
     }
@@ -90,7 +87,7 @@ public class CheckIOUserAuthorizer {
 
   private static String getAccessToken(final String code) throws IOException, JSONException {
     final HttpPost request = new HttpPost(TOKEN_URL);
-    final List<NameValuePair> requestParameters = new ArrayList<NameValuePair>();
+    final List<NameValuePair> requestParameters = new ArrayList<>();
     requestParameters.add(new BasicNameValuePair(PARAMETER_CODE, code));
     requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_SECRET, ourProperties.getProperty(CLIENT_SECRET_PROPERTY)));
     requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, GRANT_TYPE));
@@ -133,8 +130,9 @@ public class CheckIOUserAuthorizer {
   public CheckIOUser authorizeUser() throws Exception {
     InputStream is = this.getClass().getResourceAsStream("/oauthData.properties");
     ourProperties.load(is);
-
-    startServer();
+    if (myServer == null || !myServer.isRunning()) {
+      startServer();
+    }
     openAuthorizationPage();
     myServer.join();
 

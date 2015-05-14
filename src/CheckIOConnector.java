@@ -6,7 +6,6 @@ import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
-import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -40,12 +39,13 @@ public class CheckIOConnector {
 
   private static String myAccessToken;
   private static CheckIOUser myUser;
-  private static HashMap<Integer, Lesson> lessonsById = new HashMap<>();
-  private static Course course = new Course();
+  private static HashMap<Integer, Lesson> lessonsById;
+  private static Course course;
 
   public static CheckIOUser getMyUser() {
     return myUser;
   }
+
 
   public static String getMyAccessToken() {
     return myAccessToken;
@@ -64,29 +64,30 @@ public class CheckIOConnector {
   }
 
   public static Course getCourseForProject(Project project) throws IOException, URISyntaxException {
+    lessonsById = new HashMap<>();
+    course = new Course();
     course.setLanguage("Python");
     course.setName("CheckIO");
 
     if (myAccessToken != null) {
       final MissionsWrapper[] missionsWrappers = getMissions();
       final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-      final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
 
       for (MissionsWrapper missionsWrapper : missionsWrappers) {
-        final Lesson lesson = putLessonById(missionsWrapper.stationId, missionsWrapper.stationName);
-        final Task task = getTaskFromMission(missionsWrapper, taskManager, studyManager);
+        final Lesson lesson = getLessonOrCreateIfNotExists(missionsWrapper.stationId, missionsWrapper.stationName);
+        final Task task = getTaskFromMission(missionsWrapper);
+        setTaskInfoInTaskManager(taskManager, task, missionsWrapper);
         lesson.addTask(task);
       }
       return course;
     }
     else {
-      LOG.warn("Null access token");
+      LOG.error("Null access token");
     }
     return null;
   }
 
-  private static Task getTaskFromMission(final MissionsWrapper missionsWrapper, final CheckIOTaskManager taskManager, final
-                                         StudyTaskManager studyManager) {
+  private static Task getTaskFromMission(final MissionsWrapper missionsWrapper) {
     final Task task = createTaskFromMission(missionsWrapper);
 
 
@@ -99,12 +100,12 @@ public class CheckIOConnector {
     else {
       LOG.warn("Task file for task " + task.getName() + "is null");
     }
-    setTaskInfoInTaskManager(taskManager, task, missionsWrapper);
+
 
     return task;
   }
 
-  private static Lesson putLessonById(final int lessonId, final String lessonName) {
+  private static Lesson getLessonOrCreateIfNotExists(final int lessonId, final String lessonName) {
     final Lesson lesson;
     if (lessonsById.containsKey(lessonId)) {
       lesson = lessonsById.get(lessonId);

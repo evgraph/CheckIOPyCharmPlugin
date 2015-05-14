@@ -7,13 +7,13 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.hash.HashMap;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,18 +26,23 @@ import java.util.Map;
   storages = {
     @Storage(
       //id = "others",
-      file = StoragePathMacros.MODULE_FILE
+      file = StoragePathMacros.PROJECT_CONFIG_DIR + "/task_info.xml"
       //scheme = StorageScheme.DIRECTORY_BASED
     )}
 )
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
-  public CheckIOUser myUser;
   public String accessToken;
-  public Map<Task, TaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
   public HashMap<Task, StudyStatus> myTaskStatusMap = new HashMap<>();
   public Map<Task, Integer> myTaskIds = new HashMap<>();
+  private CheckIOUser myUser;
+  private Map<Task, TaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
 
   private CheckIOTaskManager() {
+  }
+
+  public static CheckIOTaskManager getInstance(@NotNull final Project project) {
+    final Module module = ModuleManager.getInstance(project).getModules()[0];
+    return ModuleServiceManager.getService(module, CheckIOTaskManager.class);
   }
 
   public void setTaskStatus(Task task, StudyStatus status) {
@@ -46,15 +51,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
 
   public StudyStatus getTaskStatus(Task task) {
     return myTaskStatusMap.get(task);
-  }
-
-  public static CheckIOTaskManager getInstance(@NotNull final Project project) {
-    final Module module = ModuleManager.getInstance(project).getModules()[0];
-    return ModuleServiceManager.getService(module, CheckIOTaskManager.class);
-  }
-
-  public String getAccessToken() {
-    return accessToken;
   }
 
   public void setAccessToken(String accessToken) {
