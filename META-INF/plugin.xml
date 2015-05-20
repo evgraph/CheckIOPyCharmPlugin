@@ -26,6 +26,7 @@
   <depends>com.intellij.modules.lang</depends>
   -->
 
+
   <extensions defaultExtensionNs="com.intellij">
     <directoryProjectGenerator implementation="CheckIOProjectGenerator"/>
     <toolWindow id = "Task Info" anchor = "right" factoryClass = "CheckIOTaskToolWindowFactory" />
@@ -33,6 +34,7 @@
     <projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />
     <projectService serviceInterface="CheckIOTaskManager" serviceImplementation="CheckIOTaskManager"/>
     <treeStructureProvider implementation="com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider"/>
+
   </extensions>
 
 
@@ -42,11 +44,19 @@
 
   </application-components>
 
-  <project-components>
-    <!-- Add your project components here -->
-  </project-components>
+  <!--<project-components>-->
+  <!--&lt;!&ndash; Add your project components here &ndash;&gt;-->
+  <!--<component>-->
+  <!--<implementation-class>CheckIOProjectComponent</implementation-class>-->
+  <!--</component>-->
+  <!--</project-components>-->
 
   <actions>
   </actions>
 
+  <project-components>
+    <component>
+      <implementation-class>CheckIOProjectComponent</implementation-class>
+    </component>
+  </project-components>
 </idea-plugin>

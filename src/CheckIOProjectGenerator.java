@@ -3,24 +3,18 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowEP;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.platform.DirectoryProjectGenerator;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
-import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
@@ -38,7 +32,6 @@ import java.net.URISyntaxException;
 public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implements DirectoryProjectGenerator {
 
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
-  private static final String TOOL_WINDOW_ID = "Task Info";
   CheckIONewProjectPanel mySettingsPanel;
   private File myCoursesDir;
 
@@ -96,60 +89,9 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
 
   }
 
-  private static CheckIOTaskToolWindowFactory getCheckIOToolWindowFactory(ToolWindowEP[] toolWindowEPs) {
-    for (ToolWindowEP toolWindowEP : toolWindowEPs) {
-      if (toolWindowEP.id.equals(TOOL_WINDOW_ID)) {
-        return (CheckIOTaskToolWindowFactory)toolWindowEP.getToolWindowFactory();
-      }
-    }
-    return null;
-  }
 
-  private static void addListener(final Project project, final CheckIOTaskToolWindowFactory toolWindowFactory) {
-    project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
 
-      @Override
-      public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        ToolWindow taskInfoToolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
-        TaskFile taskFile;
-        if ((taskFile = StudyUtils.getTaskFile(project, file)) == null) {
-          LOG.error("Error: task file is null");
-          return;
-        }
-        taskInfoToolWindow.show(null);
-        Task task = taskFile.getTask();
 
-        String taskText = task.getText();
-        String taskName = task.getName();
-        toolWindowFactory.taskInfoPanel.setTaskText("text/html", taskText);
-        toolWindowFactory.taskInfoPanel.setTaskNameLabelText(taskName);
-
-      }
-
-      @Override
-      public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        //taskInfoToolWindow.hide(null);
-      }
-
-      @Override
-      public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-        VirtualFile file;
-        TaskFile taskFile;
-        if ((file = event.getNewFile()) == null || (taskFile = StudyUtils.getTaskFile(project, file)) == null) {
-          LOG.warn("Error while getting task file: file or task file is null");
-          return;
-        }
-
-        Task task = taskFile.getTask();
-
-        String taskText = task.getText();
-        String taskName = task.getName();
-
-        toolWindowFactory.taskInfoPanel.setTaskText("text/html", taskText);
-        toolWindowFactory.taskInfoPanel.setTaskNameLabelText(taskName);
-      }
-    });
-  }
 
   @Nls
   @NotNull
@@ -190,11 +132,12 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
                   setTaskFilesStatusFromTask(CheckIOTaskManager.getInstance(project), StudyTaskManager.getInstance(project));
                   VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
                   ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
-                  CheckIOTaskToolWindowFactory toolWindowFactory = getCheckIOToolWindowFactory(toolWindowEPs);
-                  addListener(project, toolWindowFactory);
+                  CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
+                  //CheckIOUtils.createFileEditorListener(project, toolWindowFactory);
 
 
-                  toolWindowFactory.createToolWindowContent(project, ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID));
+                  toolWindowFactory.createToolWindowContent(project, ToolWindowManager.getInstance(project).
+                    getToolWindow(CheckIOUtils.TOOL_WINDOW_ID));
 
                   StudyProjectGenerator.openFirstTask(course, project);
                 }
@@ -228,6 +171,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Nullable
   @Override
   public JPanel extendBasePanel() throws ProcessCanceledException {
+
     mySettingsPanel = new CheckIONewProjectPanel();
     //mySettingsPanel.registerValidators(new FacetValidatorsManager() {
     //  public void registerValidator(FacetEditorValidator validator, JComponent... componentsToWatch) {

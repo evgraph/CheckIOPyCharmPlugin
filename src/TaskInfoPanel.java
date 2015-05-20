@@ -40,10 +40,14 @@ class TaskInfoPanel extends JPanel {
     return myButtonPanel.myPublishSolutionButton;
   }
 
-  public void setTaskText(String contentType, String taskDescription) {
+  public void setTaskText(String contentType, String taskText) {
+    if (myTaskTextPane == null) {
+      myTaskTextPane = makeTaskTextPane(taskText);
+      return;
+    }
     myTaskTextPane.setContentType(contentType);
     myTaskTextPane.add(new JBScrollBar());
-    myTaskTextPane.setText(taskDescription);
+    myTaskTextPane.setText(taskText);
   }
 
   public String getTaskText() {

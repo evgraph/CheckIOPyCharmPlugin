@@ -1,12 +1,21 @@
 import com.intellij.openapi.diagnostic.DefaultLogger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.StudyUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -20,22 +29,48 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOTaskToolWindowFactory.class.getName());
   public TaskInfoPanel taskInfoPanel;
 
+  private static Task getTaskFromSelectedEditor(Project project) {
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+    FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+    assert fileEditorManager != null;
+    Editor textEditor = fileEditorManager.getSelectedTextEditor();
+    assert textEditor != null;
+    Document document = textEditor.getDocument();
+    VirtualFile file = fileDocumentManager.getFile(document);
+    assert file != null;
+    StudyUtils.getTaskFile(project, file);
+
+
+    TaskFile taskFile = StudyUtils.getTaskFile(project, file);
+    assert taskFile != null;
+    return taskFile.getTask();
+  }
+
+  public void setListener(Project project, FileEditorManagerListener listener) {
+    if (listener == null) {
+      return;
+    }
+    project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
+  }
+
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
-    //addListener(project);
-    final JBCardLayout cardLayout = new JBCardLayout();
-    final JPanel contentPanel = new JPanel(cardLayout);
     final Course course = StudyTaskManager.getInstance(project).getCourse();
     if (course == null) {
       LOG.error("Course is null");
     }
+
     String currentTaskText = "";
     String currentTaskName = "";
-
-    if (taskInfoPanel != null) {
-      currentTaskText = taskInfoPanel.getTaskText();
-      currentTaskName = taskInfoPanel.getTaskName();
+    Task task;
+    if ((task = getTaskFromSelectedEditor(project)) != null) {
+      currentTaskText = task.getText();
+      currentTaskName = task.getName();
     }
+
+    final JBCardLayout cardLayout = new JBCardLayout();
+    final JPanel contentPanel = new JPanel(cardLayout);
+
 
     taskInfoPanel = new TaskInfoPanel(currentTaskText, currentTaskName);
     SolutionsPanel solutionsPanel = new SolutionsPanel();
@@ -79,6 +114,8 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     });
   }
 }
+
+
 
 
 

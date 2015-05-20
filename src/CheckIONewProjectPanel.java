@@ -1,19 +1,38 @@
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.JBColor;
+import com.intellij.ui.JBCardLayout;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 
 
 public class CheckIONewProjectPanel {
   private static final Logger LOG = Logger.getInstance(CheckIONewProjectPanel.class.getName());
-  private JPanel myPanel;
-  private JTextArea myDescription;
+  private static final String PROJECT_CREATION_PANEL = "project panel";
+  private static final String AUTHORIZATION_PANEL = "authorization panel";
+  private JPanel myContentPanel;
   private JButton authorizationButton;
 
 
   public CheckIONewProjectPanel() {
+    final JPanel projectCreationPanel = new JPanel(new GridBagLayout());
+    final JLabel authorizationResultLabel = new JLabel();
+    projectCreationPanel.add(authorizationResultLabel);
+
+    final JBCardLayout cardLayout = new JBCardLayout();
+    myContentPanel = new JPanel(cardLayout);
+    final JPanel authorizationPanel = new JPanel(new BorderLayout());
+    authorizationButton = new JButton();
+    authorizationButton.setIcon(createImageIcon("/resources/checkio_2.png"));
+    final JLabel authorizationDescriptionLabel = new JLabel("You should authorize to create a new project");
+    authorizationPanel.add(authorizationButton, BorderLayout.PAGE_START);
+    authorizationPanel.add(authorizationDescriptionLabel, BorderLayout.CENTER);
+
+    myContentPanel.add(AUTHORIZATION_PANEL, authorizationPanel);
+    myContentPanel.add(PROJECT_CREATION_PANEL, projectCreationPanel);
+
     authorizationButton.addActionListener(new ActionListener() {
 
       @Override
@@ -25,11 +44,13 @@ public class CheckIONewProjectPanel {
          public void run() {
            CheckIOUser user;
            if ((user = authorizeUser()) == null) {
-             JOptionPane.showMessageDialog(myPanel, "You're not authorized. Try again");
+             JOptionPane.showMessageDialog(authorizationPanel, "You're not authorized. Try again");
              authorizationButton.setEnabled(true);
+
            }
            else {
-             JOptionPane.showMessageDialog(myPanel, "You're logged in as \" " + user.getUsername() + "\" ");
+             authorizationResultLabel.setText("You are logged in as " + user.getUsername());
+             cardLayout.swipe(myContentPanel, PROJECT_CREATION_PANEL, JBCardLayout.SwipeDirection.FORWARD);
            }
          }
        }.start();
@@ -37,7 +58,6 @@ public class CheckIONewProjectPanel {
     });
 
 
-    myDescription.setBorder(BorderFactory.createLineBorder(JBColor.border()));
   }
 
   private CheckIOUser authorizeUser() {
@@ -53,9 +73,18 @@ public class CheckIONewProjectPanel {
     return user;
   }
   public JPanel getMainPanel() {
-    return myPanel;
+    return myContentPanel;
   }
 
+  private ImageIcon createImageIcon(String path) {
+    final URL imgURL = getClass().getResource(path);
+    if (imgURL != null) {
+      return new ImageIcon(imgURL);
+    }
+    else {
+      return null;
+    }
+  }
 
 
 }
