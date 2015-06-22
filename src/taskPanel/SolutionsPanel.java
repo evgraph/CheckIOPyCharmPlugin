@@ -1,3 +1,5 @@
+package taskPanel;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.treeStructure.Tree;
 
@@ -5,7 +7,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 
-class SolutionsPanel extends JPanel {
+public class SolutionsPanel extends JPanel {
   private static final String CLEAR_SOLUTIONS = "Clear solutions";
   private static final String CREATIVE_SOLUTIONS = "Creative solutions";
   private static final String SPEEDY_SOLUTIONS = "Speedy solutions";

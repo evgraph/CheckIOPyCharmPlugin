@@ -1,41 +1,33 @@
+package taskPanel;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollBar;
+import com.jetbrains.edu.courseFormat.Task;
+import main.CheckIOTaskManager;
+import main.CheckIOUser;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
+import java.util.ArrayList;
 
-class ProfilePanel extends JPanel {
+public class ProfilePanel extends JPanel {
   private final static int USER_PROGRESS = 25;
   private static final DefaultLogger LOG = new DefaultLogger(ProfilePanel.class.getName());
   final JButton backFromProfileButton = new JButton(AllIcons.Actions.Back);
-  private InfoPanel infoPanel;
-  private StationsProgressPanel myStationsProgressPanel;
-  private TaskAndBadgesProgressPanel tasksAndBadgesPanel;
-  private JPanel backButtonPanel;
-  private CheckIOUser user;
-
 
   public ProfilePanel(Project project) {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
-    user = manager.getUser();
-    //user = new CheckIOUser("test", 1, 1);
-    if (user == null) {
-      LOG.error("Create ToolWindow Content: user is null");
-      return;
-    }
-    backButtonPanel = createBackButtonPanel();
-    infoPanel = new InfoPanel();
-    myStationsProgressPanel = new StationsProgressPanel("Home", "Elementary");
-    tasksAndBadgesPanel = new TaskAndBadgesProgressPanel();
-    add(backButtonPanel);
-    add(infoPanel);
-    add(myStationsProgressPanel);
-    add(tasksAndBadgesPanel);
+
+
+    addAll(createBackButtonPanel(), new InfoPanel(project),
+           new StationsProgressPanel("Home", "Elementary"), new TaskAndBadgesProgressPanel(project));
+
+
   }
 
   private static JProgressBar setProgressBar(int value, int to) {
@@ -56,6 +48,15 @@ class ProfilePanel extends JPanel {
     return constraints;
   }
 
+  private void addAll(JPanel backButtonPanel, InfoPanel infoPanel, StationsProgressPanel stationsProgressPanel,
+                      TaskAndBadgesProgressPanel tasksAndBadgesPanel) {
+    add(backButtonPanel);
+    add(infoPanel);
+    add(stationsProgressPanel);
+    add(tasksAndBadgesPanel);
+
+  }
+
   public JButton getBackFromProfileButton() {
     return backFromProfileButton;
   }
@@ -71,9 +72,9 @@ class ProfilePanel extends JPanel {
     private TaskProgressPanel myTaskProgressPanel;
     private BadgesPanel myBadgesPanel;
 
-    public TaskAndBadgesProgressPanel() {
+    public TaskAndBadgesProgressPanel(@NotNull Project project) {
       setLayout(new GridLayout(1, 2, 10, 10));
-      myTaskProgressPanel = new TaskProgressPanel();
+      myTaskProgressPanel = new TaskProgressPanel(project);
       myBadgesPanel = new BadgesPanel();
       add(myTaskProgressPanel);
       add(myBadgesPanel);
@@ -83,17 +84,18 @@ class ProfilePanel extends JPanel {
       private JPanel missionsPanel;
       private JPanel publicationsPanel;
 
-      public TaskProgressPanel() {
+      public TaskProgressPanel(@NotNull Project project) {
         setLayout(new GridLayout(2, 1, 10, 10));
-        missionsPanel = createListPanel("Missions", new String[]{""});
-        publicationsPanel = createListPanel("Publications", new String[]{""});
+        missionsPanel = createListPanel("Missions", project);
+        publicationsPanel = createListPanel("Publications", project);
         add(missionsPanel);
         add(publicationsPanel);
       }
 
-      private static JPanel createListPanel(String name, String[] itemNames) {
+
+      private static JPanel createListPanel(@NotNull String name, @NotNull Project project) {
         final JPanel panel = new JPanel();
-        final JBList completedTasksList = createList(itemNames);
+        final JBList completedTasksList = createList(project);
         completedTasksList.setPreferredSize(new Dimension(200, 180));
         completedTasksList.add(new JBScrollBar());
         panel.add(completedTasksList);
@@ -102,15 +104,30 @@ class ProfilePanel extends JPanel {
       }
 
 
-      private static JBList createList(String[] missionNames) {
+      private static JBList createList(@NotNull Project project) {
         final DefaultListModel<String> tasksListModel = new DefaultListModel<>();
-        for (String name : missionNames) {
-          tasksListModel.addElement(name);
+        ArrayList<Task> publishedTasks = CheckIOTaskManager.getInstance(project).getPublishedTasks();
+        for (Task task : publishedTasks) {
+          tasksListModel.addElement(task.getName());
         }
-
-        return new JBList(tasksListModel);
+        for (int i = 0; i < 10; i++) {
+          tasksListModel.addElement("sss");
+        }
+        JBList list = new JBList(tasksListModel);
+        list.add(new JBScrollBar());
+        return list;
       }
-    }
+
+
+      }
+
+    //  class MyPublicationListener implements ListSelectionListener{
+    //    @Override
+    //    public void valueChanged(ListSelectionEvent e) {
+    //      e.getSource()
+    //    }
+    //  }
+    //}
 
     static class BadgesPanel extends JPanel {
       private ImageIcon badgeIcon;
@@ -153,12 +170,15 @@ class ProfilePanel extends JPanel {
     }
   }
 
-  class InfoPanel extends JPanel {
+  static class InfoPanel extends JPanel {
     private JLabel myBadgesLabel;
     private JLabel myLevelLabel;
     private JProgressBar myLevelProgressBar;
 
-    public InfoPanel() {
+    public InfoPanel(@NotNull Project project) {
+      CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
+      CheckIOUser user = manager.getUser();
+      assert user != null;
       setLayout(new GridBagLayout());
       myBadgesLabel = new JLabel("1 badge");
       myLevelLabel = new JLabel(user.getLevel() + " LVL");

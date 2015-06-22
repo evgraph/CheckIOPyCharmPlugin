@@ -1,3 +1,5 @@
+package taskPanel;
+
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -34,16 +36,18 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
     assert fileEditorManager != null;
     Editor textEditor = fileEditorManager.getSelectedTextEditor();
-    assert textEditor != null;
-    Document document = textEditor.getDocument();
-    VirtualFile file = fileDocumentManager.getFile(document);
-    assert file != null;
-    StudyUtils.getTaskFile(project, file);
+    if (textEditor != null) {
+      Document document = textEditor.getDocument();
+      VirtualFile file = fileDocumentManager.getFile(document);
+      assert file != null;
+      StudyUtils.getTaskFile(project, file);
 
 
-    TaskFile taskFile = StudyUtils.getTaskFile(project, file);
-    assert taskFile != null;
-    return taskFile.getTask();
+      TaskFile taskFile = StudyUtils.getTaskFile(project, file);
+      assert taskFile != null;
+      return taskFile.getTask();
+    }
+    return null;
   }
 
   public void setListener(Project project, FileEditorManagerListener listener) {
@@ -56,9 +60,9 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
     final Course course = StudyTaskManager.getInstance(project).getCourse();
-    if (course == null) {
-      LOG.error("Course is null");
-    }
+    StudyTaskManager taskManager = StudyTaskManager.getInstance(project);
+    assert course != null;
+
 
     String currentTaskText = "";
     String currentTaskName = "";

@@ -1,9 +1,11 @@
+package taskPanel;
+
 import com.intellij.ui.components.JBScrollBar;
 
 import javax.swing.*;
 import java.awt.*;
 
-class TaskInfoPanel extends JPanel {
+public class TaskInfoPanel extends JPanel {
   private JEditorPane myTaskTextPane;
   private ButtonPanel myButtonPanel;
   private JLabel taskNameLabel;
