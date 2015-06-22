@@ -1,7 +1,10 @@
+package main;
+
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -25,6 +28,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -59,12 +63,8 @@ public class CheckIOUserAuthorizer {
   private Server myServer;
   private String myAccessToken;
 
-  private static void openAuthorizationPage() throws IOException, URISyntaxException {
-    URI url = new URIBuilder(AUTHORIZATION_URL)
-      .addParameter(PARAMETER_REDIRECT_URI, REDIRECT_URI)
-      .addParameter(PARAMETER_RESPONSE_TYPE, PARAMETER_CODE)
-      .addParameter(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY))
-      .build();
+  private static void openAuthorizationPage() {
+    URI url = makeAuthorizationPageURI();
     if (Desktop.isDesktopSupported()) {
       Desktop desktop = Desktop.getDesktop();
       try {
@@ -85,7 +85,35 @@ public class CheckIOUserAuthorizer {
     }
   }
 
-  private static String getAccessToken(final String code) throws IOException, JSONException {
+  private static URI makeAuthorizationPageURI() {
+    URI url = null;
+    try {
+      url = new URIBuilder(AUTHORIZATION_URL)
+        .addParameter(PARAMETER_REDIRECT_URI, REDIRECT_URI)
+        .addParameter(PARAMETER_RESPONSE_TYPE, PARAMETER_CODE)
+        .addParameter(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY))
+        .build();
+    }
+    catch (URISyntaxException e) {
+      LOG.error(e.getMessage());
+    }
+    return url;
+  }
+
+  private static String getAccessToken(final String code) {
+    final HttpPost request = makeAccessTokenRequest(code);
+    final HttpResponse response = requestAccessToken(request);
+    JSONObject jsonObject = new JSONObject();
+    try {
+      jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    return jsonObject.getString(PARAMETER_ACCESS_TOKEN);
+  }
+
+  private static HttpPost makeAccessTokenRequest(String code) {
     final HttpPost request = new HttpPost(TOKEN_URL);
     final List<NameValuePair> requestParameters = new ArrayList<>();
     requestParameters.add(new BasicNameValuePair(PARAMETER_CODE, code));
@@ -93,48 +121,112 @@ public class CheckIOUserAuthorizer {
     requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, GRANT_TYPE));
     requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY)));
     requestParameters.add(new BasicNameValuePair(PARAMETER_REDIRECT_URI, REDIRECT_URI));
-    request.setEntity(new UrlEncodedFormEntity(requestParameters));
+
     request.addHeader(PARAMETER_CONTENT_TYPE, CONTENT_TYPE);
     request.addHeader(PARAMETER_ACCEPT, ACCEPT_TYPE);
 
-    final CloseableHttpClient client = HttpClientBuilder.create().build();
-    final HttpResponse response = client.execute(request);
-    final JSONObject jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
-    return jsonObject.getString(PARAMETER_ACCESS_TOKEN);
+    try {
+      request.setEntity(new UrlEncodedFormEntity(requestParameters));
+    }
+    catch (UnsupportedEncodingException e) {
+      LOG.error(e.getMessage());
+    }
+    return request;
   }
 
-  private static CheckIOUser getUser(final String accessToken) throws URISyntaxException, IOException {
-    final URI uri = new URIBuilder(USER_INFO_URL)
-      .addParameter(PARAMETER_ACCESS_TOKEN, accessToken)
-      .build();
-    final HttpGet request = new HttpGet(uri);
+  private static HttpResponse requestAccessToken(HttpPost request) {
+    HttpResponse response = null;
     final CloseableHttpClient client = HttpClientBuilder.create().build();
-    final HttpResponse response = client.execute(request);
+    try {
+      response = client.execute(request);
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    return response;
+  }
 
-    final String userInfo = EntityUtils.toString(response.getEntity());
+  private static CheckIOUser getUser(final String accessToken) {
+    final URI uri = makeUserRequestUri(accessToken);
+    final HttpResponse response = requestUserInfo(uri);
+    final HttpEntity entity = response.getEntity();
+    String userInfo = "";
+    try {
+      userInfo = EntityUtils.toString(entity);
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
     final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
     return gson.fromJson(userInfo, CheckIOUser.class);
+  }
+
+  private static HttpResponse requestUserInfo(URI uri) {
+    HttpResponse response = null;
+    final HttpGet request = new HttpGet(uri);
+    final CloseableHttpClient client = HttpClientBuilder.create().build();
+    try {
+      response = client.execute(request);
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+
+    if (response != null) {
+      return response;
+    }
+    else {
+      throw new NullPointerException();
+    }
+  }
+
+  private static URI makeUserRequestUri(final String accessToken) {
+    URI uri = null;
+    try {
+      uri = new URIBuilder(USER_INFO_URL)
+        .addParameter(PARAMETER_ACCESS_TOKEN, accessToken)
+        .build();
+    }
+    catch (URISyntaxException e) {
+      LOG.error(e.getMessage());
+    }
+    return uri;
   }
 
   public String getAccessToken() {
     return myAccessToken;
   }
 
-  private void startServer() throws Exception {
+  private void startServer() {
     myServer = new Server(ourPort);
     MyContextHandler contextHandler = new MyContextHandler();
     myServer.setHandler(contextHandler);
-    myServer.start();
+    try {
+      myServer.start();
+    }
+    catch (Exception e) {
+      LOG.error(e.getMessage());
+    }
   }
 
-  public CheckIOUser authorizeUser() throws Exception {
+  public CheckIOUser authorizeUser() {
     InputStream is = this.getClass().getResourceAsStream("/oauthData.properties");
-    ourProperties.load(is);
+    try {
+      ourProperties.load(is);
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
     if (myServer == null || !myServer.isRunning()) {
       startServer();
     }
     openAuthorizationPage();
-    myServer.join();
+    try {
+      myServer.join();
+    }
+    catch (InterruptedException e) {
+      LOG.error(e.getMessage());
+    }
 
     return getUser(myAccessToken);
   }

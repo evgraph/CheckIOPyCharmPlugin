@@ -1,4 +1,7 @@
+package main;
+
 import com.intellij.openapi.wm.ToolWindowEP;
+import taskPanel.CheckIOTaskToolWindowFactory;
 
 public class CheckIOUtils {
   public static final String TOOL_WINDOW_ID = "Task Info";

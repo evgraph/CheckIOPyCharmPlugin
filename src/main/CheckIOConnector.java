@@ -1,11 +1,10 @@
+package main;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.jetbrains.edu.courseFormat.Course;
-import com.jetbrains.edu.courseFormat.Lesson;
-import com.jetbrains.edu.courseFormat.Task;
-import com.jetbrains.edu.courseFormat.TaskFile;
+import com.jetbrains.edu.courseFormat.*;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -30,13 +29,10 @@ public class CheckIOConnector {
     put(true, StudyStatus.Solved);
     put(false, StudyStatus.Unchecked);
   }};
-
   private static final Map<Boolean, TaskPublicationStatus> taskPublicationStatus = new HashMap<Boolean, TaskPublicationStatus>() {{
     put(true, TaskPublicationStatus.Published);
     put(false, TaskPublicationStatus.Unpublished);
   }};
-
-
   private static String myAccessToken;
   private static CheckIOUser myUser;
   private static HashMap<Integer, Lesson> lessonsById;
@@ -51,19 +47,53 @@ public class CheckIOConnector {
     return myAccessToken;
   }
 
-  private static MissionsWrapper[] getMissions() throws URISyntaxException, IOException {
-    final URI uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
-      .addParameter(PARAMETER_ACCESS_TOKEN, myAccessToken)
-      .build();
-    final HttpGet request = new HttpGet(uri);
-    final CloseableHttpClient client = HttpClientBuilder.create().build();
-    final HttpResponse response = client.execute(request);
-    final String missions = EntityUtils.toString(response.getEntity());
+  private static MissionsWrapper[] getMissions() {
+    HttpResponse response = requestMissions();
+    String missions = "";
+    try {
+      missions = EntityUtils.toString(response.getEntity());
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    assert missions != null;
     final Gson gson = new GsonBuilder().create();
     return gson.fromJson(missions, MissionsWrapper[].class);
   }
 
-  public static Course getCourseForProject(Project project) throws IOException, URISyntaxException {
+  private static HttpResponse requestMissions() {
+    HttpResponse response = null;
+    try {
+      HttpGet request = makeMissionsRequest();
+      final CloseableHttpClient client = HttpClientBuilder.create().build();
+      response = client.execute(request);
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    if (response == null) {
+      throw new NullPointerException();
+    }
+    else {
+      return response;
+    }
+  }
+
+  private static HttpGet makeMissionsRequest() {
+    URI uri = null;
+    try {
+      uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
+        .addParameter(PARAMETER_ACCESS_TOKEN, myAccessToken)
+        .build();
+    }
+    catch (URISyntaxException e) {
+      LOG.error(e.getMessage());
+    }
+    return new HttpGet(uri);
+  }
+
+
+  public static Course getCourseForProject(Project project) {
     lessonsById = new HashMap<>();
     course = new Course();
     course.setLanguage("Python");
@@ -74,7 +104,7 @@ public class CheckIOConnector {
       final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
 
       for (MissionsWrapper missionsWrapper : missionsWrappers) {
-        final Lesson lesson = getLessonOrCreateIfNotExists(missionsWrapper.stationId, missionsWrapper.stationName);
+        final Lesson lesson = getLessonOrCreateIfDoesntExist(missionsWrapper.stationId, missionsWrapper.stationName);
         final Task task = getTaskFromMission(missionsWrapper);
         setTaskInfoInTaskManager(taskManager, task, missionsWrapper);
         lesson.addTask(task);
@@ -89,13 +119,15 @@ public class CheckIOConnector {
 
   private static Task getTaskFromMission(final MissionsWrapper missionsWrapper) {
     final Task task = createTaskFromMission(missionsWrapper);
-
-
     task.addTaskFile(task.getName() + ".py", 0);
     final TaskFile taskFile= task.getTaskFile(task.getName() + ".py");
     if (taskFile != null) {
       taskFile.name = task.getName();
       taskFile.text = missionsWrapper.code;
+      AnswerPlaceholder answerPlaceholder = new AnswerPlaceholder();
+      answerPlaceholder.setTaskText(taskFile.text);
+      answerPlaceholder.initAnswerPlaceholder(taskFile, false);
+      taskFile.addAnswerPlaceholder(answerPlaceholder);
     }
     else {
       LOG.warn("Task file for task " + task.getName() + "is null");
@@ -105,7 +137,7 @@ public class CheckIOConnector {
     return task;
   }
 
-  private static Lesson getLessonOrCreateIfNotExists(final int lessonId, final String lessonName) {
+  private static Lesson getLessonOrCreateIfDoesntExist(final int lessonId, final String lessonName) {
     final Lesson lesson;
     if (lessonsById.containsKey(lessonId)) {
       lesson = lessonsById.get(lessonId);
@@ -133,7 +165,7 @@ public class CheckIOConnector {
     taskManager.setTaskId(task, missionsWrapper.id);
   }
 
-  public static CheckIOUser authorizeUser() throws Exception {
+  public static CheckIOUser authorizeUser() {
     CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
     myUser = authorizer.authorizeUser();
     myAccessToken = authorizer.getAccessToken();

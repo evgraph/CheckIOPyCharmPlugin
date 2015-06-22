@@ -1,3 +1,5 @@
+package main;
+
 public class CheckIOUser {
   private String username = "";
   private int uid;

@@ -1,3 +1,5 @@
+package main;
+
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
@@ -13,8 +15,10 @@ import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Implementation of class which contains all the information
@@ -22,7 +26,7 @@ import java.util.Map;
  */
 
 @State(
-  name = "CheckIOTaskManager",
+  name = "main.CheckIOTaskManager",
   storages = {
     @Storage(
       //id = "others",
@@ -32,8 +36,8 @@ import java.util.Map;
 )
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
   public String accessToken;
-  public HashMap<Task, StudyStatus> myTaskStatusMap = new HashMap<>();
-  public Map<Task, Integer> myTaskIds = new HashMap<>();
+  public HashMap<String, StudyStatus> myTaskStatusMap = new HashMap<>();
+  public Map<String, Integer> myTaskIds = new HashMap<>();
   private CheckIOUser myUser;
   private Map<Task, TaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
 
@@ -46,11 +50,11 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   }
 
   public void setTaskStatus(Task task, StudyStatus status) {
-    myTaskStatusMap.put(task, status);
+    myTaskStatusMap.put(task.getName(), status);
   }
 
   public StudyStatus getTaskStatus(Task task) {
-    return myTaskStatusMap.get(task);
+    return myTaskStatusMap.get(task.getName());
   }
 
   public void setAccessToken(String accessToken) {
@@ -71,11 +75,11 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     if (myTaskIds == null) {
       myTaskIds = new HashMap<>();
     }
-    myTaskIds.put(task, id);
+    myTaskIds.put(task.getName(), id);
   }
 
   public Integer getTaskId(Task task) {
-    return myTaskIds.get(task);
+    return myTaskIds.get(task.getName());
   }
 
   public void setPublicationStatus(Task task, TaskPublicationStatus publicationStatus) {
@@ -85,11 +89,21 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     myPublicationStatusMap.put(task, publicationStatus);
   }
 
-  public TaskPublicationStatus getPublicationStatus(Task task) {
-    return myPublicationStatusMap.get(task);
+  //public TaskPublicationStatus getPublicationStatus(Task task) {
+  //  return myPublicationStatusMap.get(task);
+  //}
+
+
+  public ArrayList<Task> getPublishedTasks() {
+    ArrayList<Task> publishedTasks = new ArrayList<>();
+
+    for (Entry<Task, TaskPublicationStatus> entry : myPublicationStatusMap.entrySet()) {
+      if (entry.getValue() == TaskPublicationStatus.Published) {
+        publishedTasks.add(entry.getKey());
+      }
+    }
+    return publishedTasks;
   }
-
-
   @Nullable
   @Override
   public CheckIOTaskManager getState() {
