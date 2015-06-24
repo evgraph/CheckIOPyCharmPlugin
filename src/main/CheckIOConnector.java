@@ -4,7 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.jetbrains.edu.courseFormat.*;
+import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.courseFormat.Lesson;
+import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -124,16 +127,10 @@ public class CheckIOConnector {
     if (taskFile != null) {
       taskFile.name = task.getName();
       taskFile.text = missionsWrapper.code;
-      AnswerPlaceholder answerPlaceholder = new AnswerPlaceholder();
-      answerPlaceholder.setTaskText(taskFile.text);
-      answerPlaceholder.initAnswerPlaceholder(taskFile, false);
-      taskFile.addAnswerPlaceholder(answerPlaceholder);
     }
     else {
       LOG.warn("Task file for task " + task.getName() + "is null");
     }
-
-
     return task;
   }
 

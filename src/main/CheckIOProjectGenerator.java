@@ -27,7 +27,6 @@ import taskPanel.CheckIOTaskToolWindowFactory;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.List;
 
 
 public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implements DirectoryProjectGenerator {
@@ -87,16 +86,21 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
         for (Task task : lesson.getTaskList()) {
           TaskFile taskFile = task.getTaskFile(task.getName() + ".py");
           assert taskFile != null;
-          List<AnswerPlaceholder> answerPlaceholders = taskFile.getAnswerPlaceholders();
-          assert answerPlaceholders != null;
-          for (AnswerPlaceholder answerPlaceholder : answerPlaceholders) {
-            StudyStatus status = taskManager.getTaskStatus(task);
-            studyManager.setStatus(answerPlaceholder, status);
-            taskFile.addAnswerPlaceholder(answerPlaceholder);
-          }
+          AnswerPlaceholder answerPlaceholder = createAnswerPlaceholder(task.getName());
+          answerPlaceholder.initAnswerPlaceholder(taskFile, true);
+          StudyStatus status = taskManager.getTaskStatus(task);
+          taskFile.addAnswerPlaceholder(answerPlaceholder);
+          studyManager.setStatus(task, status);
         }
       }
     }
+  }
+
+  private static AnswerPlaceholder createAnswerPlaceholder(String taskName) {
+    AnswerPlaceholder answerPlaceholder = new AnswerPlaceholder();
+    answerPlaceholder.setTaskText(taskName);
+    answerPlaceholder.setIndex(0);
+    return answerPlaceholder;
   }
 
 
@@ -135,6 +139,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
                 final File courseDirectory = new File(myCoursesDir, course.getName());
                 StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
                 course.setCourseDirectory(myCoursesDir.getAbsolutePath());
+
                 VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
                 ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
                 CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
@@ -143,7 +148,6 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
                 assert toolWindowFactory != null;
                 toolWindowFactory.createToolWindowContent(project, ToolWindowManager.getInstance(project).
                   getToolWindow(CheckIOUtils.TOOL_WINDOW_ID));
-                //StudyTaskManager taskManager = StudyTaskManager.getInstance(project);
 
                 StudyProjectGenerator.openFirstTask(course, project);
               }
@@ -165,10 +169,9 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @NotNull
   @Override
   public ValidationResult validate(@NotNull String baseDirPath) {
-    String message = mySettingsPanel.authorizationResultLabel.getText() != "" ? "" : "Authorize";
-
-
-    return message.isEmpty() ? ValidationResult.OK : new ValidationResult(message);
+    //String message = mySettingsPanel.authorizationResultLabel.getText() != "" ? "" : "Authorize";
+    return ValidationResult.OK;
+    //return message.isEmpty() ? ValidationResult.OK : new ValidationResult(message);
   }
 
   @Nullable

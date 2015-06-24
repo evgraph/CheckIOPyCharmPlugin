@@ -1,7 +1,6 @@
 package main;
 
 import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -19,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import taskPanel.CheckIOTaskToolWindowFactory;
 
 public class CheckIOProjectComponent implements ProjectComponent {
-  private static DefaultLogger LOG = new DefaultLogger(CheckIOProjectComponent.class.getName());
   private Project myProject;
   private FileEditorManagerListener myListener;
 
@@ -31,7 +29,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
     return new FileEditorManagerListener() {
       @Override
       public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        StudyTaskManager taskManager = StudyTaskManager.getInstance(project);
         Task task = getTask(file);
         setTaskInfoPanel(task);
       }
