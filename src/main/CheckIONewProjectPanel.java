@@ -46,9 +46,8 @@ public class CheckIONewProjectPanel {
        new Thread() {
          @Override
          public void run() {
-           CheckIOUser user;
-           if ((user = authorizeUser()) == null) {
-
+           CheckIOUser user = authorizeUser();
+           if (user == null) {
              JOptionPane.showMessageDialog(authorizationPanel, "You're not authorized. Try again");
              authorizationButton.setEnabled(true);
 

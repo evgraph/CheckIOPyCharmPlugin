@@ -57,10 +57,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     return myTaskStatusMap.get(task.getName());
   }
 
-  public void setAccessToken(String accessToken) {
-    this.accessToken = accessToken;
-  }
-
   public CheckIOUser getUser() {
     return myUser;
   }

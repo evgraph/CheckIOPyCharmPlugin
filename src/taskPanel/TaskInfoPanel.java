@@ -4,6 +4,8 @@ import com.intellij.ui.components.JBScrollBar;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class TaskInfoPanel extends JPanel {
   private JEditorPane myTaskTextPane;
@@ -38,9 +40,9 @@ public class TaskInfoPanel extends JPanel {
     return myButtonPanel.myViewProfileButton;
   }
 
-  public JButton getPublishSolutionsButton() {
-    return myButtonPanel.myPublishSolutionButton;
-  }
+  public JButton getCheckSolutionButton() {return  myButtonPanel.myCheckSolutionButton;}
+
+
 
   public void setTaskText(String contentType, String taskText) {
     if (myTaskTextPane == null) {
@@ -52,13 +54,6 @@ public class TaskInfoPanel extends JPanel {
     myTaskTextPane.setText(taskText);
   }
 
-  public String getTaskText() {
-    return myTaskTextPane.getText();
-  }
-
-  public String getTaskName() {
-    return taskNameLabel.getText();
-  }
 
   public void setTaskNameLabelText(String taskName) {
     this.taskNameLabel.setText(taskName);
@@ -66,26 +61,32 @@ public class TaskInfoPanel extends JPanel {
 
   private static class ButtonPanel extends JPanel {
     private static final String SHOW_SOLUTIONS_BUTTON_TEXT = "Show solutions";
-    private static final String PUBLISH_SOLUTIONS_BUTTON_TEXT = "Publish solution";
+    //private static final String PUBLISH_SOLUTIONS_BUTTON_TEXT = "Publish solution";
+    private static final String CHECK_TASK = "CHECK";
     private static final String VIEW_PROFILE_BUTTON_TEXT = "View Profile";
     private JButton myShowSolutionButton;
-    private JButton myPublishSolutionButton;
+    //private JButton myPublishSolutionButton;
+    private JButton myCheckSolutionButton;
     private JButton myViewProfileButton;
 
 
     public ButtonPanel() {
       initButtons();
-      add(myPublishSolutionButton);
+      //add(myPublishSolutionButton);
+      add(myCheckSolutionButton);
       add(myShowSolutionButton);
       add(myViewProfileButton);
     }
 
     private void initButtons() {
       myShowSolutionButton = new JButton(SHOW_SOLUTIONS_BUTTON_TEXT);
-      myPublishSolutionButton = new JButton(PUBLISH_SOLUTIONS_BUTTON_TEXT);
+      //myPublishSolutionButton = new JButton(PUBLISH_SOLUTIONS_BUTTON_TEXT);
       myViewProfileButton = new JButton(VIEW_PROFILE_BUTTON_TEXT);
-      myPublishSolutionButton.setEnabled(false);
+      myCheckSolutionButton = new JButton(CHECK_TASK);
+      //myPublishSolutionButton.setEnabled(false);
       myShowSolutionButton.setEnabled(false);
     }
+
+
   }
 }

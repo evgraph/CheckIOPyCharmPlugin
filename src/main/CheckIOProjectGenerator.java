@@ -8,6 +8,8 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
@@ -42,7 +44,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
       CheckIOUser user = CheckIOConnector.getMyUser();
       String accessToken = CheckIOConnector.getMyAccessToken();
       taskManager.setUser(user);
-      taskManager.setAccessToken(accessToken);
+      taskManager.accessToken = accessToken;
       return taskManager;
     }
     return null;
@@ -125,7 +127,6 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
 
 
     if (course != null) {
-
       myCoursesDir = new File(PathManager.getConfigPath(), "courses");
       new StudyProjectGenerator().flushCourse(course);
       course.initCourse(false);

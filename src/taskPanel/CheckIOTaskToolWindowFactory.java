@@ -18,6 +18,9 @@ import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
+import com.jetbrains.edu.learning.courseFormat.StudyStatus;
+import main.CheckIOConnector;
+import main.CheckIOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,24 +34,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOTaskToolWindowFactory.class.getName());
   public TaskInfoPanel taskInfoPanel;
 
-  private static Task getTaskFromSelectedEditor(Project project) {
-    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-    FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-    assert fileEditorManager != null;
-    Editor textEditor = fileEditorManager.getSelectedTextEditor();
-    if (textEditor != null) {
-      Document document = textEditor.getDocument();
-      VirtualFile file = fileDocumentManager.getFile(document);
-      assert file != null;
-      StudyUtils.getTaskFile(project, file);
 
-
-      TaskFile taskFile = StudyUtils.getTaskFile(project, file);
-      assert taskFile != null;
-      return taskFile.getTask();
-    }
-    return null;
-  }
 
   public void setListener(Project project, FileEditorManagerListener listener) {
     if (listener == null) {
@@ -60,14 +46,13 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
     final Course course = StudyTaskManager.getInstance(project).getCourse();
-    StudyTaskManager taskManager = StudyTaskManager.getInstance(project);
     assert course != null;
 
 
     String currentTaskText = "";
     String currentTaskName = "";
     Task task;
-    if ((task = getTaskFromSelectedEditor(project)) != null) {
+    if ((task = CheckIOUtils.getTaskFromSelectedEditor(project)) != null) {
       currentTaskText = task.getText();
       currentTaskName = task.getName();
     }
@@ -114,6 +99,27 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
       @Override
       public void actionPerformed(ActionEvent e) {
         cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
+      }
+    });
+
+    taskInfoPanel.getCheckSolutionButton().addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
+        if (task == null) {
+          JOptionPane.showMessageDialog(taskInfoPanel, "No active editor");
+          return;
+        }
+        StudyStatus status = CheckIOConnector.checkTask(project, task);
+        final StudyTaskManager taskManager = StudyTaskManager.getInstance(project);
+        taskManager.setStatus(task, status);
+        if (status.equals(StudyStatus.Solved)) {
+          JOptionPane.showMessageDialog(taskInfoPanel, "Solved");
+        }
+        else {
+          JOptionPane.showMessageDialog(taskInfoPanel, "Failed");
+        }
+
       }
     });
   }

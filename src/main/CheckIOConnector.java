@@ -4,22 +4,33 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
+import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 
+import javax.print.attribute.standard.Finishings;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -27,6 +38,8 @@ public class CheckIOConnector {
   private static final String CHECKIO_API_URL = "http://www.checkio.org/api/";
   private static final String MISSIONS_API = "user-missions/";
   private static final String PARAMETER_ACCESS_TOKEN = "token";
+  private static final String CHECK_URL = "http://www.checkio.org/center/1/ucheck/";
+  private static final String RESTORE_CHECK_URL = "http://www.checkio.org/center/1/restore/";
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
   private static final Map<Boolean, StudyStatus> taskSolutionStatus = new HashMap<Boolean, StudyStatus>() {{
     put(true, StudyStatus.Solved);
@@ -153,6 +166,132 @@ public class CheckIOConnector {
     final Task task = new Task(missionsWrapper.slug);
     task.setText(missionsWrapper.description);
     return task;
+  }
+
+  public static StudyStatus checkTask(Project project, Task task) {
+    if (task.getText().isEmpty()){
+      return StudyStatus.Failed;
+    }
+
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+
+    final HttpPost request = createCheckRequest(project, task);
+    HttpResponse response = executeCheckRequest(request);
+    JSONArray jsonArray = makeJSONArrayFromResponse(response);
+    JSONArray result = (JSONArray) jsonArray.get(jsonArray.length() - 1);
+
+    while (result != null && result.get(0) == "wait") {
+      int time = result.getInt(2);
+      try {
+        Thread.sleep(time * 1000);
+      } catch (InterruptedException e) {
+        LOG.error(e.getMessage());
+      }
+
+      response = restore((String) result.get(1), taskManager.accessToken);
+      jsonArray= makeJSONArrayFromResponse(response);
+      result = (JSONArray) jsonArray.get(jsonArray.length() - 1);
+    }
+    if (result != null && result.get(0).equals("check")) {
+      Integer res = (Integer)result.get(1);
+      if (res == 1) {
+        return StudyStatus.Solved;
+      }
+      else {
+        return StudyStatus.Failed;
+      }
+    }
+    return StudyStatus.Unchecked;
+  }
+
+  private static HttpResponse restore(String connectionId, String accessToken) {
+    HttpPost request = createRestoreRequest(connectionId, accessToken);
+    CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+    HttpResponse response = null;
+    try {
+      response = httpClient.execute(request);
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    return response;
+  }
+
+  private static HttpPost createRestoreRequest(String connectionId, String token) {
+    final HttpPost request = new HttpPost(RESTORE_CHECK_URL);
+    final List<BasicNameValuePair> requestParameters = new ArrayList<>();
+    requestParameters.add(new BasicNameValuePair("connection_id", connectionId));
+    requestParameters.add(new BasicNameValuePair("token", token));
+
+    try {
+      request.setEntity(new UrlEncodedFormEntity(requestParameters));
+    } catch (UnsupportedEncodingException e) {
+      LOG.error(e.getMessage());
+    }
+    return request;
+
+  }
+
+  private static HttpResponse executeCheckRequest(HttpPost request) {
+    final CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpResponse response = null;
+    try {
+      response = client.execute(request);
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    return response;
+
+  }
+
+  private static JSONArray makeJSONArrayFromResponse(HttpResponse response){
+    String requestStringForJson = null;
+    try {
+      String entity = EntityUtils.toString(response.getEntity());
+      requestStringForJson = "[" + entity.substring(0, entity.length() - 1) + "]";
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    assert requestStringForJson != null;
+
+    return new JSONArray(requestStringForJson);
+  }
+
+  private static HttpPost createCheckRequest(Project project, Task task){
+    CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    String taskId = taskManager.getTaskId(task).toString();
+    String runner = getRunner(project);
+    assert task !=null;
+
+    String code = task.getTaskFile(task.getName() + ".py").text;
+    final HttpPost request = new HttpPost(CHECK_URL);
+    final List<BasicNameValuePair> requestParameters = new ArrayList<>();
+    requestParameters.add(new BasicNameValuePair("code", code));
+    requestParameters.add(new BasicNameValuePair("runner", runner));
+    requestParameters.add(new BasicNameValuePair("token", taskManager.accessToken));
+    requestParameters.add(new BasicNameValuePair("task_num", taskId));
+    try {
+      request.setEntity(new UrlEncodedFormEntity(requestParameters));
+    } catch (UnsupportedEncodingException e) {
+      LOG.error(e.getMessage());
+    }
+    return request;
+  }
+
+  private static String getRunner(Project project){
+    Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
+    if (sdk == null) {
+      LOG.error("Project sdk is null");
+      return null;
+    }
+    String sdkName = sdk.getName();
+    String runner;
+    if (sdkName.substring(7, sdkName.length()).startsWith("2")){
+      runner = "python-27";
+    }
+    else {
+      runner = "python-3";
+    }
+    return runner;
   }
 
   private static void setTaskInfoInTaskManager(final CheckIOTaskManager taskManager, final Task task,
