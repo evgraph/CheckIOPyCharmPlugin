@@ -1,26 +1,25 @@
 package taskPanel;
 
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.diagnostic.DefaultLogger;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
-import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
+import com.jetbrains.edu.learning.projectView.StudyDirectoryNode;
+import com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider;
 import main.CheckIOConnector;
 import main.CheckIOUtils;
+import org.jdesktop.swingx.JXBusyLabel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -114,12 +113,25 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
         final StudyTaskManager taskManager = StudyTaskManager.getInstance(project);
         taskManager.setStatus(task, status);
         if (status.equals(StudyStatus.Solved)) {
-          JOptionPane.showMessageDialog(taskInfoPanel, "Solved");
+
+          Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+          int newCourseTaskNumber = CheckIOConnector.getAvailableTasksNumber(project);
+          int taskNumber = 0;
+          for (Lesson lesson : course.getLessons()) {
+            taskNumber += lesson.getTaskList().size();
+          }
+          if (taskNumber < newCourseTaskNumber) {
+            JOptionPane.showMessageDialog(taskInfoPanel, "You unlock new stations");
+          }
+          else {
+            JOptionPane.showMessageDialog(taskInfoPanel, "Solved");
+          }
+
         }
         else {
           JOptionPane.showMessageDialog(taskInfoPanel, "Failed");
         }
-
+        ProjectView.getInstance(project).refresh();
       }
     });
   }

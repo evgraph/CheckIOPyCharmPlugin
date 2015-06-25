@@ -3,6 +3,7 @@ package main;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -21,6 +22,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 
 import javax.print.attribute.standard.Finishings;
@@ -63,8 +65,9 @@ public class CheckIOConnector {
     return myAccessToken;
   }
 
-  private static MissionsWrapper[] getMissions() {
-    HttpResponse response = requestMissions();
+  private static MissionsWrapper[] getMissions(@NotNull final String token) {
+    final HttpGet request = makeMissionsRequest(token);
+    final HttpResponse response = requestMissions(request);
     String missions = "";
     try {
       missions = EntityUtils.toString(response.getEntity());
@@ -77,29 +80,23 @@ public class CheckIOConnector {
     return gson.fromJson(missions, MissionsWrapper[].class);
   }
 
-  private static HttpResponse requestMissions() {
+  private static HttpResponse requestMissions(@NotNull final HttpGet request) {
     HttpResponse response = null;
     try {
-      HttpGet request = makeMissionsRequest();
       final CloseableHttpClient client = HttpClientBuilder.create().build();
       response = client.execute(request);
     }
     catch (IOException e) {
       LOG.error(e.getMessage());
     }
-    if (response == null) {
-      throw new NullPointerException();
-    }
-    else {
-      return response;
-    }
+    return response;
   }
 
-  private static HttpGet makeMissionsRequest() {
+  private static HttpGet makeMissionsRequest(@NotNull final String token) {
     URI uri = null;
     try {
       uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
-        .addParameter(PARAMETER_ACCESS_TOKEN, myAccessToken)
+        .addParameter(PARAMETER_ACCESS_TOKEN, token)
         .build();
     }
     catch (URISyntaxException e) {
@@ -108,35 +105,38 @@ public class CheckIOConnector {
     return new HttpGet(uri);
   }
 
+  public static int getAvailableTasksNumber(@NotNull final Project project) {
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    String token = taskManager.accessToken;
+    assert token != null;
+    final MissionsWrapper[] missionsWrappers = getMissions(token);
+    return missionsWrappers.length;
+  }
 
-  public static Course getCourseForProject(Project project) {
+  public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) {
     lessonsById = new HashMap<>();
     course = new Course();
     course.setLanguage("Python");
     course.setName("CheckIO");
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    String token = taskManager.accessToken;
+    assert token != null;
+    final MissionsWrapper[] missionsWrappers = getMissions(token);
 
-    if (myAccessToken != null) {
-      final MissionsWrapper[] missionsWrappers = getMissions();
-      final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-
-      for (MissionsWrapper missionsWrapper : missionsWrappers) {
-        final Lesson lesson = getLessonOrCreateIfDoesntExist(missionsWrapper.stationId, missionsWrapper.stationName);
-        final Task task = getTaskFromMission(missionsWrapper);
-        setTaskInfoInTaskManager(taskManager, task, missionsWrapper);
-        lesson.addTask(task);
-      }
-      return course;
+    for (MissionsWrapper missionsWrapper : missionsWrappers) {
+      final Lesson lesson = getLessonOrCreateIfDoesntExist(missionsWrapper.stationId, missionsWrapper.stationName);
+      final Task task = getTaskFromMission(missionsWrapper);
+      setTaskInfoInTaskManager(taskManager, task, missionsWrapper);
+      lesson.addTask(task);
     }
-    else {
-      LOG.error("Null access token");
-    }
-    return null;
+    return course;
   }
 
-  private static Task getTaskFromMission(final MissionsWrapper missionsWrapper) {
+  private static Task getTaskFromMission(@NotNull final MissionsWrapper missionsWrapper) {
     final Task task = createTaskFromMission(missionsWrapper);
-    task.addTaskFile(task.getName() + ".py", 0);
-    final TaskFile taskFile= task.getTaskFile(task.getName() + ".py");
+    String name = CheckIOUtils.getTaskFilenameFromTask(task);
+    task.addTaskFile(name, 0);
+    final TaskFile taskFile= task.getTaskFile(name);
     if (taskFile != null) {
       taskFile.name = task.getName();
       taskFile.text = missionsWrapper.code;
@@ -147,7 +147,7 @@ public class CheckIOConnector {
     return task;
   }
 
-  private static Lesson getLessonOrCreateIfDoesntExist(final int lessonId, final String lessonName) {
+  private static Lesson getLessonOrCreateIfDoesntExist(final int lessonId, @NotNull final String lessonName) {
     final Lesson lesson;
     if (lessonsById.containsKey(lessonId)) {
       lesson = lessonsById.get(lessonId);
@@ -162,13 +162,13 @@ public class CheckIOConnector {
     return lesson;
   }
 
-  private static Task createTaskFromMission(final MissionsWrapper missionsWrapper) {
+  private static Task createTaskFromMission(@NotNull final MissionsWrapper missionsWrapper) {
     final Task task = new Task(missionsWrapper.slug);
     task.setText(missionsWrapper.description);
     return task;
   }
 
-  public static StudyStatus checkTask(Project project, Task task) {
+  public static StudyStatus checkTask(@NotNull final Project project, @NotNull final Task task) {
     if (task.getText().isEmpty()){
       return StudyStatus.Failed;
     }
@@ -204,9 +204,9 @@ public class CheckIOConnector {
     return StudyStatus.Unchecked;
   }
 
-  private static HttpResponse restore(String connectionId, String accessToken) {
-    HttpPost request = createRestoreRequest(connectionId, accessToken);
-    CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+  private static HttpResponse restore(@NotNull final String connectionId, @NotNull final String accessToken) {
+    final HttpPost request = createRestoreRequest(connectionId, accessToken);
+    final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
     HttpResponse response = null;
     try {
       response = httpClient.execute(request);
@@ -216,7 +216,7 @@ public class CheckIOConnector {
     return response;
   }
 
-  private static HttpPost createRestoreRequest(String connectionId, String token) {
+  private static HttpPost createRestoreRequest(@NotNull final String connectionId, @NotNull final String token) {
     final HttpPost request = new HttpPost(RESTORE_CHECK_URL);
     final List<BasicNameValuePair> requestParameters = new ArrayList<>();
     requestParameters.add(new BasicNameValuePair("connection_id", connectionId));
@@ -231,7 +231,7 @@ public class CheckIOConnector {
 
   }
 
-  private static HttpResponse executeCheckRequest(HttpPost request) {
+  private static HttpResponse executeCheckRequest(@NotNull final HttpPost request) {
     final CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpResponse response = null;
     try {
@@ -243,7 +243,7 @@ public class CheckIOConnector {
 
   }
 
-  private static JSONArray makeJSONArrayFromResponse(HttpResponse response){
+  private static JSONArray makeJSONArrayFromResponse(@NotNull final HttpResponse response){
     String requestStringForJson = null;
     try {
       String entity = EntityUtils.toString(response.getEntity());
@@ -256,13 +256,13 @@ public class CheckIOConnector {
     return new JSONArray(requestStringForJson);
   }
 
-  private static HttpPost createCheckRequest(Project project, Task task){
-    CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    String taskId = taskManager.getTaskId(task).toString();
-    String runner = getRunner(project);
-    assert task !=null;
+  private static HttpPost createCheckRequest(@NotNull final Project project, @NotNull final Task task){
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    final String taskId = taskManager.getTaskId(task).toString();
+    final String runner = getRunner(project);
+    final String code = getTaskCode(project);
 
-    String code = task.getTaskFile(task.getName() + ".py").text;
+
     final HttpPost request = new HttpPost(CHECK_URL);
     final List<BasicNameValuePair> requestParameters = new ArrayList<>();
     requestParameters.add(new BasicNameValuePair("code", code));
@@ -277,8 +277,13 @@ public class CheckIOConnector {
     return request;
   }
 
-  private static String getRunner(Project project){
-    Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
+  private static String getTaskCode(@NotNull final Project project) {
+    Document document = CheckIOUtils.getDocumentFromSelectedEditor(project);
+    return document.getText();
+  }
+
+  private static String getRunner(@NotNull final Project project){
+    final Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
     if (sdk == null) {
       LOG.error("Project sdk is null");
       return null;
@@ -294,15 +299,15 @@ public class CheckIOConnector {
     return runner;
   }
 
-  private static void setTaskInfoInTaskManager(final CheckIOTaskManager taskManager, final Task task,
-                                               final MissionsWrapper missionsWrapper) {
+  private static void setTaskInfoInTaskManager(@NotNull final CheckIOTaskManager taskManager, @NotNull final Task task,
+                                               @NotNull final MissionsWrapper missionsWrapper) {
     taskManager.setTaskStatus(task, taskSolutionStatus.get(missionsWrapper.isSolved));
     taskManager.setPublicationStatus(task, taskPublicationStatus.get(missionsWrapper.isPublished));
     taskManager.setTaskId(task, missionsWrapper.id);
   }
 
   public static CheckIOUser authorizeUser() {
-    CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
+    final CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
     myUser = authorizer.authorizeUser();
     myAccessToken = authorizer.getAccessToken();
     return myUser;

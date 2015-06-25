@@ -8,8 +8,6 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
@@ -22,6 +20,7 @@ import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
 import icons.PythonIcons;
+import org.jdesktop.swingx.action.ActionManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +53,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     if (!checkIfUserOrAccessTokenIsNull()) {
       StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
       if (studyManager.getCourse() == null) {
-        Course course = CheckIOConnector.getCourseForProject(project);
+        Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
 
         if (course == null) {
           LOG.error("Course is null");
@@ -80,19 +79,22 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   }
 
   private static void setTaskFilesStatusFromTask(Project project) {
-    StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    Course course = studyManager.getCourse();
+    final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    final Course course = studyManager.getCourse();
     if (course != null) {
       for (Lesson lesson : course.getLessons()) {
         for (Task task : lesson.getTaskList()) {
-          TaskFile taskFile = task.getTaskFile(task.getName() + ".py");
+          final String name = CheckIOUtils.getTaskFilenameFromTask(task);
+          final TaskFile taskFile = task.getTaskFile(name);
           assert taskFile != null;
-          AnswerPlaceholder answerPlaceholder = createAnswerPlaceholder(task.getName());
+          final AnswerPlaceholder answerPlaceholder = createAnswerPlaceholder(task.getName());
           answerPlaceholder.initAnswerPlaceholder(taskFile, true);
-          StudyStatus status = taskManager.getTaskStatus(task);
+          final StudyStatus status = taskManager.getTaskStatus(task);
           taskFile.addAnswerPlaceholder(answerPlaceholder);
+          ActionManager actionManager = ActionManager.getInstance();
           studyManager.setStatus(task, status);
+
         }
       }
     }
@@ -122,6 +124,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Override
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
     setParametersAndGetTaskManager(project);
+
     setCourseInStudyManager(project);
     final Course course = StudyTaskManager.getInstance(project).getCourse();
 
@@ -178,6 +181,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Nullable
   @Override
   public JPanel extendBasePanel() throws ProcessCanceledException {
+
 
     mySettingsPanel = new CheckIONewProjectPanel();
 

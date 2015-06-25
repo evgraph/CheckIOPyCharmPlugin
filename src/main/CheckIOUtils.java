@@ -10,6 +10,7 @@ import com.intellij.openapi.wm.ToolWindowEP;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
+import org.jetbrains.annotations.NotNull;
 import taskPanel.CheckIOTaskToolWindowFactory;
 
 public class CheckIOUtils {
@@ -26,22 +27,31 @@ public class CheckIOUtils {
     }
     return null;
   }
-  public static Task getTaskFromSelectedEditor(Project project) {
-    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+
+  public static Document getDocumentFromSelectedEditor(@NotNull final Project project) {
     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
     assert fileEditorManager != null;
-    Editor textEditor = fileEditorManager.getSelectedTextEditor();
-    if (textEditor != null) {
-      Document document = textEditor.getDocument();
+    Editor editor = fileEditorManager.getSelectedTextEditor();
+    if (editor != null) {
+      return editor.getDocument();
+    }
+    return null;
+  }
+  public static Task getTaskFromSelectedEditor(Project project) {
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+    Document document = getDocumentFromSelectedEditor(project);
+    if (document != null) {
       VirtualFile file = fileDocumentManager.getFile(document);
       assert file != null;
       StudyUtils.getTaskFile(project, file);
-
-
       TaskFile taskFile = StudyUtils.getTaskFile(project, file);
       assert taskFile != null;
       return taskFile.getTask();
     }
     return null;
+  }
+
+  public static String getTaskFilenameFromTask(Task task) {
+    return task.getName() + ".py";
   }
 }
