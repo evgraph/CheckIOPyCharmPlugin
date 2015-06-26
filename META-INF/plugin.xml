@@ -30,10 +30,12 @@
   <extensions defaultExtensionNs="com.intellij">
     <directoryProjectGenerator implementation="main.CheckIOProjectGenerator"/>
     <toolWindow id="Task Info" anchor="right" factoryClass="taskPanel.CheckIOTaskToolWindowFactory"/>
+    <toolWindow id="TaskActions" anchor="top" factoryClass="taskPanel.TaskActionToolWindowFactory"/>
 
     <projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />
     <projectService serviceInterface="main.CheckIOTaskManager" serviceImplementation="main.CheckIOTaskManager"/>
     <treeStructureProvider implementation="com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider"/>
+    <fileEditorProvider implementation="main.CheckIOFileEditorProvider"/>
 
   </extensions>
 
@@ -58,4 +60,8 @@
       <implementation-class>main.CheckIOProjectComponent</implementation-class>
     </component>
   </project-components>
+  <actions>
+    <action id="CheckIOCheckSolutionAction" class="actions.CheckIOCheckSolutionAction" text="Check mission"/>
+    <action id="CheckIOUpdateProjectAction" class="actions.CheckIOUpdateProjectAction" text="Update project"/>
+  </actions>
 </idea-plugin>

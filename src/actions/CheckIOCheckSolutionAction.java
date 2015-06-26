@@ -2,7 +2,6 @@ package actions;
 
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -34,10 +33,150 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CheckIOCheckSolutionAction extends DumbAwareAction {
-  public static final String ACTION_ID = "CheckAction";
+  public static final String ACTION_ID = "CheckIOCheckSolutionAction";
+  public static final String SHORTCUT = "ctrl pressed PERIOD";
   private static final String CHECK_URL = "http://www.checkio.org/center/1/ucheck/";
   private static final String RESTORE_CHECK_URL = "http://www.checkio.org/center/1/restore/";
-  private static final Logger LOG = DefaultLogger.getInstance(CheckIOCheckSolutionAction.class);
+  private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
+
+  private static HttpResponse requestCheckTask(@NotNull final Project project, @NotNull final Task task) {
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+
+    final HttpPost request = createCheckRequest(project, task);
+    HttpResponse response = executeCheckRequest(request);
+    JSONArray jsonArray = makeJSONArrayFromResponse(response);
+    JSONArray result = (JSONArray)jsonArray.get(jsonArray.length() - 1);
+
+    while (result != null && result.get(0) == "wait") {
+      int time = result.getInt(2);
+      try {
+        Thread.sleep(time * 1000);
+      }
+      catch (InterruptedException e) {
+        LOG.error(e.getMessage());
+      }
+
+      response = restore((String)result.get(1), taskManager.accessToken);
+    }
+    return response;
+  }
+
+  private static StudyStatus getSolutionStatus(@NotNull JSONArray jsonArray) {
+    JSONArray result = jsonArray.getJSONArray(jsonArray.length() - 1);
+    if (result.length() == 0) {
+      return StudyStatus.Failed;
+    }
+
+    if (result.get(0).equals("check")) {
+      Integer res = (Integer)result.get(1);
+      if (res == 1) {
+        return StudyStatus.Solved;
+      }
+      else {
+        return StudyStatus.Failed;
+      }
+    }
+    return StudyStatus.Unchecked;
+  }
+
+  private static HttpResponse restore(@NotNull final String connectionId, @NotNull final String accessToken) {
+    final HttpPost request = createRestoreRequest(connectionId, accessToken);
+    final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+    HttpResponse response = null;
+    try {
+      response = httpClient.execute(request);
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    return response;
+  }
+
+  private static HttpPost createRestoreRequest(@NotNull final String connectionId, @NotNull final String token) {
+    final HttpPost request = new HttpPost(RESTORE_CHECK_URL);
+    final List<BasicNameValuePair> requestParameters = new ArrayList<>();
+    requestParameters.add(new BasicNameValuePair("connection_id", connectionId));
+    requestParameters.add(new BasicNameValuePair("token", token));
+
+    try {
+      request.setEntity(new UrlEncodedFormEntity(requestParameters));
+    }
+    catch (UnsupportedEncodingException e) {
+      LOG.error(e.getMessage());
+    }
+    return request;
+
+  }
+
+  private static HttpResponse executeCheckRequest(@NotNull final HttpPost request) {
+    final CloseableHttpClient client = HttpClientBuilder.create().build();
+    HttpResponse response = null;
+    try {
+      response = client.execute(request);
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    return response;
+
+  }
+
+  private static JSONArray makeJSONArrayFromResponse(@NotNull final HttpResponse response) {
+    String requestStringForJson = null;
+    try {
+      String entity = EntityUtils.toString(response.getEntity());
+      requestStringForJson = "[" + entity.substring(0, entity.length() - 1) + "]";
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    assert requestStringForJson != null;
+
+    return new JSONArray(requestStringForJson);
+  }
+
+  private static HttpPost createCheckRequest(@NotNull final Project project, @NotNull final Task task) {
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    final String taskId = taskManager.getTaskId(task).toString();
+    final String runner = getRunner(project);
+    final String code = getTaskCode(project);
+
+
+    final HttpPost request = new HttpPost(CHECK_URL);
+    final List<BasicNameValuePair> requestParameters = new ArrayList<>();
+    requestParameters.add(new BasicNameValuePair("code", code));
+    requestParameters.add(new BasicNameValuePair("runner", runner));
+    requestParameters.add(new BasicNameValuePair("token", taskManager.accessToken));
+    requestParameters.add(new BasicNameValuePair("task_num", taskId));
+    try {
+      request.setEntity(new UrlEncodedFormEntity(requestParameters));
+    }
+    catch (UnsupportedEncodingException e) {
+      LOG.error(e.getMessage());
+    }
+    return request;
+  }
+
+  private static String getTaskCode(@NotNull final Project project) {
+    Document document = CheckIOUtils.getDocumentFromSelectedEditor(project);
+    return document.getText();
+  }
+
+  private static String getRunner(@NotNull final Project project) {
+    final Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
+    if (sdk == null) {
+      LOG.error("Project sdk is null");
+      return null;
+    }
+    String sdkName = sdk.getName();
+    String runner;
+    if (sdkName.substring(7, sdkName.length()).startsWith("2")) {
+      runner = "python-27";
+    }
+    else {
+      runner = "python-3";
+    }
+    return runner;
+  }
 
   public void check(@NotNull Project project) {
     Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
@@ -65,7 +204,6 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       else {
         JBPopupFactory.getInstance().createMessage("Solved");
       }
-
     }
     else {
       if (status == StudyStatus.Failed) {
@@ -78,150 +216,11 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
 
 
   }
+
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
       check(project);
     }
-  }
-
-  private static HttpResponse requestCheckTask(@NotNull final Project project, @NotNull final Task task) {
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-
-    final HttpPost request = createCheckRequest(project, task);
-    HttpResponse response = executeCheckRequest(request);
-    JSONArray jsonArray = makeJSONArrayFromResponse(response);
-    JSONArray result = (JSONArray) jsonArray.get(jsonArray.length() - 1);
-
-    while (result != null && result.get(0) == "wait") {
-      int time = result.getInt(2);
-      try {
-        Thread.sleep(time * 1000);
-      } catch (InterruptedException e) {
-        LOG.error(e.getMessage());
-      }
-
-      response = restore((String) result.get(1), taskManager.accessToken);
-    }
-    return response;
-  }
-
-  private static StudyStatus getSolutionStatus(@NotNull JSONArray jsonArray) {
-   JSONArray result = jsonArray.getJSONArray(jsonArray.length() - 1);
-    if (result.length() == 0){
-      return StudyStatus.Failed;
-    }
-
-    if (result.get(0).equals("check")) {
-      Integer res = (Integer)result.get(1);
-      if (res == 1) {
-        return StudyStatus.Solved;
-      }
-      else {
-        return StudyStatus.Failed;
-      }
-    }
-    return StudyStatus.Unchecked;
-  }
-
-  private static HttpResponse restore(@NotNull final String connectionId, @NotNull final String accessToken) {
-    final HttpPost request = createRestoreRequest(connectionId, accessToken);
-    final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-    HttpResponse response = null;
-    try {
-      response = httpClient.execute(request);
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    return response;
-  }
-
-  private static HttpPost createRestoreRequest(@NotNull final String connectionId, @NotNull final String token) {
-    final HttpPost request = new HttpPost(RESTORE_CHECK_URL);
-    final List<BasicNameValuePair> requestParameters = new ArrayList<>();
-    requestParameters.add(new BasicNameValuePair("connection_id", connectionId));
-    requestParameters.add(new BasicNameValuePair("token", token));
-
-    try {
-      request.setEntity(new UrlEncodedFormEntity(requestParameters));
-    } catch (UnsupportedEncodingException e) {
-      LOG.error(e.getMessage());
-    }
-    return request;
-
-  }
-
-  private static HttpResponse executeCheckRequest(@NotNull final HttpPost request) {
-    final CloseableHttpClient client = HttpClientBuilder.create().build();
-    HttpResponse response = null;
-    try {
-      response = client.execute(request);
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    return response;
-
-  }
-
-  private static JSONArray makeJSONArrayFromResponse(@NotNull final HttpResponse response){
-    String requestStringForJson = null;
-    try {
-      String entity = EntityUtils.toString(response.getEntity());
-      requestStringForJson = "[" + entity.substring(0, entity.length() - 1) + "]";
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    assert requestStringForJson != null;
-
-    return new JSONArray(requestStringForJson);
-  }
-
-  private static HttpPost createCheckRequest(@NotNull final Project project, @NotNull final Task task){
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final String taskId = taskManager.getTaskId(task).toString();
-    final String runner = getRunner(project);
-    final String code = getTaskCode(project);
-
-
-    final HttpPost request = new HttpPost(CHECK_URL);
-    final List<BasicNameValuePair> requestParameters = new ArrayList<>();
-    requestParameters.add(new BasicNameValuePair("code", code));
-    requestParameters.add(new BasicNameValuePair("runner", runner));
-    requestParameters.add(new BasicNameValuePair("token", taskManager.accessToken));
-    requestParameters.add(new BasicNameValuePair("task_num", taskId));
-    try {
-      request.setEntity(new UrlEncodedFormEntity(requestParameters));
-    } catch (UnsupportedEncodingException e) {
-      LOG.error(e.getMessage());
-    }
-    return request;
-  }
-
-
-
-
-
-
-
-  private static String getTaskCode(@NotNull final Project project) {
-    Document document = CheckIOUtils.getDocumentFromSelectedEditor(project);
-    return document.getText();
-  }
-
-  private static String getRunner(@NotNull final Project project){
-    final Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
-    if (sdk == null) {
-      LOG.error("Project sdk is null");
-      return null;
-    }
-    String sdkName = sdk.getName();
-    String runner;
-    if (sdkName.substring(7, sdkName.length()).startsWith("2")){
-      runner = "python-27";
-    }
-    else {
-      runner = "python-3";
-    }
-    return runner;
   }
 }

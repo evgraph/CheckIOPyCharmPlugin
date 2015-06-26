@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindowEP;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
@@ -76,6 +77,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
           myListener = getListenerFor(myProject, toolWindowFactory);
           assert toolWindowFactory != null;
           toolWindowFactory.setListener(myProject, myListener);
+          ToolWindowManager.getInstance(myProject).getToolWindow(CheckIOUtils.TOOL_WINDOW_ID).show(null);
         }
       }
     });
@@ -85,7 +87,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
   public void projectClosed() {
 
     if (myListener != null) {
-      FileEditorManager.getInstance(myProject).removeFileEditorManagerListener(myListener);
+      //FileEditorManager.getInstance(myProject).removeFileEditorManagerListener(myListener);
     }
   }
 

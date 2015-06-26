@@ -20,7 +20,6 @@ import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
 import icons.PythonIcons;
-import org.jdesktop.swingx.action.ActionManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +91,6 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
           answerPlaceholder.initAnswerPlaceholder(taskFile, true);
           final StudyStatus status = taskManager.getTaskStatus(task);
           taskFile.addAnswerPlaceholder(answerPlaceholder);
-          ActionManager actionManager = ActionManager.getInstance();
           studyManager.setStatus(task, status);
 
         }
@@ -149,10 +147,12 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
                 CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
                 setTaskFilesStatusFromTask(project);
 
-                assert toolWindowFactory != null;
-                toolWindowFactory.createToolWindowContent(project, ToolWindowManager.getInstance(project).
-                  getToolWindow(CheckIOUtils.TOOL_WINDOW_ID));
+                if (toolWindowFactory != null) {
+                  toolWindowFactory.createToolWindowContent(project, ToolWindowManager.getInstance(project).
+                    getToolWindow(CheckIOUtils.TOOL_WINDOW_ID));
+                }
 
+                VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
                 StudyProjectGenerator.openFirstTask(course, project);
               }
             });

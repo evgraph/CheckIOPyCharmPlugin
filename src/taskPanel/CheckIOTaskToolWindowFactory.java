@@ -4,7 +4,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.JBCardLayout;
@@ -15,11 +14,8 @@ import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
-import com.jetbrains.edu.learning.projectView.StudyDirectoryNode;
-import com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider;
 import main.CheckIOConnector;
 import main.CheckIOUtils;
-import org.jdesktop.swingx.JXBusyLabel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -104,6 +100,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     taskInfoPanel.getCheckSolutionButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
+
         Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
         if (task == null) {
           JOptionPane.showMessageDialog(taskInfoPanel, "No active editor");
@@ -113,7 +110,6 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
         final StudyTaskManager taskManager = StudyTaskManager.getInstance(project);
         taskManager.setStatus(task, status);
         if (status.equals(StudyStatus.Solved)) {
-
           Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
           int newCourseTaskNumber = CheckIOConnector.getAvailableTasksNumber(project);
           int taskNumber = 0;
