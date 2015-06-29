@@ -12,14 +12,14 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.impl.DocumentImpl;
 import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
-import com.jetbrains.edu.courseFormat.TaskFile;
-import com.jetbrains.edu.learning.StudyUtils;
 import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,25 +30,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 
-/**
- * Created by root on 6/26/15.
- */
 public class CheckIOTextEditor implements TextEditor {
   private final FileEditor myDefaultEditor;
   private final JComponent myComponent;
-  private final TaskFile myTaskFile;
   private final Project myProject;
   private JButton myCheckButton;
-  private JButton myNextTaskButton;
-  private JButton myPrevTaskButton;
-  private JButton myRefreshButton;
+  //private JButton myNextTaskButton;
+  //private JButton myPrevTaskButton;
+  //private JButton myRefreshButton;
   private JButton updateProjectButton;
 
   public CheckIOTextEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     myProject = project;
     myDefaultEditor = TextEditorProvider.getInstance().createEditor(project, file);
     myComponent = myDefaultEditor.getComponent();
-    myTaskFile = StudyUtils.getTaskFile(project, file);
     final JPanel buttonsPanel = new JPanel(new GridLayout(1, 2));
     myComponent.add(buttonsPanel, BorderLayout.NORTH);
     initButtons(buttonsPanel);
@@ -70,12 +65,30 @@ public class CheckIOTextEditor implements TextEditor {
     return newButton;
   }
 
+  public static CheckIOTextEditor getSelectedEditor(@NotNull final Project project) {
+    final FileEditor editor = FileEditorManagerEx.getInstanceEx(project).getSplitters().getCurrentWindow().
+      getSelectedEditor().getSelectedEditorWithProvider().getFirst();
+    if (editor instanceof CheckIOTextEditor) {
+      return (CheckIOTextEditor)editor;
+    }
+    return null;
+  }
+
+  public JButton getUpdateProjectButton() {
+    return updateProjectButton;
+  }
+
+  public JButton getCheckButton() {
+    return myCheckButton;
+  }
+
   private void initButtons(@NotNull final JPanel buttonsPanel) {
     myCheckButton =
       addButton(buttonsPanel, CheckIOCheckSolutionAction.ACTION_ID, InteractiveLearningIcons.Resolve, CheckIOCheckSolutionAction.SHORTCUT);
     //myPrevTaskButton = addButton(buttonsPanel, StudyPreviousStudyTaskAction.ACTION_ID, InteractiveLearningIcons.Prev, StudyPreviousStudyTaskAction.SHORTCUT);
     //myNextTaskButton = addButton(buttonsPanel, StudyNextStudyTaskAction.ACTION_ID, AllIcons.Actions.Forward, StudyNextStudyTaskAction.SHORTCUT);
-    //myRefreshButton = addButton(buttonsPanel, StudyRefreshTaskFileAction.ACTION_ID, AllIcons.Actions.Refresh, StudyRefreshTaskFileAction.SHORTCUT);
+    //myRefreshButton =
+    //  addButton(buttonsPanel, StudyRefreshTaskFileAction.ACTION_ID, AllIcons.Actions.Refresh, StudyRefreshTaskFileAction.SHORTCUT);
     updateProjectButton =
       addButton(buttonsPanel, CheckIOUpdateProjectAction.ACTION_ID, AllIcons.Actions.Download, CheckIOUpdateProjectAction.SHORTCUT);
 
@@ -215,7 +228,7 @@ public class CheckIOTextEditor implements TextEditor {
 
   @Override
   public void dispose() {
-    com.intellij.openapi.util.Disposer.dispose(myDefaultEditor);
+    Disposer.dispose(myDefaultEditor);
   }
 
   @Nullable

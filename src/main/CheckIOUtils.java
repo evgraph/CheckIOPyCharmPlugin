@@ -5,6 +5,10 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.openapi.ui.popup.BalloonBuilder;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindowEP;
 import com.jetbrains.edu.courseFormat.Task;
@@ -12,6 +16,9 @@ import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
 import org.jetbrains.annotations.NotNull;
 import taskPanel.CheckIOTaskToolWindowFactory;
+
+import javax.swing.*;
+import java.awt.*;
 
 public class CheckIOUtils {
   public static final String TOOL_WINDOW_ID = "Task Info";
@@ -49,6 +56,27 @@ public class CheckIOUtils {
       return taskFile.getTask();
     }
     return null;
+  }
+
+  private static void showInfoPopUp(@NotNull final Project project, @NotNull final Balloon balloon, @NotNull final JButton button) {
+    final CheckIOTextEditor studyEditor = CheckIOTextEditor.getSelectedEditor(project);
+
+    assert studyEditor != null;
+    balloon.showInCenterOf(button);
+    Disposer.register(project, balloon);
+  }
+
+  public static void showOperationResultPopUp(final String text,
+                                              Color color,
+                                              @NotNull final Project project,
+                                              @NotNull final JButton button) {
+    BalloonBuilder balloonBuilder =
+      JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(text, null, color, null);
+    final Balloon balloon = balloonBuilder.createBalloon();
+    final CheckIOTextEditor textEditor = CheckIOTextEditor.getSelectedEditor(project);
+    if (textEditor != null) {
+      showInfoPopUp(project, balloon, button);
+    }
   }
 
   public static String getTaskFilenameFromTask(Task task) {

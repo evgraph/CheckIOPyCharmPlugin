@@ -17,6 +17,7 @@
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.python</depends>
   <depends>com.intellij.modules.platform</depends>
+  <depends>com.jetbrains.edu.interactivelearning</depends>
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
   <idea-version since-build="131"/>
 
@@ -30,11 +31,10 @@
   <extensions defaultExtensionNs="com.intellij">
     <directoryProjectGenerator implementation="main.CheckIOProjectGenerator"/>
     <toolWindow id="Task Info" anchor="right" factoryClass="taskPanel.CheckIOTaskToolWindowFactory"/>
-    <toolWindow id="TaskActions" anchor="top" factoryClass="taskPanel.TaskActionToolWindowFactory"/>
 
-    <projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />
+    <!--<projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />-->
     <projectService serviceInterface="main.CheckIOTaskManager" serviceImplementation="main.CheckIOTaskManager"/>
-    <treeStructureProvider implementation="com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider"/>
+    <!--<treeStructureProvider implementation="com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider"/>-->
     <fileEditorProvider implementation="main.CheckIOFileEditorProvider"/>
 
   </extensions>

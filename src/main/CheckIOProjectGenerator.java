@@ -38,11 +38,13 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
 
   private static CheckIOTaskManager setParametersAndGetTaskManager(@NotNull Project project) {
     if (!checkIfUserOrAccessTokenIsNull()) {
-      CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-      CheckIOUser user = CheckIOConnector.getMyUser();
-      String accessToken = CheckIOConnector.getMyAccessToken();
+      final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+      final CheckIOUser user = CheckIOConnector.getMyUser();
+      final String accessToken = CheckIOConnector.getMyAccessToken();
+      final String refreshToken = CheckIOConnector.getMyRefreshToken();
       taskManager.setUser(user);
       taskManager.accessToken = accessToken;
+      taskManager.refreshToken = refreshToken;
       return taskManager;
     }
     return null;
@@ -122,10 +124,8 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Override
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
     setParametersAndGetTaskManager(project);
-
     setCourseInStudyManager(project);
     final Course course = StudyTaskManager.getInstance(project).getCourse();
-
 
     if (course != null) {
       myCoursesDir = new File(PathManager.getConfigPath(), "courses");

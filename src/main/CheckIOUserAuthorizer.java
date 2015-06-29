@@ -18,6 +18,7 @@ import org.apache.http.util.EntityUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,10 +51,12 @@ public class CheckIOUserAuthorizer {
   private static final String PARAMETER_CONTENT_TYPE = "Content-Type";
   private static final String PARAMETER_GRANT_TYPE = "grant_type";
   private static final String PARAMETER_ACCESS_TOKEN = "access_token";
+  private static final String PARAMETER_REFRESH_TOKEN = "refresh_token";
   private static final String PARAMETER_RESPONSE_TYPE = "response_type";
   private static final String PARAMETER_ACCEPT = "accept";
   private static final String ACCEPT_TYPE = "application/json";
-  private static final String GRANT_TYPE = "authorization_code";
+  private static final String GRANT_TYPE_TOKEN = "authorization_code";
+  private static final String GRANT_TYPE_REFRESH = "refresh_token";
   private static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
   private static final String SUCCESS_AUTHORIZATION_MESSAGE = "Authorization succeeded. You may return to PyCharm";
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
@@ -62,6 +65,7 @@ public class CheckIOUserAuthorizer {
   private static final String REDIRECT_URI = "http://localhost:" + ourPort;
   private Server myServer;
   private String myAccessToken;
+  private String myRefreshToken;
 
   private static void openAuthorizationPage() {
     URI url = makeAuthorizationPageURI();
@@ -100,25 +104,12 @@ public class CheckIOUserAuthorizer {
     return url;
   }
 
-  private static String getAccessToken(final String code) {
-    final HttpPost request = makeAccessTokenRequest(code);
-    final HttpResponse response = requestAccessToken(request);
-    JSONObject jsonObject = new JSONObject();
-    try {
-      jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
-    }
-    catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    return jsonObject.getString(PARAMETER_ACCESS_TOKEN);
-  }
-
   private static HttpPost makeAccessTokenRequest(String code) {
     final HttpPost request = new HttpPost(TOKEN_URL);
     final List<NameValuePair> requestParameters = new ArrayList<>();
     requestParameters.add(new BasicNameValuePair(PARAMETER_CODE, code));
     requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_SECRET, ourProperties.getProperty(CLIENT_SECRET_PROPERTY)));
-    requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, GRANT_TYPE));
+    requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, GRANT_TYPE_TOKEN));
     requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY)));
     requestParameters.add(new BasicNameValuePair(PARAMETER_REDIRECT_URI, REDIRECT_URI));
 
@@ -193,6 +184,47 @@ public class CheckIOUserAuthorizer {
     return uri;
   }
 
+  private void getAndSetTokens(final String code) {
+    final HttpPost request = makeAccessTokenRequest(code);
+    final HttpResponse response = requestAccessToken(request);
+    JSONObject jsonObject = new JSONObject();
+    try {
+      jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    myAccessToken = jsonObject.getString(PARAMETER_ACCESS_TOKEN);
+    myRefreshToken = jsonObject.getString(PARAMETER_REFRESH_TOKEN);
+  }
+
+  public String getRefreshToken() {
+    return myRefreshToken;
+  }
+
+  public String getAccessTokenFromRefreshToken(@NotNull final String refreshToken) {
+    final HttpPost request = new HttpPost(TOKEN_URL);
+    final List<NameValuePair> requestParameters = new ArrayList<>();
+    requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_SECRET, ourProperties.getProperty(CLIENT_SECRET_PROPERTY)));
+    requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, GRANT_TYPE_REFRESH));
+    requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY)));
+    //requestParameters.add(new BasicNameValuePair(PARAMETER_REDIRECT_URI, REDIRECT_URI));
+    requestParameters.add(new BasicNameValuePair(PARAMETER_REFRESH_TOKEN, refreshToken));
+
+    request.addHeader(PARAMETER_CONTENT_TYPE, CONTENT_TYPE);
+    request.addHeader(PARAMETER_ACCEPT, ACCEPT_TYPE);
+    final HttpResponse response = requestAccessToken(request);
+    JSONObject jsonObject = new JSONObject();
+    try {
+      jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    myAccessToken = jsonObject.getString(PARAMETER_ACCESS_TOKEN);
+    return myAccessToken;
+  }
+
   public String getAccessToken() {
     return myAccessToken;
   }
@@ -242,7 +274,7 @@ public class CheckIOUserAuthorizer {
 
 
       try {
-        myAccessToken = getAccessToken(code);
+        getAndSetTokens(code);
       }
       catch (JSONException e) {
         LOG.warn(e.getMessage());

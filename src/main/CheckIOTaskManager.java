@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 )
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
   public String accessToken;
+  public String refreshToken;
   public HashMap<String, StudyStatus> myTaskStatusMap = new HashMap<>();
   public Map<String, Integer> myTaskIds = new HashMap<>();
   private CheckIOUser myUser;
