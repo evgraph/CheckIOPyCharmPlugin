@@ -82,4 +82,10 @@ public class CheckIOUtils {
   public static String getTaskFilenameFromTask(Task task) {
     return task.getName() + ".py";
   }
+
+  public static String getTaskTextUrl(@NotNull final Project project, @NotNull final Task task) {
+    final VirtualFile virtualFile = task.getTaskDir(project);
+    assert virtualFile != null;
+    return "file://" + virtualFile.getCanonicalPath() + "/task.html";
+  }
 }

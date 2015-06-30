@@ -17,6 +17,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -24,6 +25,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -61,7 +63,6 @@ public class CheckIOConnector {
     return myUser;
   }
 
-
   public static String getMyAccessToken() {
     return myAccessToken;
   }
@@ -70,57 +71,27 @@ public class CheckIOConnector {
     return myRefreshToken;
   }
 
-  public static void updateAccessToken(@NotNull final Project project) {
-    final String refreshToken = CheckIOTaskManager.getInstance(project).refreshToken;
-    myAccessToken = new CheckIOUserAuthorizer().getAccessTokenFromRefreshToken(refreshToken);
+  public static CheckIOUser authorizeUser() {
+    final CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
+    myUser = authorizer.authorizeUser();
+    myAccessToken = authorizer.getAccessToken();
+    myRefreshToken = authorizer.getRefreshToken();
+    return myUser;
   }
 
-  private static MissionsWrapper[] getMissions(@NotNull final String token) {
-    final HttpGet request = makeMissionsRequest(token);
-    final HttpResponse response = requestMissions(request);
-    String missions = "";
-    try {
-      missions = EntityUtils.toString(response.getEntity());
-    }
-    catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    assert missions != null;
-    final Gson gson = new GsonBuilder().create();
-    return gson.fromJson(missions, MissionsWrapper[].class);
-  }
-
-  private static HttpResponse requestMissions(@NotNull final HttpGet request) {
-    HttpResponse response = null;
-    try {
-      final CloseableHttpClient client = HttpClientBuilder.create().build();
-      response = client.execute(request);
-    }
-    catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    return response;
-  }
-
-  private static HttpGet makeMissionsRequest(@NotNull final String token) {
-    URI uri = null;
-    try {
-      uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
-        .addParameter(PARAMETER_ACCESS_TOKEN, token)
-        .build();
-    }
-    catch (URISyntaxException e) {
-      LOG.error(e.getMessage());
-    }
-    return new HttpGet(uri);
-  }
-
-  public static int getAvailableTasksNumber(@NotNull final Project project) {
+  public static void updateTokensInTaskManager(@NotNull final Project project) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    String token = taskManager.accessToken;
-    assert token != null;
-    final MissionsWrapper[] missionsWrappers = getMissions(token);
-    return missionsWrappers.length;
+    if (isTokenUpToDate(taskManager.accessToken)) {
+      return;
+    }
+    final String refreshToken = taskManager.refreshToken;
+    final CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
+    authorizer.setTokensFromRefreshToken(refreshToken);
+    myAccessToken = authorizer.getAccessToken();
+    myRefreshToken = authorizer.getRefreshToken();
+
+    taskManager.accessToken = myAccessToken;
+    taskManager.refreshToken = myRefreshToken;
   }
 
   public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) {
@@ -143,19 +114,33 @@ public class CheckIOConnector {
     return course;
   }
 
-  private static Task getTaskFromMission(@NotNull final MissionsWrapper missionsWrapper) {
-    final Task task = createTaskFromMission(missionsWrapper);
-    String name = CheckIOUtils.getTaskFilenameFromTask(task);
-    task.addTaskFile(name, 0);
-    final TaskFile taskFile= task.getTaskFile(name);
-    if (taskFile != null) {
-      taskFile.name = task.getName();
-      taskFile.text = missionsWrapper.code;
+  private static boolean isTokenUpToDate(@NotNull final String token) {
+    final HttpUriRequest request = CheckIOUserAuthorizer.makeUserInfoRequest(token);
+    final HttpResponse response = CheckIOUserAuthorizer.requestUserInfo(request);
+    JSONObject jsonObject = new JSONObject();
+    try {
+      jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
     }
-    else {
-      LOG.warn("Task file for task " + task.getName() + "is null");
+    catch (IOException e) {
+      LOG.error(e.getMessage());
     }
-    return task;
+    return jsonObject.has("error");
+  }
+
+  private static MissionsWrapper[] getMissions(@NotNull final String token) {
+    final HttpGet request = makeMissionsRequest(token);
+    final HttpResponse response = requestMissions(request);
+
+    String missions = "";
+    try {
+      missions = EntityUtils.toString(response.getEntity());
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    assert missions != null;
+    final Gson gson = new GsonBuilder().create();
+    return gson.fromJson(missions, MissionsWrapper[].class);
   }
 
   private static Lesson getLessonOrCreateIfDoesntExist(final int lessonId, @NotNull final String lessonName) {
@@ -173,12 +158,20 @@ public class CheckIOConnector {
     return lesson;
   }
 
-  private static Task createTaskFromMission(@NotNull final MissionsWrapper missionsWrapper) {
-    final Task task = new Task(missionsWrapper.slug);
-    task.setText(missionsWrapper.description);
+  private static Task getTaskFromMission(@NotNull final MissionsWrapper missionsWrapper) {
+    final Task task = createTaskFromMission(missionsWrapper);
+    String name = CheckIOUtils.getTaskFilenameFromTask(task);
+    task.addTaskFile(name, 0);
+    final TaskFile taskFile = task.getTaskFile(name);
+    if (taskFile != null) {
+      taskFile.name = task.getName();
+      taskFile.text = missionsWrapper.code;
+    }
+    else {
+      LOG.warn("Task file for task " + task.getName() + "is null");
+    }
     return task;
   }
-
 
   private static void setTaskInfoInTaskManager(@NotNull final CheckIOTaskManager taskManager, @NotNull final Task task,
                                                @NotNull final MissionsWrapper missionsWrapper) {
@@ -187,12 +180,35 @@ public class CheckIOConnector {
     taskManager.setTaskId(task, missionsWrapper.id);
   }
 
-  public static CheckIOUser authorizeUser() {
-    final CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
-    myUser = authorizer.authorizeUser();
-    myAccessToken = authorizer.getAccessToken();
-    myRefreshToken = authorizer.getRefreshToken();
-    return myUser;
+  private static HttpGet makeMissionsRequest(@NotNull final String token) {
+    URI uri = null;
+    try {
+      uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
+        .addParameter(PARAMETER_ACCESS_TOKEN, token)
+        .build();
+    }
+    catch (URISyntaxException e) {
+      LOG.error(e.getMessage());
+    }
+    return new HttpGet(uri);
+  }
+
+  private static HttpResponse requestMissions(@NotNull final HttpGet request) {
+    HttpResponse response = null;
+    try {
+      final CloseableHttpClient client = HttpClientBuilder.create().build();
+      response = client.execute(request);
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+    return response;
+  }
+
+  private static Task createTaskFromMission(@NotNull final MissionsWrapper missionsWrapper) {
+    final Task task = new Task(missionsWrapper.slug);
+    task.setText(missionsWrapper.description);
+    return task;
   }
 
   public static HttpPost createCheckRequest(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
@@ -272,7 +288,6 @@ public class CheckIOConnector {
 
     return new JSONArray(requestStringForJson);
   }
-
 
   public static String getRunner(@NotNull final Project project) {
     final Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();

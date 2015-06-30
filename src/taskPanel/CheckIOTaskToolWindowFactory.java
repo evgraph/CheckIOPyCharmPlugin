@@ -1,6 +1,5 @@
 package taskPanel;
 
-import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -22,7 +21,6 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final String TASK_DESCRIPTION = "Task description";
   private static final String SOLUTIONS = "Solutions";
   private static final String PROFILE = "Profile";
-  private static final DefaultLogger LOG = new DefaultLogger(CheckIOTaskToolWindowFactory.class.getName());
   public TaskInfoPanel taskInfoPanel;
 
 
@@ -36,24 +34,22 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
 
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
-    //CheckIOConnector.updateAccessToken(project);
     final Course course = StudyTaskManager.getInstance(project).getCourse();
     assert course != null;
-
-
-    String currentTaskText = "";
     String currentTaskName = "";
+    String taskTextPath = "";
     Task task;
+
     if ((task = CheckIOUtils.getTaskFromSelectedEditor(project)) != null) {
-      currentTaskText = task.getText();
       currentTaskName = task.getName();
+      taskTextPath = CheckIOUtils.getTaskTextUrl(project, task);
     }
+
 
     final JBCardLayout cardLayout = new JBCardLayout();
     final JPanel contentPanel = new JPanel(cardLayout);
 
-
-    taskInfoPanel = new TaskInfoPanel(currentTaskText, currentTaskName);
+    taskInfoPanel = new TaskInfoPanel(taskTextPath, currentTaskName);
     SolutionsPanel solutionsPanel = new SolutionsPanel();
     ProfilePanel profilePanel = new ProfilePanel(project);
 
@@ -85,7 +81,6 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
         cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
       }
     });
-
 
     profilePanel.getBackFromProfileButton().addActionListener(new ActionListener() {
       @Override

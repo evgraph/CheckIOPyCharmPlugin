@@ -54,10 +54,10 @@ public class CheckIOProjectComponent implements ProjectComponent {
       }
 
       private void setTaskInfoPanel(Task task) {
-        String taskText = task.getText();
+        String taskTextUrl = CheckIOUtils.getTaskTextUrl(project, task);
         String taskName = task.getName();
         if (toolWindowFactory.taskInfoPanel != null) {
-          toolWindowFactory.taskInfoPanel.setTaskText("text/html", taskText);
+          toolWindowFactory.taskInfoPanel.setTaskText(taskTextUrl);
           toolWindowFactory.taskInfoPanel.setTaskNameLabelText(taskName);
         }
       }
@@ -86,9 +86,9 @@ public class CheckIOProjectComponent implements ProjectComponent {
   @Override
   public void projectClosed() {
 
-    if (myListener != null) {
-      //FileEditorManager.getInstance(myProject).removeFileEditorManagerListener(myListener);
-    }
+    //if (myListener != null) {
+    //  //FileEditorManager.getInstance(myProject).removeFileEditorManagerListener(myListener);
+    //}
   }
 
   @Override
