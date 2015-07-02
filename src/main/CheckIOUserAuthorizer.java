@@ -3,6 +3,7 @@ package main;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,7 +27,6 @@ import org.json.JSONObject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -92,25 +92,8 @@ public class CheckIOUserAuthorizer {
   }
 
   private static void openAuthorizationPage() {
-    URI url = makeAuthorizationPageURI();
-    if (Desktop.isDesktopSupported()) {
-      Desktop desktop = Desktop.getDesktop();
-      try {
-        desktop.browse(new URI(url.toString()));
-      }
-      catch (IOException | URISyntaxException e) {
-        LOG.warn(e.getMessage());
-      }
-    }
-    else {
-      Runtime runtime = Runtime.getRuntime();
-      try {
-        runtime.exec("xdg-open " + url.toString());
-      }
-      catch (IOException e) {
-        LOG.warn(e.getMessage());
-      }
-    }
+    final URI url = makeAuthorizationPageURI();
+    BrowserUtil.browse(url);
   }
 
   private static URI makeAuthorizationPageURI() {
