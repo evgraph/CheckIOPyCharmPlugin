@@ -57,6 +57,7 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
       public void run(@NotNull ProgressIndicator indicator) {
         Course oldCourse = StudyTaskManager.getInstance(project).getCourse();
         Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+        CheckIOUtils.setTaskFilesStatusFromTask(project);
         assert oldCourse != null;
         List<Lesson> lessons = oldCourse.getLessons();
         assert lessons != null;
@@ -85,7 +86,7 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              CheckIOUtils.showOperationResultPopUp("Project is up to date", MessageType.INFO.getPopupBackground(), project, updateButton);
+              CheckIOUtils.showOperationResultPopUp("Project was updated", MessageType.INFO.getPopupBackground(), project, updateButton);
             }
           });
         }

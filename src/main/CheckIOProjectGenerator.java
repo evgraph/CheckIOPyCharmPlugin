@@ -13,9 +13,8 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.platform.DirectoryProjectGenerator;
-import com.jetbrains.edu.courseFormat.*;
+import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
@@ -79,34 +78,6 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     return false;
   }
 
-  private static void setTaskFilesStatusFromTask(Project project) {
-    final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final Course course = studyManager.getCourse();
-    if (course != null) {
-      for (Lesson lesson : course.getLessons()) {
-        for (Task task : lesson.getTaskList()) {
-          final String name = CheckIOUtils.getTaskFilenameFromTask(task);
-          final TaskFile taskFile = task.getTaskFile(name);
-          assert taskFile != null;
-          final AnswerPlaceholder answerPlaceholder = createAnswerPlaceholder(task.getName());
-          answerPlaceholder.initAnswerPlaceholder(taskFile, true);
-          final StudyStatus status = taskManager.getTaskStatus(task);
-          taskFile.addAnswerPlaceholder(answerPlaceholder);
-          studyManager.setStatus(task, status);
-
-        }
-      }
-    }
-  }
-
-  private static AnswerPlaceholder createAnswerPlaceholder(String taskName) {
-    AnswerPlaceholder answerPlaceholder = new AnswerPlaceholder();
-    answerPlaceholder.setTaskText(taskName);
-    answerPlaceholder.setIndex(0);
-    return answerPlaceholder;
-  }
-
 
   @Nls
   @NotNull
@@ -145,7 +116,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
                 VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
                 ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
                 CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
-                setTaskFilesStatusFromTask(project);
+                CheckIOUtils.setTaskFilesStatusFromTask(project);
 
                 if (toolWindowFactory != null) {
                   toolWindowFactory.createToolWindowContent(project, ToolWindowManager.getInstance(project).
