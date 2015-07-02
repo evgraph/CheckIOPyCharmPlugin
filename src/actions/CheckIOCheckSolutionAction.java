@@ -32,6 +32,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
   private static final String SOLUTION_WAIT_STATUS = "wait";
   private static final String SOLVED_TASK_MESSAGE = "Congratulations!";
   private static final String FAILED_TASK_MESSAGE = "Failed :(";
+  private static final String UNCHECKED_TASK_MESSAGE = "Task wasn't checked. Please try later.";
   private static final int SOLVED_STATUS_CODE = 1;
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
@@ -131,6 +132,14 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
               @Override
               public void run() {
                 CheckIOUtils.showOperationResultPopUp(FAILED_TASK_MESSAGE, MessageType.INFO.getPopupBackground(), project, checkButton);
+              }
+            });
+          }
+          else {
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                CheckIOUtils.showOperationResultPopUp(UNCHECKED_TASK_MESSAGE, MessageType.INFO.getPopupBackground(), project, checkButton);
               }
             });
           }
