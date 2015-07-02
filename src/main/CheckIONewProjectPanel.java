@@ -1,7 +1,9 @@
 package main;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBCardLayout;
+import org.jetbrains.jps.service.SharedThreadPool;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,25 +45,33 @@ public class CheckIONewProjectPanel {
       public void actionPerformed(ActionEvent e) {
         authorizationButton.setEnabled(false);
 
-       new Thread() {
-         @Override
-         public void run() {
-           CheckIOUser user = authorizeUser();
-           if (user == null) {
-             JOptionPane.showMessageDialog(authorizationPanel, "You're not authorized. Try again");
-             authorizationButton.setEnabled(true);
+        SharedThreadPool.getInstance().executeOnPooledThread(new Runnable() {
+          @Override
+          public void run() {
 
-           }
-           else {
-             authorizationResultLabel.setText("You are logged in as " + user.getUsername());
-             cardLayout.swipe(myContentPanel, PROJECT_CREATION_PANEL, JBCardLayout.SwipeDirection.FORWARD);
-           }
-         }
-       }.start();
+            final CheckIOUser user = authorizeUser();
+            if (user == null) {
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                  JOptionPane.showMessageDialog(authorizationPanel, "You're not authorized. Try again");
+                  authorizationButton.setEnabled(true);
+                }
+              });
+            }
+            else {
+              ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                  authorizationResultLabel.setText("You are logged in as " + user.getUsername());
+                  cardLayout.swipe(myContentPanel, PROJECT_CREATION_PANEL, JBCardLayout.SwipeDirection.FORWARD);
+                }
+              });
+            }
+          }
+        });
       }
     });
-
-
   }
 
 
