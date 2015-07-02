@@ -32,7 +32,7 @@ public class CheckIOFileEditorProvider implements FileEditorProvider, DumbAware 
 
   @Override
   public void disposeEditor(@NotNull FileEditor editor) {
-
+    defaultTextEditorProvider.disposeEditor(editor);
   }
 
   @NotNull
