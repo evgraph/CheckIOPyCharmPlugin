@@ -76,18 +76,20 @@ public class TaskInfoPanel extends JPanel {
     private void initHyperlinkListener() {
       webComponent.getEngine().getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
         if (newState == Worker.State.SUCCEEDED) {
-          EventListener listener = ev -> {
+          final EventListener listener = ev -> {
             String domEventType = ev.getType();
             if (domEventType.equals(EVENT_TYPE_CLICK)) {
               webComponent.getEngine().getLoadWorker().cancel();
-              String href = ((Element)ev.getTarget()).getAttribute("href");
-              new BrowserWindow().load(href);
+              final String href = ((Element)ev.getTarget()).getAttribute("href");
+              final BrowserWindow browserWindow = new BrowserWindow();
+              browserWindow.load(href);
+              browserWindow.setVisible(true);
               ev.preventDefault();
             }
           };
 
-          Document doc = webComponent.getEngine().getDocument();
-          NodeList nodeList = doc.getElementsByTagName("a");
+          final Document doc = webComponent.getEngine().getDocument();
+          final NodeList nodeList = doc.getElementsByTagName("");
           for (int i = 0; i < nodeList.getLength(); i++) {
             ((EventTarget)nodeList.item(i)).addEventListener(EVENT_TYPE_CLICK, listener, false);
           }

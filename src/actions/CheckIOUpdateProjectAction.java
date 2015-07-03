@@ -26,15 +26,12 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
   public static final String SHORTCUT = "ctrl R";
 
   public static void update(@NotNull final Project project) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
-        assert selectedEditor != null;
-        selectedEditor.getUpdateProjectButton().setEnabled(false);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
+      assert selectedEditor != null;
+      selectedEditor.getUpdateProjectButton().setEnabled(false);
 
-        ProgressManager.getInstance().run(getUpdateTask(project, selectedEditor));
-      }
+      ProgressManager.getInstance().run(getUpdateTask(project, selectedEditor));
     });
   }
 
@@ -56,11 +53,13 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         Course oldCourse = StudyTaskManager.getInstance(project).getCourse();
+        CheckIOConnector.updateTokensInTaskManager(project);
         Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
         CheckIOUtils.setTaskFilesStatusFromTask(project);
         assert oldCourse != null;
         List<Lesson> lessons = oldCourse.getLessons();
         assert lessons != null;
+
 
         final int unlockedStationsNumber = newCourse.getLessons().size() - oldCourse.getLessons().size();
 
@@ -73,22 +72,15 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
             messageEnding = " new stations";
           }
           selectedEditor.getCheckButton().setEnabled(true);
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              CheckIOUtils.showOperationResultPopUp("You unlock " + unlockedStationsNumber + messageEnding,
-                                                    MessageType.INFO.getPopupBackground(), project, updateButton);
-            }
-          });
+          ApplicationManager.getApplication()
+            .invokeLater(() -> CheckIOUtils.showOperationResultPopUp("You unlock " + unlockedStationsNumber + messageEnding,
+                                                                     MessageType.INFO.getPopupBackground(), project, updateButton));
         }
         else {
           selectedEditor.getCheckButton().setEnabled(true);
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              CheckIOUtils.showOperationResultPopUp("Project was updated", MessageType.INFO.getPopupBackground(), project, updateButton);
-            }
-          });
+          ApplicationManager.getApplication().invokeLater(
+            () -> CheckIOUtils
+              .showOperationResultPopUp("Project was updated", MessageType.INFO.getPopupBackground(), project, updateButton));
         }
       }
     };

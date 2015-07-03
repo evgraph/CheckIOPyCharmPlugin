@@ -7,6 +7,7 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task.Backgroundable;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 
 import javax.swing.*;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 public class CheckIOCheckSolutionAction extends DumbAwareAction {
@@ -30,10 +32,14 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
   public static final String SHORTCUT = "ctrl pressed PERIOD";
   private static final String SOLUTION_CHECK_STATUS = "check";
   private static final String SOLUTION_WAIT_STATUS = "wait";
-  private static final String SOLVED_TASK_MESSAGE = "Congratulations!";
-  private static final String FAILED_TASK_MESSAGE = "Failed :(";
-  private static final String UNCHECKED_TASK_MESSAGE = "Task wasn't checked. Please try later.";
   private static final int SOLVED_STATUS_CODE = 1;
+  private static final HashMap<StudyStatus, String> ourStudyStatusTaskCheckMessageHashMap = new HashMap<StudyStatus, String>() {
+    {
+      put(StudyStatus.Solved, "Congratulations!");
+      put(StudyStatus.Failed, "Failed :(");
+      put(StudyStatus.Unchecked, "Task wasn't checked. Please try later.");
+    }
+  };
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
   private static StudyStatus checkSolutionAndGetStatus(@NotNull final Project project,
@@ -79,8 +85,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
     return status;
   }
 
-  private static com.intellij.openapi.progress.Task.Backgroundable getCheckTask(@NotNull final Project project,
-                                                                                @NotNull final CheckIOTextEditor selectedEditor) {
+  private static Backgroundable getCheckTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
     return new com.intellij.openapi.progress.Task.Backgroundable(project, "Checking task", true) {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
@@ -106,62 +111,30 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
         if (task == null || task.getText().isEmpty()) {
           return;
         }
+        CheckIOConnector.updateTokensInTaskManager(project);
 
         if (indicator.isCanceled()) {
-          ApplicationManager.getApplication().runReadAction(new Runnable() {
-            @Override
-            public void run() {
-              CheckIOUtils.showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project, checkButton);
-            }
+          ApplicationManager.getApplication().runReadAction(() -> {
+            CheckIOUtils.showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project, checkButton);
           });
           return;
         }
         final StudyStatus status = checkSolutionAndGetStatus(project, task, code);
-        if (status == StudyStatus.Solved) {
-
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              CheckIOUtils.showOperationResultPopUp(SOLVED_TASK_MESSAGE, MessageType.INFO.getPopupBackground(), project, checkButton);
-            }
-          });
-        }
-        else {
-          if (status == StudyStatus.Failed) {
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                CheckIOUtils.showOperationResultPopUp(FAILED_TASK_MESSAGE, MessageType.INFO.getPopupBackground(), project, checkButton);
-              }
-            });
-          }
-          else {
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                CheckIOUtils.showOperationResultPopUp(UNCHECKED_TASK_MESSAGE, MessageType.INFO.getPopupBackground(), project, checkButton);
-              }
-            });
-          }
-        }
         studyManager.setStatus(task, status);
+        ApplicationManager.getApplication().invokeLater(
+          () -> CheckIOUtils
+            .showOperationResultPopUp(ourStudyStatusTaskCheckMessageHashMap.get(status), MessageType.INFO.getPopupBackground(),
+                                      project, checkButton)
+        );
       }
     };
   }
 
   private static void checkAndUpdate(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
-          @Override
-          public void run() {
-            selectedEditor.getCheckButton().setEnabled(false);
-            ProgressManager.getInstance().run(getCheckTask(project, selectedEditor));
-          }
-        });
-      }
-    });
+    ApplicationManager.getApplication().invokeLater(() -> CommandProcessor.getInstance().runUndoTransparentAction(() -> {
+      selectedEditor.getCheckButton().setEnabled(false);
+      ProgressManager.getInstance().run(getCheckTask(project, selectedEditor));
+    }));
   }
 
   public void actionPerformed(AnActionEvent e) {
