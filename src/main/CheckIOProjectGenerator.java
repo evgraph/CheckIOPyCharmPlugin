@@ -4,14 +4,11 @@ import com.intellij.facet.ui.ValidationResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.DefaultLogger;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.wm.ToolWindowEP;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.platform.DirectoryProjectGenerator;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyTaskManager;
@@ -22,7 +19,6 @@ import icons.PythonIcons;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import taskPanel.CheckIOTaskToolWindowFactory;
 
 import javax.swing.*;
 import java.io.File;
@@ -113,16 +109,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
                 StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
                 course.setCourseDirectory(myCoursesDir.getAbsolutePath());
 
-                VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
-                ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
-                CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
                 CheckIOUtils.setTaskFilesStatusFromTask(project);
-
-                if (toolWindowFactory != null) {
-                  toolWindowFactory.createToolWindowContent(project, ToolWindowManager.getInstance(project).
-                    getToolWindow(CheckIOUtils.TOOL_WINDOW_ID));
-                }
-
                 VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
                 StudyProjectGenerator.openFirstTask(course, project);
               }
