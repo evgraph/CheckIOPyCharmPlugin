@@ -15,6 +15,7 @@ import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
+import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import taskPanel.CheckIOTaskToolWindowFactory;
 
@@ -66,6 +67,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
   @Override
   public void projectOpened() {
+    Platform.setImplicitExit(false);
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
@@ -85,7 +87,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
   @Override
   public void projectClosed() {
-
+    //Platform.exit();
     //if (myListener != null) {
     //  //FileEditorManager.getInstance(myProject).removeFileEditorManagerListener(myListener);
     //}
