@@ -1,26 +1,34 @@
 package taskPanel;
 
 import javafx.application.Platform;
+import javafx.concurrent.Worker;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebView;
+import main.BrowserWindow;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.events.EventListener;
+import org.w3c.dom.events.EventTarget;
 
 import javax.swing.*;
 
 public class TaskInfoPanel extends JPanel {
+  public static final String EVENT_TYPE_CLICK = "click";
   private ButtonPanel myButtonPanel;
   private JLabel taskNameLabel;
   private JFXPanel myTextPanel;
-  private Browser myBrowser;
+  private BrowserPanel myBrowser;
 
 
   public TaskInfoPanel(String taskTextPath, String taskName) {
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     myButtonPanel = new ButtonPanel();
     taskNameLabel = new JLabel(taskName);
-    myBrowser = new Browser(taskTextPath);
+    myBrowser = new BrowserPanel(taskTextPath);
     myTextPanel = myBrowser.myPanel;
     add(taskNameLabel);
     add(myTextPanel);
@@ -40,7 +48,7 @@ public class TaskInfoPanel extends JPanel {
     myBrowser.load(taskTextPath);
   }
 
-  private static class Browser {
+  private static class BrowserPanel {
     public JFXPanel myPanel;
     private WebView webComponent;
     private BorderPane myBorderPane;
@@ -48,35 +56,49 @@ public class TaskInfoPanel extends JPanel {
     private static final int width = 450;
     private static final int height = 800;
 
-    public Browser(@NotNull final String filePath) {
+    public BrowserPanel(@NotNull final String filePath) {
       myPanel = new JFXPanel();
       initComponents();
       load(filePath);
     }
 
     private void initComponents() {
-      Platform.runLater(new Runnable() {
-        @Override
-        public void run() {
-          webComponent = new WebView();
-          myBorderPane = new BorderPane();
-          myBorderPane.setCenter(webComponent);
-          myScene = new Scene(myBorderPane, width, height);
-          myPanel.setScene(myScene);
+      Platform.runLater(() -> {
+        webComponent = new WebView();
+        myBorderPane = new BorderPane();
+        myBorderPane.setCenter(webComponent);
+        myScene = new Scene(myBorderPane, width, height);
+        myPanel.setScene(myScene);
+        initHyperlinkListener();
+      });
+    }
+
+    private void initHyperlinkListener() {
+      webComponent.getEngine().getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
+        if (newState == Worker.State.SUCCEEDED) {
+          EventListener listener = ev -> {
+            String domEventType = ev.getType();
+            if (domEventType.equals(EVENT_TYPE_CLICK)) {
+              webComponent.getEngine().getLoadWorker().cancel();
+              String href = ((Element)ev.getTarget()).getAttribute("href");
+              new BrowserWindow().load(href);
+              ev.preventDefault();
+            }
+          };
+
+          Document doc = webComponent.getEngine().getDocument();
+          NodeList nodeList = doc.getElementsByTagName("a");
+          for (int i = 0; i < nodeList.getLength(); i++) {
+            ((EventTarget)nodeList.item(i)).addEventListener(EVENT_TYPE_CLICK, listener, false);
+          }
         }
       });
     }
 
     private void load(@NotNull final String filePath) {
-      Platform.runLater(new Runnable() {
-        @Override
-        public void run() {
-          webComponent.getEngine().load(filePath);
-        }
-      });
+      Platform.runLater(() -> webComponent.getEngine().load(filePath));
     }
   }
-
 
   public void setTaskNameLabelText(String taskName) {
     this.taskNameLabel.setText(taskName);
@@ -105,7 +127,5 @@ public class TaskInfoPanel extends JPanel {
       myPublishSolutionButton.setEnabled(false);
       myShowSolutionButton.setEnabled(false);
     }
-
-
   }
 }

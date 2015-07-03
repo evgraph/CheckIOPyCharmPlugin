@@ -70,22 +70,19 @@ public class CheckIOProjectComponent implements ProjectComponent {
   @Override
   public void projectOpened() {
     Platform.setImplicitExit(false);
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
-      @Override
-      public void run() {
-        final Course course = StudyTaskManager.getInstance(myProject).getCourse();
-        final CheckIOUser user = CheckIOTaskManager.getInstance(myProject).getUser();
-        if (course != null && user != null) {
-          addToolWindowListener();
-          final ToolWindow toolWindow = gettaskToolwindow();
-          createToolWindowContent(toolWindow);
-          toolWindow.show(null);
-        }
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
+      final Course course = StudyTaskManager.getInstance(myProject).getCourse();
+      final CheckIOUser user = CheckIOTaskManager.getInstance(myProject).getUser();
+      if (course != null && user != null) {
+        addToolWindowListener();
+        final ToolWindow toolWindow = getTaskToolWindow();
+        createToolWindowContent(toolWindow);
+        toolWindow.show(null);
       }
     });
   }
 
-  private ToolWindow gettaskToolwindow() {
+  private ToolWindow getTaskToolWindow() {
     final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
     ToolWindow toolWindow = toolWindowManager.getToolWindow(CheckIOUtils.TOOL_WINDOW_ID);
     if (toolWindow == null) {
@@ -114,7 +111,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
   @Override
   public void projectClosed() {
-    //Platform.exit();
     //if (myListener != null) {
     //  //FileEditorManager.getInstance(myProject).removeFileEditorManagerListener(myListener);
     //}
