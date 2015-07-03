@@ -8,58 +8,23 @@ import javafx.scene.web.WebView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class TaskInfoPanel extends JPanel {
-  private JEditorPane myTaskTextPane;
   private ButtonPanel myButtonPanel;
   private JLabel taskNameLabel;
   private JFXPanel myTextPanel;
+  private Browser myBrowser;
+
 
   public TaskInfoPanel(String taskTextPath, String taskName) {
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     myButtonPanel = new ButtonPanel();
-    //myTaskTextPane = makeTaskTextPane(taskTextPath);
-    taskNameLabel = new JLabel();
-    setTaskNameLabelText(taskName);
-    myTextPanel = makeTaskTextPanel(taskTextPath);
+    taskNameLabel = new JLabel(taskName);
+    myBrowser = new Browser(taskTextPath);
+    myTextPanel = myBrowser.myPanel;
     add(taskNameLabel);
     add(myTextPanel);
-    //add(myTaskTextPane);
     add(myButtonPanel);
-  }
-
-  private static JEditorPane makeTaskTextPane(@NotNull final String text) {
-    JEditorPane taskTextPane = new JEditorPane();
-    taskTextPane.setPreferredSize(new Dimension(900, 900));
-    taskTextPane.setEditable(false);
-    taskTextPane.setContentType("text/html");
-    taskTextPane.setText(text);
-    return taskTextPane;
-  }
-
-  private static JFXPanel makeTaskTextPanel(@NotNull final String filePath) {
-    JFXPanel panel = new JFXPanel();
-    loadJavaFXScene(panel, filePath);
-    return panel;
-  }
-
-  private static void loadJavaFXScene(@NotNull final JFXPanel javafxPanel, @NotNull final String filePath) {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-
-
-        BorderPane borderPane = new BorderPane();
-        WebView webComponent = new WebView();
-
-        webComponent.getEngine().load(filePath);
-
-        borderPane.setCenter(webComponent);
-        Scene scene = new Scene(borderPane, 450, 800);
-        javafxPanel.setScene(scene);
-      }
-    });
   }
 
   public JButton getShowSolutionsButton() {
@@ -72,14 +37,44 @@ public class TaskInfoPanel extends JPanel {
 
 
   public void setTaskText(String taskTextPath) {
-    if (myTextPanel == null) {
-      myTextPanel = makeTaskTextPanel(taskTextPath);
-    }
-    loadJavaFXScene(myTextPanel, taskTextPath);
+    myBrowser.load(taskTextPath);
+  }
 
-    //myTaskTextPane.setContentType(contentType);
-    //myTaskTextPane.add(new JBScrollBar());
-    //myTaskTextPane.setText(taskTextPath);
+  private static class Browser {
+    public JFXPanel myPanel;
+    private WebView webComponent;
+    private BorderPane myBorderPane;
+    private Scene myScene;
+    private static final int width = 450;
+    private static final int height = 800;
+
+    public Browser(@NotNull final String filePath) {
+      myPanel = new JFXPanel();
+      initComponents();
+      load(filePath);
+    }
+
+    private void initComponents() {
+      Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+          webComponent = new WebView();
+          myBorderPane = new BorderPane();
+          myBorderPane.setCenter(webComponent);
+          myScene = new Scene(myBorderPane, width, height);
+          myPanel.setScene(myScene);
+        }
+      });
+    }
+
+    private void load(@NotNull final String filePath) {
+      Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+          webComponent.getEngine().load(filePath);
+        }
+      });
+    }
   }
 
 
