@@ -35,9 +35,6 @@ public class CheckIOTextEditor implements TextEditor {
   private final JComponent myComponent;
   private final Project myProject;
   private JButton myCheckButton;
-  //private JButton myNextTaskButton;
-  //private JButton myPrevTaskButton;
-  //private JButton myRefreshButton;
   private JButton updateProjectButton;
 
   public CheckIOTextEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
@@ -85,20 +82,8 @@ public class CheckIOTextEditor implements TextEditor {
   private void initButtons(@NotNull final JPanel buttonsPanel) {
     myCheckButton =
       addButton(buttonsPanel, CheckIOCheckSolutionAction.ACTION_ID, InteractiveLearningIcons.Resolve, CheckIOCheckSolutionAction.SHORTCUT);
-    //myPrevTaskButton = addButton(buttonsPanel, StudyPreviousStudyTaskAction.ACTION_ID, InteractiveLearningIcons.Prev, StudyPreviousStudyTaskAction.SHORTCUT);
-    //myNextTaskButton = addButton(buttonsPanel, StudyNextStudyTaskAction.ACTION_ID, AllIcons.Actions.Forward, StudyNextStudyTaskAction.SHORTCUT);
-    //myRefreshButton =
-    //  addButton(buttonsPanel, StudyRefreshTaskFileAction.ACTION_ID, AllIcons.Actions.Refresh, StudyRefreshTaskFileAction.SHORTCUT);
     updateProjectButton =
       addButton(buttonsPanel, CheckIOUpdateProjectAction.ACTION_ID, AllIcons.Actions.Download, CheckIOUpdateProjectAction.SHORTCUT);
-
-    //myNextTaskButton.addActionListener(new ActionListener() {
-    //  public void actionPerformed(ActionEvent e) {
-    //    StudyNextStudyTaskAction studyNextTaskAction = (StudyNextStudyTaskAction)ActionManager.getInstance().getAction("NextTaskAction");
-    //    studyNextTaskAction.navigateTask(myProject);
-    //  }
-    //});
-
     myCheckButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         CheckIOCheckSolutionAction studyCheckAction =
@@ -106,19 +91,6 @@ public class CheckIOTextEditor implements TextEditor {
         studyCheckAction.check(myProject);
       }
     });
-
-    //myPrevTaskButton.addActionListener(new ActionListener() {
-    //  public void actionPerformed(ActionEvent e) {
-    //    StudyPreviousStudyTaskAction prevTaskAction = (StudyPreviousStudyTaskAction)ActionManager.getInstance().getAction("PreviousTaskAction");
-    //    prevTaskAction.navigateTask(myProject);
-    //  }
-    //});
-    //myRefreshButton.addActionListener(new ActionListener() {
-    //  public void actionPerformed(ActionEvent e) {
-    //    StudyRefreshTaskFileAction.refresh(myProject);
-    //  }
-    //});
-
     updateProjectButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {

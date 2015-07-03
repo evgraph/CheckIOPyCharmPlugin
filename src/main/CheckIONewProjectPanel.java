@@ -21,7 +21,6 @@ public class CheckIONewProjectPanel {
   private JButton authorizationButton;
 
 
-
   public CheckIONewProjectPanel() {
     final JPanel projectCreationPanel = new JPanel(new GridBagLayout());
     authorizationResultLabel = new JLabel("");
@@ -60,13 +59,8 @@ public class CheckIONewProjectPanel {
               });
             }
             else {
-              ApplicationManager.getApplication().invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  authorizationResultLabel.setText("You are logged in as " + user.getUsername());
-                  cardLayout.swipe(myContentPanel, PROJECT_CREATION_PANEL, JBCardLayout.SwipeDirection.FORWARD);
-                }
-              });
+              authorizationResultLabel.setText("You are logged in as " + user.getUsername());
+              cardLayout.swipe(myContentPanel, PROJECT_CREATION_PANEL, JBCardLayout.SwipeDirection.FORWARD);
             }
           }
         });
@@ -80,13 +74,13 @@ public class CheckIONewProjectPanel {
     try {
       authorizationButton.setEnabled(false);
       user = CheckIOConnector.authorizeUser();
-
     }
     catch (Exception e1) {
       LOG.warn(e1.getMessage());
     }
     return user;
   }
+
   public JPanel getMainPanel() {
     return myContentPanel;
   }
@@ -100,6 +94,4 @@ public class CheckIONewProjectPanel {
       return null;
     }
   }
-
-
 }

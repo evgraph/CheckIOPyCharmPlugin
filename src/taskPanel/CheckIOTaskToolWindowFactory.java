@@ -23,13 +23,10 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final String PROFILE = "Profile";
   public TaskInfoPanel taskInfoPanel;
 
-
-
   public void setListener(Project project, FileEditorManagerListener listener) {
-    if (listener == null) {
-      return;
+    if (listener != null) {
+      project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
     }
-    project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
   }
 
   @Override
@@ -38,13 +35,12 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     assert course != null;
     String currentTaskName = "";
     String taskTextPath = "";
-    Task task;
+    Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
 
-    if ((task = CheckIOUtils.getTaskFromSelectedEditor(project)) != null) {
+    if (task != null) {
       currentTaskName = task.getName();
       taskTextPath = CheckIOUtils.getTaskTextUrl(project, task);
     }
-
 
     final JBCardLayout cardLayout = new JBCardLayout();
     final JPanel contentPanel = new JPanel(cardLayout);
