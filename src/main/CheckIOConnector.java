@@ -8,7 +8,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.MessageType;
-import com.jetbrains.edu.courseFormat.*;
+import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.courseFormat.Lesson;
+import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.apache.http.HttpResponse;
@@ -175,26 +178,14 @@ public class CheckIOConnector {
 
   private static void setTaskInfoInTaskManager(@NotNull final Project project, @NotNull final Task task,
                                                @NotNull final MissionsWrapper missionsWrapper) {
-    //taskManager.setTaskStatus(task, taskSolutionStatus.get(missionsWrapper.isSolved));
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    createAnswerPlaceholderIfDoesntExist(task);
+    CheckIOUtils.addAnswerPlaceHolderIfDoesntExist(task);
     studyManager.setStatus(task, taskSolutionStatus.get(missionsWrapper.isSolved));
     taskManager.setPublicationStatus(task, taskPublicationStatus.get(missionsWrapper.isPublished));
     taskManager.setTaskId(task, missionsWrapper.id);
   }
 
-  private static void createAnswerPlaceholderIfDoesntExist(@NotNull final Task task) {
-    final String taskFileName = CheckIOUtils.getTaskFilenameFromTask(task);
-    final TaskFile taskFile;
-    if ((taskFile = task.getTaskFile(taskFileName)) != null) {
-      if (taskFile.getAnswerPlaceholders().isEmpty()) {
-        final AnswerPlaceholder answerPlaceholder = CheckIOUtils.createAnswerPlaceholder(taskFileName);
-        taskFile.addAnswerPlaceholder(answerPlaceholder);
-        //answerPlaceholder.initAnswerPlaceholder(taskFile, false);
-      }
-    }
-  }
 
   private static HttpGet makeMissionsRequest(@NotNull final String token) {
     URI uri = null;

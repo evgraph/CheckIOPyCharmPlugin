@@ -1,6 +1,7 @@
 package main;
 
 import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -19,11 +20,13 @@ import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import taskPanel.CheckIOTaskToolWindowFactory;
 
 public class CheckIOProjectComponent implements ProjectComponent {
   private Project myProject;
   private FileEditorManagerListener myListener;
+  private static Logger LOG = Logger.getInstance(CheckIOProjectComponent.class.getName());
 
   public CheckIOProjectComponent(Project project) {
     myProject = project;
@@ -50,10 +53,16 @@ public class CheckIOProjectComponent implements ProjectComponent {
         }
       }
 
+      @Nullable
       private Task getTask(@NotNull VirtualFile file) {
         TaskFile taskFile = StudyUtils.getTaskFile(project, file);
-        assert taskFile != null;
-        return taskFile.getTask();
+        if (taskFile != null) {
+          return taskFile.getTask();
+        }
+        else {
+          LOG.warn("Task file is null. Maybe user opened the task file text file");
+          return null;
+        }
       }
 
       private void setTaskInfoPanel(Task task) {
