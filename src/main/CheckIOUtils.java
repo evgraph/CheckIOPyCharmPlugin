@@ -11,10 +11,10 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindowEP;
-import com.jetbrains.edu.courseFormat.*;
-import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.courseFormat.AnswerPlaceholder;
+import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
-import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.jetbrains.annotations.NotNull;
 import taskPanel.CheckIOTaskToolWindowFactory;
 
@@ -90,27 +90,7 @@ public class CheckIOUtils {
     return "file://" + virtualFile.getCanonicalPath() + "/task.html";
   }
 
-  public static void setTaskFilesStatusFromTask(Project project) {
-    final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final Course course = studyManager.getCourse();
-    if (course != null) {
-      for (Lesson lesson : course.getLessons()) {
-        for (Task task : lesson.getTaskList()) {
-          final String name = getTaskFilenameFromTask(task);
-          final TaskFile taskFile = task.getTaskFile(name);
-          assert taskFile != null;
-          final AnswerPlaceholder answerPlaceholder = createAnswerPlaceholder(task.getName());
-          answerPlaceholder.initAnswerPlaceholder(taskFile, true);
-          final StudyStatus status = taskManager.getTaskStatus(task);
-          taskFile.addAnswerPlaceholder(answerPlaceholder);
-          studyManager.setStatus(task, status);
-        }
-      }
-    }
-  }
-
-  private static AnswerPlaceholder createAnswerPlaceholder(String taskName) {
+  public static AnswerPlaceholder createAnswerPlaceholder(String taskName) {
     AnswerPlaceholder answerPlaceholder = new AnswerPlaceholder();
     answerPlaceholder.setTaskText(taskName);
     answerPlaceholder.setIndex(0);

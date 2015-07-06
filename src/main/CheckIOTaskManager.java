@@ -11,7 +11,6 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.jetbrains.edu.courseFormat.Task;
-import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,10 +36,9 @@ import java.util.Map.Entry;
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
   public String accessToken;
   public String refreshToken;
-  public HashMap<String, StudyStatus> myTaskStatusMap = new HashMap<>();
   public Map<String, Integer> myTaskIds = new HashMap<>();
   private CheckIOUser myUser;
-  private Map<Task, TaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
+  public Map<Task, TaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
 
   private CheckIOTaskManager() {
   }
@@ -50,13 +48,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     return ModuleServiceManager.getService(module, CheckIOTaskManager.class);
   }
 
-  public void setTaskStatus(Task task, StudyStatus status) {
-    myTaskStatusMap.put(task.getName(), status);
-  }
-
-  public StudyStatus getTaskStatus(Task task) {
-    return myTaskStatusMap.get(task.getName());
-  }
 
   public CheckIOUser getUser() {
     return myUser;
@@ -85,10 +76,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     }
     myPublicationStatusMap.put(task, publicationStatus);
   }
-
-  //public TaskPublicationStatus getPublicationStatus(Task task) {
-  //  return myPublicationStatusMap.get(task);
-  //}
 
 
   public ArrayList<Task> getPublishedTasks() {

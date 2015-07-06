@@ -44,24 +44,18 @@ public class CheckIONewProjectPanel {
       public void actionPerformed(ActionEvent e) {
         authorizationButton.setEnabled(false);
 
-        SharedThreadPool.getInstance().executeOnPooledThread(new Runnable() {
-          @Override
-          public void run() {
+        SharedThreadPool.getInstance().executeOnPooledThread(() -> {
 
-            final CheckIOUser user = authorizeUser();
-            if (user == null) {
-              ApplicationManager.getApplication().invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  JOptionPane.showMessageDialog(authorizationPanel, "You're not authorized. Try again");
-                  authorizationButton.setEnabled(true);
-                }
-              });
-            }
-            else {
-              authorizationResultLabel.setText("You are logged in as " + user.getUsername());
-              cardLayout.swipe(myContentPanel, PROJECT_CREATION_PANEL, JBCardLayout.SwipeDirection.FORWARD);
-            }
+          final CheckIOUser user = authorizeUser();
+          if (user == null) {
+            ApplicationManager.getApplication().invokeLater(() -> {
+              JOptionPane.showMessageDialog(authorizationPanel, "You're not authorized. Try again");
+              authorizationButton.setEnabled(true);
+            });
+          }
+          else {
+            authorizationResultLabel.setText("You are logged in as " + user.getUsername());
+            cardLayout.swipe(myContentPanel, PROJECT_CREATION_PANEL, JBCardLayout.SwipeDirection.FORWARD);
           }
         });
       }
@@ -69,10 +63,9 @@ public class CheckIONewProjectPanel {
   }
 
 
-  private CheckIOUser authorizeUser() {
+  private static CheckIOUser authorizeUser() {
     CheckIOUser user = null;
     try {
-      authorizationButton.setEnabled(false);
       user = CheckIOConnector.authorizeUser();
     }
     catch (Exception e1) {

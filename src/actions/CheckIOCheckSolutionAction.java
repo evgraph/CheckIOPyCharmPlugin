@@ -153,7 +153,4 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
     checkAndUpdate(project, selectedEditor);
   }
 
-
-
-
 }

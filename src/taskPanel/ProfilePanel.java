@@ -22,12 +22,8 @@ public class ProfilePanel extends JPanel {
 
   public ProfilePanel(Project project) {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-
     addAll(createBackButtonPanel(), new InfoPanel(project),
            new StationsProgressPanel("Home", "Elementary"), new TaskAndBadgesProgressPanel(project));
-
-
   }
 
   private static JProgressBar setProgressBar(int value, int to) {
@@ -54,7 +50,6 @@ public class ProfilePanel extends JPanel {
     add(infoPanel);
     add(stationsProgressPanel);
     add(tasksAndBadgesPanel);
-
   }
 
   public JButton getBackFromProfileButton() {
@@ -84,7 +79,7 @@ public class ProfilePanel extends JPanel {
       private JPanel missionsPanel;
       private JPanel publicationsPanel;
 
-      public TaskProgressPanel(@NotNull Project project) {
+      public TaskProgressPanel(@NotNull final Project project) {
         setLayout(new GridLayout(2, 1, 10, 10));
         missionsPanel = createListPanel("Missions", project);
         publicationsPanel = createListPanel("Publications", project);
@@ -93,7 +88,7 @@ public class ProfilePanel extends JPanel {
       }
 
 
-      private static JPanel createListPanel(@NotNull String name, @NotNull Project project) {
+      private static JPanel createListPanel(@NotNull final String name, @NotNull final Project project) {
         final JPanel panel = new JPanel();
         final JBList completedTasksList = createList(project);
         completedTasksList.setPreferredSize(new Dimension(200, 180));
@@ -103,23 +98,17 @@ public class ProfilePanel extends JPanel {
         return panel;
       }
 
-
       private static JBList createList(@NotNull Project project) {
         final DefaultListModel<String> tasksListModel = new DefaultListModel<>();
         ArrayList<Task> publishedTasks = CheckIOTaskManager.getInstance(project).getPublishedTasks();
         for (Task task : publishedTasks) {
           tasksListModel.addElement(task.getName());
         }
-        for (int i = 0; i < 10; i++) {
-          tasksListModel.addElement("sss");
-        }
         JBList list = new JBList(tasksListModel);
         list.add(new JBScrollBar());
         return list;
       }
-
-
-      }
+    }
 
     //  class MyPublicationListener implements ListSelectionListener{
     //    @Override

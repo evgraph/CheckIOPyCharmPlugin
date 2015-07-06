@@ -31,7 +31,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   private File myCoursesDir;
 
 
-  private static CheckIOTaskManager setParametersAndGetTaskManager(@NotNull Project project) {
+  private static void setParametersInTaskManager(@NotNull Project project) {
     if (!checkIfUserOrAccessTokenIsNull()) {
       final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
       final CheckIOUser user = CheckIOConnector.getMyUser();
@@ -40,25 +40,24 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
       taskManager.setUser(user);
       taskManager.accessToken = accessToken;
       taskManager.refreshToken = refreshToken;
-      return taskManager;
-    }
-    return null;
-  }
-
-  private static void setCourseInStudyManager(@NotNull Project project) {
-    if (!checkIfUserOrAccessTokenIsNull()) {
-      StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-      if (studyManager.getCourse() == null) {
-        Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
-
-        if (course == null) {
-          LOG.error("Course is null");
-          return;
-        }
-        studyManager.setCourse(course);
-      }
     }
   }
+
+  //private static void getCourseAndSetInStudyManager(@NotNull Project project) {
+  //  if (!checkIfUserOrAccessTokenIsNull()) {
+  //    StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
+  //    if (studyManager.getCourse() == null) {
+  //
+  //
+  //      if (course == null) {
+  //        LOG.error("Course is null");
+  //        return;
+  //      }
+  //      studyManager.setCourse(course);
+  //    }
+  //  }
+  //}
+
 
   private static boolean checkIfUserOrAccessTokenIsNull() {
 
@@ -90,36 +89,21 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
 
   @Override
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
-    setParametersAndGetTaskManager(project);
-    setCourseInStudyManager(project);
-    final Course course = StudyTaskManager.getInstance(project).getCourse();
+    setParametersInTaskManager(project);
+    final Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+    StudyTaskManager.getInstance(project).setCourse(course);
+    myCoursesDir = new File(PathManager.getConfigPath(), "courses");
 
-    if (course != null) {
-      myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-      new StudyProjectGenerator().flushCourse(course);
-      course.initCourse(false);
-      ApplicationManager.getApplication().invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
-              @Override
-              public void run() {
-                final File courseDirectory = new File(myCoursesDir, course.getName());
-                StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
-                course.setCourseDirectory(myCoursesDir.getAbsolutePath());
-
-                CheckIOUtils.setTaskFilesStatusFromTask(project);
-                VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
-                StudyProjectGenerator.openFirstTask(course, project);
-              }
-            });
-          }
-        });
-    }
-    else {
-      LOG.warn("Course object is null");
-    }
+    ApplicationManager.getApplication().invokeLater(
+      () -> ApplicationManager.getApplication().runWriteAction(() -> {
+        final File courseDirectory = new File(myCoursesDir, course.getName());
+        StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
+        course.setCourseDirectory(myCoursesDir.getAbsolutePath());
+        VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
+        StudyProjectGenerator.openFirstTask(course, project);
+      }));
+    new StudyProjectGenerator().flushCourse(course);
+    course.initCourse(false);
   }
 
   @Nullable

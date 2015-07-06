@@ -35,6 +35,7 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
     });
   }
 
+
   private static Task.Backgroundable getUpdateTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
     final JButton updateButton = selectedEditor.getUpdateProjectButton();
 
@@ -55,7 +56,7 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
         Course oldCourse = StudyTaskManager.getInstance(project).getCourse();
         CheckIOConnector.updateTokensInTaskManager(project);
         Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
-        CheckIOUtils.setTaskFilesStatusFromTask(project);
+        //CheckIOUtils.setTaskFilesStatusFromTask(project);
         assert oldCourse != null;
         List<Lesson> lessons = oldCourse.getLessons();
         assert lessons != null;
