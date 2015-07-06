@@ -56,7 +56,6 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
         Course oldCourse = StudyTaskManager.getInstance(project).getCourse();
         CheckIOConnector.updateTokensInTaskManager(project);
         Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
-        //CheckIOUtils.setTaskFilesStatusFromTask(project);
         assert oldCourse != null;
         List<Lesson> lessons = oldCourse.getLessons();
         assert lessons != null;
@@ -72,16 +71,23 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
           else {
             messageEnding = " new stations";
           }
-          selectedEditor.getCheckButton().setEnabled(true);
           ApplicationManager.getApplication()
-            .invokeLater(() -> CheckIOUtils.showOperationResultPopUp("You unlock " + unlockedStationsNumber + messageEnding,
-                                                                     MessageType.INFO.getPopupBackground(), project, updateButton));
+            .invokeLater(() -> {
+              CheckIOUtils.showOperationResultPopUp("You unlock " + unlockedStationsNumber + messageEnding,
+                                                    MessageType.INFO.getPopupBackground(), project, updateButton);
+              selectedEditor.getCheckButton().setEnabled(true);
+            });
+
         }
         else {
-          selectedEditor.getCheckButton().setEnabled(true);
+
           ApplicationManager.getApplication().invokeLater(
-            () -> CheckIOUtils
-              .showOperationResultPopUp("Project was updated", MessageType.INFO.getPopupBackground(), project, updateButton));
+            () -> {
+              CheckIOUtils.showOperationResultPopUp("Project was updated", MessageType.INFO.getPopupBackground(), project, updateButton);
+              selectedEditor.getCheckButton().setEnabled(true);
+            }
+          );
+
         }
       }
     };
