@@ -16,6 +16,7 @@ import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import taskPanel.CheckIOTaskToolWindowFactory;
 
 import javax.swing.*;
@@ -27,7 +28,8 @@ public class CheckIOUtils {
   private CheckIOUtils() {
   }
 
-  public static CheckIOTaskToolWindowFactory getCheckIOToolWindowFactory(ToolWindowEP[] toolWindowEPs) {
+  @Nullable
+  public static CheckIOTaskToolWindowFactory getCheckIOToolWindowFactory(@NotNull final ToolWindowEP[] toolWindowEPs) {
     for (ToolWindowEP toolWindowEP : toolWindowEPs) {
       if (toolWindowEP.id.equals(TOOL_WINDOW_ID)) {
         return (CheckIOTaskToolWindowFactory)toolWindowEP.getToolWindowFactory();
@@ -36,6 +38,7 @@ public class CheckIOUtils {
     return null;
   }
 
+  @Nullable
   public static Document getDocumentFromSelectedEditor(@NotNull final Project project) {
     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
     assert fileEditorManager != null;
@@ -45,7 +48,9 @@ public class CheckIOUtils {
     }
     return null;
   }
-  public static Task getTaskFromSelectedEditor(Project project) {
+
+  @Nullable
+  public static Task getTaskFromSelectedEditor(@NotNull final Project project) {
     FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
     Document document = getDocumentFromSelectedEditor(project);
     if (document != null) {
@@ -80,18 +85,21 @@ public class CheckIOUtils {
     }
   }
 
-  public static String getTaskFilenameFromTask(Task task) {
+  public static String getTaskFileNameFromTask(@NotNull final Task task) {
     return task.getName() + ".py";
   }
 
-  public static String getTaskTextUrl(@NotNull final Project project, @NotNull final Task task) {
+  public static String getTaskTextUrl(@NotNull final Project project, @Nullable final Task task) {
+    if (task == null) {
+      return "";
+    }
     final VirtualFile virtualFile = task.getTaskDir(project);
     assert virtualFile != null;
     return "file://" + virtualFile.getCanonicalPath() + "/task.html";
   }
 
-  public static void addAnswerPlaceHolderIfDoesntExist(@NotNull final Task task) {
-    final String taskFileName = getTaskFilenameFromTask(task);
+  public static void addAnswerPlaceholderIfDoesntExist(@NotNull final Task task) {
+    final String taskFileName = getTaskFileNameFromTask(task);
     final TaskFile taskFile;
     if ((taskFile = task.getTaskFile(taskFileName)) != null) {
       if (taskFile.getAnswerPlaceholders().isEmpty()) {

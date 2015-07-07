@@ -40,7 +40,7 @@ import java.util.Map;
 
 
 public class CheckIOConnector {
-  private static final String CHECKIO_API_URL = "http://www.checkio.org/api/";
+  public static String CHECKIO_API_URL = "http://www.checkio.org/api/";
   private static final String MISSIONS_API = "user-missions/";
   private static final String PARAMETER_ACCESS_TOKEN = "token";
   private static final String CHECK_URL = "http://www.checkio.org/center/1/ucheck/";
@@ -74,9 +74,9 @@ public class CheckIOConnector {
 
   public static CheckIOUser authorizeUser() {
     final CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
-    myUser = authorizer.authorizeUser();
-    myAccessToken = authorizer.getAccessToken();
-    myRefreshToken = authorizer.getRefreshToken();
+    myUser = authorizer.authorizeAndGetUser();
+    myAccessToken = authorizer.myAccessToken;
+    myRefreshToken = authorizer.myRefreshToken;
     return myUser;
   }
 
@@ -88,13 +88,12 @@ public class CheckIOConnector {
     final String refreshToken = taskManager.refreshToken;
     final CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
     authorizer.setTokensFromRefreshToken(refreshToken);
-    myAccessToken = authorizer.getAccessToken();
-    myRefreshToken = authorizer.getRefreshToken();
+    myAccessToken = authorizer.myAccessToken;
+    myRefreshToken = authorizer.myRefreshToken;
 
     taskManager.accessToken = myAccessToken;
     taskManager.refreshToken = myRefreshToken;
   }
-
 
   @NotNull
   public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) {
@@ -106,19 +105,20 @@ public class CheckIOConnector {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     String token = taskManager.accessToken;
     assert token != null;
-    final MissionsWrapper[] missionsWrappers = getMissions(token);
+    final MissionWrapper[] missionWrappers = getMissions(token);
 
-    for (MissionsWrapper missionsWrapper : missionsWrappers) {
-      final Lesson lesson = getLessonOrCreateIfDoesntExist(missionsWrapper.stationId, missionsWrapper.stationName);
-      final Task task = getTaskFromMission(missionsWrapper);
-      setTaskInfoInTaskManager(project, task, missionsWrapper);
+    for (MissionWrapper missionWrapper : missionWrappers) {
+      final Lesson lesson = getLessonOrCreateIfDoesntExist(missionWrapper.stationId, missionWrapper.stationName);
+      final Task task = getTaskFromMission(missionWrapper);
+      setTaskInfoInTaskManager(project, task, missionWrapper);
       lesson.addTask(task);
     }
     return course;
   }
 
   private static boolean isTokenUpToDate(@NotNull final String token) {
-    final HttpUriRequest request = CheckIOUserAuthorizer.makeUserInfoRequest(token);
+    final CheckIOUserAuthorizer checkIOUserAuthorizer = new CheckIOUserAuthorizer();
+    final HttpUriRequest request = checkIOUserAuthorizer.makeUserInfoRequest(token);
     final HttpResponse response = CheckIOUserAuthorizer.requestUserInfo(request);
     JSONObject jsonObject = new JSONObject();
     try {
@@ -130,7 +130,7 @@ public class CheckIOConnector {
     return jsonObject.has("error");
   }
 
-  private static MissionsWrapper[] getMissions(@NotNull final String token) {
+  public static MissionWrapper[] getMissions(@NotNull final String token) {
     final HttpGet request = makeMissionsRequest(token);
     final HttpResponse response = requestMissions(request);
 
@@ -143,7 +143,7 @@ public class CheckIOConnector {
     }
     assert missions != null;
     final Gson gson = new GsonBuilder().create();
-    return gson.fromJson(missions, MissionsWrapper[].class);
+    return gson.fromJson(missions, MissionWrapper[].class);
   }
 
   private static Lesson getLessonOrCreateIfDoesntExist(final int lessonId, @NotNull final String lessonName) {
@@ -161,14 +161,14 @@ public class CheckIOConnector {
     return lesson;
   }
 
-  private static Task getTaskFromMission(@NotNull final MissionsWrapper missionsWrapper) {
-    final Task task = createTaskFromMission(missionsWrapper);
-    String name = CheckIOUtils.getTaskFilenameFromTask(task);
+  private static Task getTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
+    final Task task = createTaskFromMission(missionWrapper);
+    final String name = CheckIOUtils.getTaskFileNameFromTask(task);
     task.addTaskFile(name, 0);
     final TaskFile taskFile = task.getTaskFile(name);
     if (taskFile != null) {
       taskFile.name = task.getName();
-      taskFile.text = missionsWrapper.code;
+      taskFile.text = missionWrapper.code;
     }
     else {
       LOG.warn("Task file for task " + task.getName() + "is null");
@@ -177,13 +177,13 @@ public class CheckIOConnector {
   }
 
   private static void setTaskInfoInTaskManager(@NotNull final Project project, @NotNull final Task task,
-                                               @NotNull final MissionsWrapper missionsWrapper) {
+                                               @NotNull final MissionWrapper missionWrapper) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    CheckIOUtils.addAnswerPlaceHolderIfDoesntExist(task);
-    studyManager.setStatus(task, taskSolutionStatus.get(missionsWrapper.isSolved));
-    taskManager.setPublicationStatus(task, taskPublicationStatus.get(missionsWrapper.isPublished));
-    taskManager.setTaskId(task, missionsWrapper.id);
+    CheckIOUtils.addAnswerPlaceholderIfDoesntExist(task);
+    studyManager.setStatus(task, taskSolutionStatus.get(missionWrapper.isSolved));
+    taskManager.setPublicationStatus(task, taskPublicationStatus.get(missionWrapper.isPublished));
+    taskManager.setTaskId(task, missionWrapper.id);
   }
 
 
@@ -212,9 +212,9 @@ public class CheckIOConnector {
     return response;
   }
 
-  private static Task createTaskFromMission(@NotNull final MissionsWrapper missionsWrapper) {
-    final Task task = new Task(missionsWrapper.slug);
-    task.setText(missionsWrapper.description);
+  private static Task createTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
+    final Task task = new Task(missionWrapper.slug);
+    task.setText(missionWrapper.description);
     return task;
   }
 
@@ -319,18 +319,12 @@ public class CheckIOConnector {
     return runner;
   }
 
-  private static class MissionsWrapper {
-    int reviewsNeededCount;//?
+  public static class MissionWrapper {
     boolean isPublished;
     int stationId;
     String code;
     boolean isSolved;
-    boolean isReviewSkipped;//?
     int id;
-    int reviewsDoneCount; //?
-    boolean isPublishable;
-    boolean isPublicationRequired;//?
-    String title;
     String description;
     String slug;
     String stationName;

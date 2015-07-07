@@ -79,6 +79,7 @@ public class TaskInfoPanel extends JPanel {
           final EventListener listener = ev -> {
             String domEventType = ev.getType();
             if (domEventType.equals(EVENT_TYPE_CLICK)) {
+              webComponent.getEngine().setJavaScriptEnabled(true);
               webComponent.getEngine().getLoadWorker().cancel();
               final String href = ((Element)ev.getTarget()).getAttribute("href");
               final BrowserWindow browserWindow = new BrowserWindow();

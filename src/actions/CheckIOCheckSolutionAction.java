@@ -90,7 +90,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
       final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
-      final String taskFileName = CheckIOUtils.getTaskFilenameFromTask(task);
+      final String taskFileName = CheckIOUtils.getTaskFileNameFromTask(task);
       final String code = task.getDocument(project, taskFileName).getText();
       final JButton checkButton = selectedEditor.getCheckButton();
 

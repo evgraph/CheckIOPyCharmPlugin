@@ -59,7 +59,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
 
 
 
-  public void setTaskId(Task task, Integer id) {
+  public void setTaskId(@NotNull final Task task, int id) {
     if (myTaskIds == null) {
       myTaskIds = new HashMap<>();
     }

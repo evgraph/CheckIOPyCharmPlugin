@@ -14,8 +14,6 @@ import main.CheckIOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final String TASK_DESCRIPTION = "Task description";
@@ -57,33 +55,16 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     final Content content = contentFactory.createContent(contentPanel, "", true);
     toolWindow.getContentManager().addContent(content);
 
-    taskInfoPanel.getShowSolutionsButton().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        cardLayout.swipe(contentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO);
-      }
-    });
+    taskInfoPanel.getShowSolutionsButton().addActionListener(
+      e -> cardLayout.swipe(contentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO));
 
-    taskInfoPanel.getViewProfileButton().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        cardLayout.swipe(contentPanel, PROFILE, JBCardLayout.SwipeDirection.AUTO);
-      }
-    });
+    taskInfoPanel.getViewProfileButton().addActionListener(e -> cardLayout.swipe(contentPanel, PROFILE, JBCardLayout.SwipeDirection.AUTO));
 
-    solutionsPanel.getToTaskDescription().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
-      }
-    });
+    solutionsPanel.getToTaskDescription().addActionListener(
+      e -> cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
 
-    profilePanel.getBackFromProfileButton().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
-      }
-    });
+    profilePanel.getBackFromProfileButton().addActionListener(
+      e -> cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
 
   }
 }

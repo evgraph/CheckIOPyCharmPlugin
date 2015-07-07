@@ -3,6 +3,7 @@ package main;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBCardLayout;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.service.SharedThreadPool;
 
 import javax.swing.*;
@@ -78,7 +79,7 @@ public class CheckIONewProjectPanel {
     return myContentPanel;
   }
 
-  private ImageIcon createImageIcon(String path) {
+  private ImageIcon createImageIcon(@NotNull final String path) {
     final URL imgURL = getClass().getResource(path);
     if (imgURL != null) {
       return new ImageIcon(imgURL);
