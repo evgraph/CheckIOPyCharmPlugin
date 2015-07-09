@@ -30,6 +30,7 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
     ApplicationManager.getApplication().invokeLater(() -> {
       final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
       assert selectedEditor != null;
+      CheckIOConnector.updateTokensInTaskManager(project);
       ProgressManager.getInstance().run(getUpdateTask(project, selectedEditor));
     });
   }
@@ -54,15 +55,15 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        Course oldCourse = StudyTaskManager.getInstance(project).getCourse();
-        CheckIOConnector.updateTokensInTaskManager(project);
-        Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+        final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
+        final Course oldCourse = studyTaskManager.getCourse();
+        final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
         assert oldCourse != null;
-        List<Lesson> lessons = oldCourse.getLessons();
-        assert lessons != null;
+        final List<Lesson> oldLessons = oldCourse.getLessons();
+        final List<Lesson> newLessons = newCourse.getLessons();
 
-
-        final int unlockedStationsNumber = newCourse.getLessons().size() - oldCourse.getLessons().size();
+        final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
+        studyTaskManager.setCourse(newCourse);
 
         if (unlockedStationsNumber > 0) {
           final String messageEnding;

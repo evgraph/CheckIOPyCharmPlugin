@@ -82,9 +82,9 @@ public class CheckIOConnector {
 
   public static void updateTokensInTaskManager(@NotNull final Project project) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    if (!isTokenUpToDate(taskManager.accessToken)) {
-      return;
-    }
+    //if (isTokenUpToDate(taskManager.accessToken)) {
+    //  return;
+    //}
     final String refreshToken = taskManager.refreshToken;
     final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
     authorizer.setTokensFromRefreshToken(refreshToken);
@@ -98,12 +98,15 @@ public class CheckIOConnector {
   @NotNull
   public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) {
     lessonsById = new HashMap<>();
-    course = new Course();
-    course.setLanguage("Python");
-    course.setName("CheckIO");
-    course.setDescription("CheckIO project");
+    course = StudyTaskManager.getInstance(project).getCourse();
+    if (course == null) {
+      course = new Course();
+      course.setLanguage("Python");
+      course.setName("CheckIO");
+      course.setDescription("CheckIO project");
+    }
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    String token = taskManager.accessToken;
+    final String token = taskManager.accessToken;
     assert token != null;
     final MissionWrapper[] missionWrappers = getMissions(token);
 
@@ -129,21 +132,6 @@ public class CheckIOConnector {
     }
     return !jsonObject.has("error");
   }
-
-  //private static boolean isTokenUpToDate(@NotNull final String token) {
-  //  final HttpGet request = makeMissionsRequest(token);
-  //  final HttpResponse response = requestMissions(request);
-  //
-  //  JSONObject jsonArra = new JSONObject();
-  //  try {
-  //    final String entity = EntityUtils.toString(response.getEntity());
-  //    jsonObject = new JSONObject(entity);
-  //  }
-  //  catch (IOException e) {
-  //    LOG.error(e.getMessage());
-  //  }
-  //  return !jsonObject.has("message");
-  //}
 
   public static MissionWrapper[] getMissions(@NotNull final String token) {
     final HttpGet request = makeMissionsRequest(token);

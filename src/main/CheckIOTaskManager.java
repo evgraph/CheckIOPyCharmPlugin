@@ -36,11 +36,18 @@ import java.util.Map.Entry;
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
   public String accessToken;
   public String refreshToken;
+  public String getNewStationsPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   private CheckIOUser myUser;
   public Map<Task, TaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
+  public static final String ALWAYS_GET_NEW_STATIONS = "AlwaysGet";
+  public static final String NEVER_GET_NEW_STATIONS = "NeverGet";
+  public static final String ASK_TO_GET_NEW_STATIONS = "Ask";
 
   private CheckIOTaskManager() {
+    if (getNewStationsPolicy == null) {
+      getNewStationsPolicy = ASK_TO_GET_NEW_STATIONS;
+    }
   }
 
   public static CheckIOTaskManager getInstance(@NotNull final Project project) {
