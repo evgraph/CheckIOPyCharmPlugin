@@ -43,21 +43,6 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     }
   }
 
-  //private static void getCourseAndSetInStudyManager(@NotNull Project project) {
-  //  if (!checkIfUserOrAccessTokenIsNull()) {
-  //    StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-  //    if (studyManager.getCourse() == null) {
-  //
-  //
-  //      if (course == null) {
-  //        LOG.error("Course is null");
-  //        return;
-  //      }
-  //      studyManager.setCourse(course);
-  //    }
-  //  }
-  //}
-
 
   private static boolean checkIfUserOrAccessTokenIsNull() {
 
@@ -109,7 +94,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Nullable
   @Override
   public Icon getLogo() {
-    return CheckIOIcons.ToolWindow.TOOL_WINDOW_ICON;
+    return CheckIOIcons.AllIcons.NEW_PROJECT;
   }
 
   @NotNull
