@@ -21,7 +21,7 @@ import com.jetbrains.edu.learning.StudyUtils;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import taskPanel.CheckIOTaskToolWindowFactory;
+import ui.CheckIOTaskToolWindowFactory;
 
 public class CheckIOProjectComponent implements ProjectComponent {
   private Project myProject;
@@ -65,7 +65,10 @@ public class CheckIOProjectComponent implements ProjectComponent {
         }
       }
 
-      private void setTaskInfoPanel(Task task) {
+      private void setTaskInfoPanel(@Nullable final Task task) {
+        if (task == null) {
+          return;
+        }
         String taskTextUrl = CheckIOUtils.getTaskTextUrl(project, task);
         String taskName = task.getName();
         if (toolWindowFactory.taskInfoPanel != null) {

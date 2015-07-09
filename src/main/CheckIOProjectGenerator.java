@@ -15,10 +15,10 @@ import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
-import icons.PythonIcons;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ui.CheckIOIcons;
 
 import javax.swing.*;
 import java.io.File;
@@ -109,7 +109,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Nullable
   @Override
   public Icon getLogo() {
-    return PythonIcons.Python.Python_logo;
+    return CheckIOIcons.ToolWindow.TOOL_WINDOW_ICON;
   }
 
   @NotNull

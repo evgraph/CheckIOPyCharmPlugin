@@ -17,7 +17,7 @@ import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import taskPanel.CheckIOTaskToolWindowFactory;
+import ui.CheckIOTaskToolWindowFactory;
 
 import javax.swing.*;
 import java.awt.*;
