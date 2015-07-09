@@ -1,6 +1,9 @@
 package actions;
 
 import com.intellij.ide.projectView.ProjectView;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -14,10 +17,8 @@ import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import main.CheckIOConnector;
 import main.CheckIOTextEditor;
-import main.CheckIOUtils;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.List;
 
 
@@ -29,26 +30,26 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
     ApplicationManager.getApplication().invokeLater(() -> {
       final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
       assert selectedEditor != null;
-      selectedEditor.getUpdateProjectButton().setEnabled(false);
-
       ProgressManager.getInstance().run(getUpdateTask(project, selectedEditor));
     });
   }
 
 
   private static Task.Backgroundable getUpdateTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
-    final JButton updateButton = selectedEditor.getUpdateProjectButton();
+    final NotificationGroup notificationGroup = new NotificationGroup(
+      "Project updating messages", NotificationDisplayType.STICKY_BALLOON, true);
+
 
     return new Task.Backgroundable(project, "Updating project", false) {
       @Override
       public void onCancel() {
-        selectedEditor.getUpdateProjectButton().setEnabled(true);
+        final Notification notification = notificationGroup.createNotification("Project updating cancelled", MessageType.INFO);
+        notification.notify(myProject);
       }
 
       @Override
       public void onSuccess() {
         ProjectView.getInstance(project).refresh();
-        selectedEditor.getUpdateProjectButton().setEnabled(true);
       }
 
       @Override
@@ -73,8 +74,10 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
           }
           ApplicationManager.getApplication()
             .invokeLater(() -> {
-              CheckIOUtils.showOperationResultPopUp("You unlock " + unlockedStationsNumber + messageEnding,
-                                                    MessageType.INFO.getPopupBackground(), project, updateButton);
+              final String message = "You unlock " + unlockedStationsNumber + messageEnding;
+              final Notification notification = notificationGroup.createNotification(message, MessageType.INFO);
+              notification.notify(myProject);
+
               selectedEditor.getCheckButton().setEnabled(true);
             });
 
@@ -83,8 +86,10 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
 
           ApplicationManager.getApplication().invokeLater(
             () -> {
-              CheckIOUtils.showOperationResultPopUp("Project was updated", MessageType.INFO.getPopupBackground(), project, updateButton);
+
               selectedEditor.getCheckButton().setEnabled(true);
+              final Notification notification = notificationGroup.createNotification("Project successfully updated", MessageType.INFO);
+              notification.notify(myProject);
             }
           );
 

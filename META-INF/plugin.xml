@@ -30,7 +30,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <directoryProjectGenerator implementation="main.CheckIOProjectGenerator"/>
-    <toolWindow id="Task Info" anchor="right" factoryClass="taskPanel.CheckIOTaskToolWindowFactory" conditionClass="main.CheckIOCondition"/>
+    <toolWindow id="Task Info" anchor="right" factoryClass="ui.CheckIOTaskToolWindowFactory" conditionClass="main.CheckIOCondition"/>
 
     <!--<projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />-->
     <projectService serviceInterface="main.CheckIOTaskManager" serviceImplementation="main.CheckIOTaskManager"/>
@@ -61,7 +61,11 @@
     </component>
   </project-components>
   <actions>
+    <action class="actions.CheckIOUpdateProjectAction" id="CheckIOUpdateProjectAction" text="Update project"
+            icon="AllIcons.Actions.Download">
+      <add-to-group group-id="MainToolBar" anchor="last"/>
+      <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="Synchronize" anchor="after"/>
+    </action>
     <action id="CheckIOCheckSolutionAction" class="actions.CheckIOCheckSolutionAction" text="Check mission"/>
-    <action id="CheckIOUpdateProjectAction" class="actions.CheckIOUpdateProjectAction" text="Update project"/>
   </actions>
 </idea-plugin>

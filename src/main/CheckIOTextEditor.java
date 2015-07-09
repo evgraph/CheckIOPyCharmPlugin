@@ -1,9 +1,7 @@
 package main;
 
 import actions.CheckIOCheckSolutionAction;
-import actions.CheckIOUpdateProjectAction;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -26,8 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 
 public class CheckIOTextEditor implements TextEditor {
@@ -35,7 +31,7 @@ public class CheckIOTextEditor implements TextEditor {
   private final JComponent myComponent;
   private final Project myProject;
   private JButton myCheckButton;
-  private JButton updateProjectButton;
+  //private JButton updateProjectButton;
 
   public CheckIOTextEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     myProject = project;
@@ -71,9 +67,9 @@ public class CheckIOTextEditor implements TextEditor {
     return null;
   }
 
-  public JButton getUpdateProjectButton() {
-    return updateProjectButton;
-  }
+  //public JButton getUpdateProjectButton() {
+  //  return updateProjectButton;
+  //}
 
   public JButton getCheckButton() {
     return myCheckButton;
@@ -82,21 +78,14 @@ public class CheckIOTextEditor implements TextEditor {
   private void initButtons(@NotNull final JPanel buttonsPanel) {
     myCheckButton =
       addButton(buttonsPanel, CheckIOCheckSolutionAction.ACTION_ID, InteractiveLearningIcons.Resolve, CheckIOCheckSolutionAction.SHORTCUT);
-    updateProjectButton =
-      addButton(buttonsPanel, CheckIOUpdateProjectAction.ACTION_ID, AllIcons.Actions.Download, CheckIOUpdateProjectAction.SHORTCUT);
-    myCheckButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        CheckIOCheckSolutionAction studyCheckAction =
-          (CheckIOCheckSolutionAction)ActionManager.getInstance().getAction(CheckIOCheckSolutionAction.ACTION_ID);
-        studyCheckAction.check(myProject);
-      }
+    //updateProjectButton =
+    //  addButton(buttonsPanel, CheckIOUpdateProjectAction.ACTION_ID, AllIcons.Actions.Download, CheckIOUpdateProjectAction.SHORTCUT);
+    myCheckButton.addActionListener(e -> {
+      CheckIOCheckSolutionAction studyCheckAction =
+        (CheckIOCheckSolutionAction)ActionManager.getInstance().getAction(CheckIOCheckSolutionAction.ACTION_ID);
+      studyCheckAction.check(myProject);
     });
-    updateProjectButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        CheckIOUpdateProjectAction.update(myProject);
-      }
-    });
+    //updateProjectButton.addActionListener(e -> CheckIOUpdateProjectAction.update(myProject));
   }
 
   @NotNull
