@@ -1,4 +1,4 @@
-package taskPanel;
+package ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.DefaultLogger;

@@ -73,7 +73,7 @@ public class CheckIOConnector {
   }
 
   public static CheckIOUser authorizeUser() {
-    final CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
+    final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
     myUser = authorizer.authorizeAndGetUser();
     myAccessToken = authorizer.myAccessToken;
     myRefreshToken = authorizer.myRefreshToken;
@@ -82,11 +82,11 @@ public class CheckIOConnector {
 
   public static void updateTokensInTaskManager(@NotNull final Project project) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    if (isTokenUpToDate(taskManager.accessToken)) {
+    if (!isTokenUpToDate(taskManager.accessToken)) {
       return;
     }
     final String refreshToken = taskManager.refreshToken;
-    final CheckIOUserAuthorizer authorizer = new CheckIOUserAuthorizer();
+    final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
     authorizer.setTokensFromRefreshToken(refreshToken);
     myAccessToken = authorizer.myAccessToken;
     myRefreshToken = authorizer.myRefreshToken;
@@ -117,9 +117,9 @@ public class CheckIOConnector {
   }
 
   private static boolean isTokenUpToDate(@NotNull final String token) {
-    final CheckIOUserAuthorizer checkIOUserAuthorizer = new CheckIOUserAuthorizer();
+    final CheckIOUserAuthorizer checkIOUserAuthorizer = CheckIOUserAuthorizer.getInstance();
     final HttpUriRequest request = checkIOUserAuthorizer.makeUserInfoRequest(token);
-    final HttpResponse response = CheckIOUserAuthorizer.requestUserInfo(request);
+    final HttpResponse response = checkIOUserAuthorizer.requestUserInfo(request);
     JSONObject jsonObject = new JSONObject();
     try {
       jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
@@ -127,8 +127,23 @@ public class CheckIOConnector {
     catch (IOException e) {
       LOG.error(e.getMessage());
     }
-    return jsonObject.has("error");
+    return !jsonObject.has("error");
   }
+
+  //private static boolean isTokenUpToDate(@NotNull final String token) {
+  //  final HttpGet request = makeMissionsRequest(token);
+  //  final HttpResponse response = requestMissions(request);
+  //
+  //  JSONObject jsonArra = new JSONObject();
+  //  try {
+  //    final String entity = EntityUtils.toString(response.getEntity());
+  //    jsonObject = new JSONObject(entity);
+  //  }
+  //  catch (IOException e) {
+  //    LOG.error(e.getMessage());
+  //  }
+  //  return !jsonObject.has("message");
+  //}
 
   public static MissionWrapper[] getMissions(@NotNull final String token) {
     final HttpGet request = makeMissionsRequest(token);

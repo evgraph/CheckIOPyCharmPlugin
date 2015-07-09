@@ -60,23 +60,32 @@ public class CheckIOUserAuthorizer {
   private static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
   public static final String SUCCESS_AUTHORIZATION_MESSAGE = "Authorization succeeded. You may return to PyCharm";
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
-  private static Properties ourProperties = new Properties();
-  private static int ourPort = 36655;
+  private static final Properties ourProperties = new Properties();
+  private static final int ourPort = 36655;
   private static final String REDIRECT_URI = "http://localhost:" + ourPort;
+  private static volatile CheckIOUserAuthorizer ourAuthorizer;
   public Server myServer;
-  private String serverUrl;
+  public String myServerUrl = "http://www.checkio.org";
   public String myAccessToken;
   public String myRefreshToken;
 
-  public CheckIOUserAuthorizer() {
-    serverUrl = "http://www.checkio.org";
+  private CheckIOUserAuthorizer() {
+
     loadProperties();
   }
 
-  public CheckIOUserAuthorizer(@NotNull final String url) {
-    serverUrl = url;
+  public static CheckIOUserAuthorizer getInstance() {
+    CheckIOUserAuthorizer authorizer = ourAuthorizer;
+    if (authorizer == null) {
+      synchronized (CheckIOConnector.class) {
+        authorizer = ourAuthorizer;
+        if (authorizer == null) {
+          ourAuthorizer = authorizer = new CheckIOUserAuthorizer();
+        }
+      }
+    }
+    return authorizer;
   }
-
   public CheckIOUser authorizeAndGetUser() {
     if (myServer == null || !myServer.isRunning()) {
       startServer();
@@ -147,7 +156,7 @@ public class CheckIOUserAuthorizer {
   private URI makeAuthorizationPageURI() {
     URI url = null;
     try {
-      url = new URIBuilder(serverUrl + AUTHORIZATION_URL)
+      url = new URIBuilder(myServerUrl + AUTHORIZATION_URL)
         .addParameter(PARAMETER_REDIRECT_URI, REDIRECT_URI)
         .addParameter(PARAMETER_RESPONSE_TYPE, PARAMETER_CODE)
         .addParameter(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY))
@@ -162,7 +171,7 @@ public class CheckIOUserAuthorizer {
   public HttpUriRequest makeUserInfoRequest(@NotNull final String accessToken) {
     URI uri = null;
     try {
-      uri = new URIBuilder(serverUrl + USER_INFO_URL)
+      uri = new URIBuilder(myServerUrl + USER_INFO_URL)
         .addParameter(PARAMETER_ACCESS_TOKEN, accessToken)
         .build();
     }
@@ -172,7 +181,7 @@ public class CheckIOUserAuthorizer {
     return new HttpGet(uri);
   }
 
-  public static HttpResponse requestUserInfo(@NotNull final HttpUriRequest request) {
+  public HttpResponse requestUserInfo(@NotNull final HttpUriRequest request) {
     final CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpResponse response = null;
     try {
@@ -185,7 +194,7 @@ public class CheckIOUserAuthorizer {
   }
 
   private HttpUriRequest makeRefreshTokenRequest(@NotNull final String refreshToken) {
-    final HttpPost request = new HttpPost(serverUrl + TOKEN_URL);
+    final HttpPost request = new HttpPost(myServerUrl + TOKEN_URL);
     final List<NameValuePair> requestParameters = new ArrayList<>();
     requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, PARAMETER_REFRESH_TOKEN));
     requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY)));
@@ -205,7 +214,7 @@ public class CheckIOUserAuthorizer {
   }
 
   private HttpUriRequest makeAccessTokenRequest(@NotNull final String code) {
-    final HttpPost request = new HttpPost(serverUrl + TOKEN_URL);
+    final HttpPost request = new HttpPost(myServerUrl + TOKEN_URL);
     final List<NameValuePair> requestParameters = new ArrayList<>();
     requestParameters.add(new BasicNameValuePair(PARAMETER_CODE, code));
     requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_SECRET, ourProperties.getProperty(CLIENT_SECRET_PROPERTY)));
@@ -225,7 +234,7 @@ public class CheckIOUserAuthorizer {
     return request;
   }
 
-  private static HttpResponse requestAccessToken(HttpUriRequest request) {
+  private HttpResponse requestAccessToken(HttpUriRequest request) {
     HttpResponse response = null;
     final CloseableHttpClient client = HttpClientBuilder.create().build();
     try {

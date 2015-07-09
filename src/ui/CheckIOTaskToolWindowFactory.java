@@ -1,4 +1,4 @@
-package taskPanel;
+package ui;
 
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;

@@ -1,4 +1,4 @@
-package taskPanel;
+package ui;
 
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
@@ -66,8 +66,11 @@ public class TaskInfoPanel extends JPanel {
       Platform.runLater(() -> {
         webComponent = new WebView();
         myBorderPane = new BorderPane();
+        //myBorderPane.setStyle("-fx-background: rgb(200, 200, 203);");
         myBorderPane.setCenter(webComponent);
+        //webComponent.setBlendMode(BlendMode.DIFFERENCE);
         myScene = new Scene(myBorderPane, width, height);
+        myScene.setFill(null);
         myPanel.setScene(myScene);
         initHyperlinkListener();
       });

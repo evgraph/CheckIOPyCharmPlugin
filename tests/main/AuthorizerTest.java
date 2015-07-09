@@ -30,7 +30,8 @@ public class AuthorizerTest extends Assert {
   public void setUp() {
     int port = mockServerRule.getHttpPort();
 
-    checkIOUserAuthorizer = new CheckIOUserAuthorizer("http://localhost:" + port);
+    checkIOUserAuthorizer = CheckIOUserAuthorizer.getInstance();
+    checkIOUserAuthorizer.myServerUrl = "http://localhost:" + port;
   }
 
   @After
