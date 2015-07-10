@@ -78,17 +78,18 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     final Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
     StudyTaskManager.getInstance(project).setCourse(course);
     myCoursesDir = new File(PathManager.getConfigPath(), "courses");
+    final File courseDirectory = new File(myCoursesDir, course.getName());
+    StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
+    course.setCourseDirectory(myCoursesDir.getAbsolutePath());
+
+    new StudyProjectGenerator().flushCourse(course);
+    course.initCourse(false);
 
     ApplicationManager.getApplication().invokeLater(
       () -> ApplicationManager.getApplication().runWriteAction(() -> {
-        final File courseDirectory = new File(myCoursesDir, course.getName());
-        StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
-        course.setCourseDirectory(myCoursesDir.getAbsolutePath());
-        VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
         StudyProjectGenerator.openFirstTask(course, project);
+        VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
       }));
-    new StudyProjectGenerator().flushCourse(course);
-    course.initCourse(false);
   }
 
   @Nullable
@@ -100,18 +101,13 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @NotNull
   @Override
   public ValidationResult validate(@NotNull String baseDirPath) {
-    //String message = mySettingsPanel.authorizationResultLabel.getText() != "" ? "" : "Authorize";
     return ValidationResult.OK;
-    //return message.isEmpty() ? ValidationResult.OK : new ValidationResult(message);
   }
 
   @Nullable
   @Override
   public JPanel extendBasePanel() throws ProcessCanceledException {
-
-
     mySettingsPanel = new CheckIONewProjectPanel();
-
     return mySettingsPanel.getMainPanel();
   }
 }

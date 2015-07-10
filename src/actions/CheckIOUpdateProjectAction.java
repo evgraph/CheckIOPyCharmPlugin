@@ -23,15 +23,14 @@ import java.util.List;
 
 
 public class CheckIOUpdateProjectAction extends DumbAwareAction {
-  public static final String ACTION_ID = "CheckIOUpdateProjectAction";
-  public static final String SHORTCUT = "ctrl R";
 
   public static void update(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(() -> {
       final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
-      assert selectedEditor != null;
-      CheckIOConnector.updateTokensInTaskManager(project);
-      ProgressManager.getInstance().run(getUpdateTask(project, selectedEditor));
+      if (selectedEditor != null) {
+        CheckIOConnector.updateTokensInTaskManager(project);
+        ProgressManager.getInstance().run(getUpdateTask(project, selectedEditor));
+      }
     });
   }
 
@@ -39,7 +38,6 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
   private static Task.Backgroundable getUpdateTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
     final NotificationGroup notificationGroup = new NotificationGroup(
       "Project updating messages", NotificationDisplayType.STICKY_BALLOON, true);
-
 
     return new Task.Backgroundable(project, "Updating project", false) {
       @Override
@@ -84,10 +82,8 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
 
         }
         else {
-
           ApplicationManager.getApplication().invokeLater(
             () -> {
-
               selectedEditor.getCheckButton().setEnabled(true);
               final Notification notification = notificationGroup.createNotification("Project successfully updated", MessageType.INFO);
               notification.notify(myProject);

@@ -23,6 +23,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mockserver.model.HttpStatusCode;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -248,15 +249,19 @@ public class CheckIOUserAuthorizer {
 
   private void getAndSetTokens(@NotNull final HttpUriRequest request) {
     final HttpResponse response = requestAccessToken(request);
-    JSONObject jsonObject = new JSONObject();
-    try {
-      jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+
+    if (response.getStatusLine().getStatusCode() == HttpStatusCode.OK_200.code()) {
+      JSONObject jsonObject = new JSONObject();
+      try {
+        jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+      }
+      catch (IOException e) {
+        LOG.error(e.getMessage());
+      }
+
+      myAccessToken = jsonObject.getString(PARAMETER_ACCESS_TOKEN);
+      myRefreshToken = jsonObject.getString(PARAMETER_REFRESH_TOKEN);
     }
-    catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    myAccessToken = jsonObject.getString(PARAMETER_ACCESS_TOKEN);
-    myRefreshToken = jsonObject.getString(PARAMETER_REFRESH_TOKEN);
   }
 
   private class MyContextHandler extends AbstractHandler {

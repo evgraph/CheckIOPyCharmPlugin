@@ -109,7 +109,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
     final List<Lesson> newLessons = newCourse.getLessons();
 
     final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
-    if (unlockedStationsNumber > 0) {
+    if (unlockedStationsNumber == 1) {
       final OptionsDialog.DoNotAskOption option = new DialogWrapper.DoNotAskOption() {
         @Override
         public boolean isToBeShown() {
