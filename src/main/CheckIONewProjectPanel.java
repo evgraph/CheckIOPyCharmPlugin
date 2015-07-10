@@ -43,16 +43,11 @@ public class CheckIONewProjectPanel {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        authorizationButton.setEnabled(false);
-
         SharedThreadPool.getInstance().executeOnPooledThread(() -> {
-
           final CheckIOUser user = authorizeUser();
           if (user == null) {
-            ApplicationManager.getApplication().invokeLater(() -> {
-              JOptionPane.showMessageDialog(authorizationPanel, "You're not authorized. Try again");
-              authorizationButton.setEnabled(true);
-            });
+            ApplicationManager.getApplication()
+              .invokeLater(() -> JOptionPane.showMessageDialog(authorizationPanel, "You're not authorized. Try again"));
           }
           else {
             authorizationResultLabel.setText("You are logged in as " + user.getUsername());
