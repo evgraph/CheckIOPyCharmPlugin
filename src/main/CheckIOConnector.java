@@ -2,23 +2,20 @@ package main;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.ui.MessageType;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -26,9 +23,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
-import org.json.JSONObject;
+import org.mockserver.model.HttpStatusCode;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -82,9 +78,9 @@ public class CheckIOConnector {
 
   public static void updateTokensInTaskManager(@NotNull final Project project) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    //if (isTokenUpToDate(taskManager.accessToken)) {
-    //  return;
-    //}
+    if (isTokenUpToDate(taskManager.accessToken)) {
+      return;
+    }
     final String refreshToken = taskManager.refreshToken;
     final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
     authorizer.setTokensFromRefreshToken(refreshToken);
@@ -120,17 +116,13 @@ public class CheckIOConnector {
   }
 
   private static boolean isTokenUpToDate(@NotNull final String token) {
-    final CheckIOUserAuthorizer checkIOUserAuthorizer = CheckIOUserAuthorizer.getInstance();
-    final HttpUriRequest request = checkIOUserAuthorizer.makeUserInfoRequest(token);
-    final HttpResponse response = checkIOUserAuthorizer.requestUserInfo(request);
-    JSONObject jsonObject = new JSONObject();
-    try {
-      jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
+    final HttpGet request = makeMissionsRequest(token);
+    final HttpResponse response = requestMissions(request);
+
+    if (response.getStatusLine().getStatusCode() == HttpStatusCode.UNAUTHORIZED_401.code()) {
+      return false;
     }
-    catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    return !jsonObject.has("error");
+    return true;
   }
 
   public static MissionWrapper[] getMissions(@NotNull final String token) {
@@ -224,11 +216,10 @@ public class CheckIOConnector {
   public static HttpPost createCheckRequest(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String taskId = taskManager.getTaskId(task).toString();
-    final String runner = getRunner(project);
+    final String runner = getRunner(task, project);
     if (runner == null) {
       throw new IllegalStateException();
     }
-
 
     final HttpPost request = new HttpPost(CHECK_URL);
     final List<BasicNameValuePair> requestParameters = new ArrayList<>();
@@ -299,26 +290,19 @@ public class CheckIOConnector {
     return new JSONArray(requestStringForJson);
   }
 
-  public static String getRunner(@NotNull final Project project) {
-    final Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
-    final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
-    assert selectedEditor != null;
-    final JButton checkButton = selectedEditor.getCheckButton();
-    if (sdk == null) {
-      ApplicationManager.getApplication().invokeLater(
-        () -> CheckIOUtils
-          .showOperationResultPopUp("You should set interpreter to check task", MessageType.ERROR.getPopupBackground(), project,
-                                    checkButton));
-      return null;
+  public static String getRunner(@NotNull final Task task, @NotNull final Project project) {
+    final Sdk sdk = StudyUtils.findSdk(task, project);
+    String runner = "";
+    if (sdk != null) {
+      String sdkName = sdk.getName();
+      if (sdkName.substring(7, sdkName.length()).startsWith("2")) {
+        runner = "python-27";
+      }
+      else {
+        runner = "python-3";
+      }
     }
-    String sdkName = sdk.getName();
-    String runner;
-    if (sdkName.substring(7, sdkName.length()).startsWith("2")) {
-      runner = "python-27";
-    }
-    else {
-      runner = "python-3";
-    }
+
     return runner;
   }
 
