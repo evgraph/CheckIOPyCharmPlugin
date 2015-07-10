@@ -53,7 +53,7 @@ public class CheckIOConnector {
   private static String myAccessToken;
   private static String myRefreshToken;
   private static CheckIOUser myUser;
-  private static HashMap<Integer, Lesson> lessonsById;
+  private static HashMap<String, Lesson> lessonsByName;
   private static Course course;
 
   public static CheckIOUser getMyUser() {
@@ -93,27 +93,37 @@ public class CheckIOConnector {
 
   @NotNull
   public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) {
-    lessonsById = new HashMap<>();
-    course = StudyTaskManager.getInstance(project).getCourse();
-    if (course == null) {
-      course = new Course();
-      course.setLanguage("Python");
-      course.setName("CheckIO");
-      course.setDescription("CheckIO project");
-    }
+    setCourseAndLessonByNameMap(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String token = taskManager.accessToken;
     assert token != null;
     final MissionWrapper[] missionWrappers = getMissions(token);
 
     for (MissionWrapper missionWrapper : missionWrappers) {
-      final Lesson lesson = getLessonOrCreateIfDoesntExist(missionWrapper.stationId, missionWrapper.stationName);
+      final Lesson lesson = getLessonOrCreateIfDoesntExist(missionWrapper.stationName);
       final Task task = getTaskFromMission(missionWrapper);
       setTaskInfoInTaskManager(project, task, missionWrapper);
       lesson.addTask(task);
     }
     return course;
   }
+
+  private static void setCourseAndLessonByNameMap(@NotNull final Project project) {
+    course = StudyTaskManager.getInstance(project).getCourse();
+    lessonsByName = new HashMap<>();
+    if (course == null) {
+      course = new Course();
+      course.setLanguage("Python");
+      course.setName("CheckIO");
+      course.setDescription("CheckIO project");
+      return;
+    }
+    final List<Lesson> lessons = course.getLessons();
+    for (Lesson l : lessons) {
+      lessonsByName.put(l.getName(), l);
+    }
+  }
+
 
   private static boolean isTokenUpToDate(@NotNull final String token) {
     final HttpGet request = makeMissionsRequest(token);
@@ -141,17 +151,13 @@ public class CheckIOConnector {
     return gson.fromJson(missions, MissionWrapper[].class);
   }
 
-  private static Lesson getLessonOrCreateIfDoesntExist(final int lessonId, @NotNull final String lessonName) {
-    final Lesson lesson;
-    if (lessonsById.containsKey(lessonId)) {
-      lesson = lessonsById.get(lessonId);
-    }
-    else {
+  private static Lesson getLessonOrCreateIfDoesntExist(final String lessonName) {
+    Lesson lesson = lessonsByName.get(lessonName);
+    if (lesson == null) {
       lesson = new Lesson();
       course.addLesson(lesson);
       lesson.setName(lessonName);
-      lesson.id = lessonId;
-      lessonsById.put(lessonId, lesson);
+      lessonsByName.put(lessonName, lesson);
     }
     return lesson;
   }

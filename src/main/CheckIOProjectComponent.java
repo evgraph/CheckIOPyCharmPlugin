@@ -1,6 +1,5 @@
 package main;
 
-import actions.CheckIOUpdateProjectAction;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
@@ -87,7 +86,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       final CheckIOUser user = CheckIOTaskManager.getInstance(myProject).getUser();
       if (course != null && user != null) {
-        CheckIOUpdateProjectAction.update(myProject);
+        //CheckIOUpdateProjectAction.update(myProject);
         addToolWindowListener();
         final ToolWindow toolWindow = getTaskToolWindow();
         createToolWindowContent(toolWindow);

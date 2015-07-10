@@ -78,18 +78,17 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     final Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
     StudyTaskManager.getInstance(project).setCourse(course);
     myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-    final File courseDirectory = new File(myCoursesDir, course.getName());
-    StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
-    course.setCourseDirectory(myCoursesDir.getAbsolutePath());
-
-    new StudyProjectGenerator().flushCourse(course);
-    course.initCourse(false);
 
     ApplicationManager.getApplication().invokeLater(
       () -> ApplicationManager.getApplication().runWriteAction(() -> {
-        StudyProjectGenerator.openFirstTask(course, project);
+        final File courseDirectory = new File(myCoursesDir, course.getName());
+        StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
+        course.setCourseDirectory(myCoursesDir.getAbsolutePath());
         VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
+        StudyProjectGenerator.openFirstTask(course, project);
       }));
+    new StudyProjectGenerator().flushCourse(course);
+    course.initCourse(false);
   }
 
   @Nullable
