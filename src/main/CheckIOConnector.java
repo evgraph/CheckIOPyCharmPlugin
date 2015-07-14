@@ -111,17 +111,10 @@ public class CheckIOConnector {
   private static void setCourseAndLessonByNameMap(@NotNull final Project project) {
     course = StudyTaskManager.getInstance(project).getCourse();
     lessonsByName = new HashMap<>();
-    if (course == null) {
-      course = new Course();
-      course.setLanguage("Python");
-      course.setName("CheckIO");
-      course.setDescription("CheckIO project");
-      return;
-    }
-    final List<Lesson> lessons = course.getLessons();
-    for (Lesson l : lessons) {
-      lessonsByName.put(l.getName(), l);
-    }
+    course = new Course();
+    course.setLanguage("Python");
+    course.setName("CheckIO");
+    course.setDescription("CheckIO project");
   }
 
 
@@ -215,7 +208,7 @@ public class CheckIOConnector {
 
   private static Task createTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
     final Task task = new Task(missionWrapper.slug);
-    task.setText(missionWrapper.description);
+    task.setText("<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" /> \n" + missionWrapper.description);
     return task;
   }
 

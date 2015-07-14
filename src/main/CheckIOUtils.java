@@ -58,8 +58,9 @@ public class CheckIOUtils {
       assert file != null;
       StudyUtils.getTaskFile(project, file);
       TaskFile taskFile = StudyUtils.getTaskFile(project, file);
-      assert taskFile != null;
-      return taskFile.getTask();
+      if (taskFile != null) {
+        return taskFile.getTask();
+      }
     }
     return null;
   }
