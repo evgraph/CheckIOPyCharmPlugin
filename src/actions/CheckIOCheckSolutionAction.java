@@ -15,12 +15,14 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
+import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import main.CheckIOConnector;
 import main.CheckIOTaskManager;
 import main.CheckIOTextEditor;
@@ -31,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 
 import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -85,11 +89,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       int statusCode = (int)result.get(1);
       if (statusCode == SOLVED_STATUS_CODE) {
         status = StudyStatus.Solved;
-        ApplicationManager.getApplication().invokeLater(() -> {
-                                                          final Course course = askToUpdateProject(project);
-                                                          StudyTaskManager.getInstance(project).setCourse(course);
-                                                        }
-        );
+        ApplicationManager.getApplication().invokeLater(() -> askToUpdateProject(project));
       }
       else {
         status = StudyStatus.Failed;
@@ -98,6 +98,20 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
     return status;
   }
 
+  //private static Lesson createTestLesson() {
+  //  final Lesson lesson = new Lesson();
+  //  lesson.setName("test");
+  //  final Task task = new Task();
+  //  task.setName("test");
+  //  task.setText("text");
+  //  task.addTaskFile("taskfile", 0);
+  //  final TaskFile taskFile = task.getTaskFile("taskfile");
+  //  assert taskFile != null;
+  //  taskFile.addAnswerPlaceholder(new AnswerPlaceholder());
+  //  lesson.addTask(task);
+  //  return lesson;
+  //}
+
   private static Course askToUpdateProject(@NotNull final Project project) {
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
@@ -105,11 +119,18 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
     CheckIOConnector.updateTokensInTaskManager(project);
     final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
     assert oldCourse != null;
+
+    //final Lesson testLesson = createTestLesson();
+    //newCourse.addLesson(testLesson);
+
     final List<Lesson> oldLessons = oldCourse.getLessons();
     final List<Lesson> newLessons = newCourse.getLessons();
 
     final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
-    if (unlockedStationsNumber == 1) {
+    if (unlockedStationsNumber > 0) {
+      createNewLessonDir(oldCourse, newCourse, project);
+      //new StudyProjectGenerator().flushCourse(oldCourse);
+
       final OptionsDialog.DoNotAskOption option = new DialogWrapper.DoNotAskOption() {
         @Override
         public boolean isToBeShown() {
@@ -156,6 +177,36 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
     }
 
     return oldCourse;
+  }
+
+  private static void createNewLessonDir(@NotNull final Course oldCourse, @NotNull final Course newCourse, @NotNull final Project project) {
+    final File resourceRoot = new File(oldCourse.getCourseDirectory(), oldCourse.getName());
+    final VirtualFile baseDir = project.getBaseDir();
+    final List<Lesson> oldLessons = oldCourse.getLessons();
+    final List<Lesson> newLessons = newCourse.getLessons();
+    int index = 1;
+    for (Lesson newLesson : newLessons) {
+      boolean isNew = true;
+      for (Lesson oldLesson : oldLessons) {
+        if (newLesson.getName().equals(oldLesson.getName())) {
+          isNew = false;
+          break;
+        }
+      }
+      if (isNew) {
+        oldCourse.addLesson(newLesson);
+        newLesson.setIndex(index);
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          try {
+            StudyGenerator.createLesson(newLesson, baseDir, resourceRoot, project);
+          }
+          catch (IOException e) {
+            LOG.warn(e.getMessage());
+          }
+        });
+      }
+      index++;
+    }
   }
 
   private static Backgroundable getCheckTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
