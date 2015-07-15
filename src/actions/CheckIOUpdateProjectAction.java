@@ -16,7 +16,7 @@ import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import main.CheckIOConnector;
-import main.CheckIOTextEditor;
+import main.CheckIOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -24,18 +24,21 @@ import java.util.List;
 
 public class CheckIOUpdateProjectAction extends DumbAwareAction {
 
+  public void actionPerformed(AnActionEvent e) {
+    Project project = e.getProject();
+    if (project != null) {
+      update(project);
+    }
+  }
+
   public static void update(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(() -> {
-      final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
-      if (selectedEditor != null) {
-        CheckIOConnector.updateTokensInTaskManager(project);
-        ProgressManager.getInstance().run(getUpdateTask(project, selectedEditor));
-      }
+      ProgressManager.getInstance().run(getUpdateTask(project));
     });
   }
 
 
-  private static Task.Backgroundable getUpdateTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
+  private static Task.Backgroundable getUpdateTask(@NotNull final Project project) {
     final NotificationGroup notificationGroup = new NotificationGroup(
       "Project updating messages", NotificationDisplayType.STICKY_BALLOON, true);
 
@@ -99,11 +102,6 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
         }
       );
 
-
-  public void actionPerformed(AnActionEvent e) {
-    Project project = e.getProject();
-    if (project != null) {
-      update(project);
     }
   }
 }
