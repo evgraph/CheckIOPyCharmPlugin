@@ -15,14 +15,12 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
-import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import main.CheckIOConnector;
 import main.CheckIOTaskManager;
 import main.CheckIOTextEditor;
@@ -33,8 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -153,7 +149,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       int statusCode = (int)result.get(1);
       if (statusCode == SOLVED_STATUS_CODE) {
         status = StudyStatus.Solved;
-        ApplicationManager.getApplication().invokeLater(() -> askToUpdateProject(project));
+        askToUpdateProject(project);
       }
       else {
         status = StudyStatus.Failed;
@@ -162,98 +158,39 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
     return status;
   }
 
-  //private static Lesson createTestLesson() {
-  //  final Lesson lesson = new Lesson();
-  //  lesson.setName("test");
-  //  final Task task = new Task();
-  //  task.setName("test");
-  //  task.setText("text");
-  //  task.addTaskFile("taskfile", 0);
-  //  final TaskFile taskFile = task.getTaskFile("taskfile");
-  //  assert taskFile != null;
-  //  taskFile.addAnswerPlaceholder(new AnswerPlaceholder());
-  //  lesson.addTask(task);
-  //  return lesson;
-  //}
-
-  private static Course askToUpdateProject(@NotNull final Project project) {
+  private static void askToUpdateProject(@NotNull final Project project) {
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final Course oldCourse = studyTaskManager.getCourse();
-    CheckIOConnector.updateTokensInTaskManager(project);
     final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
     assert oldCourse != null;
-
-    //final Lesson testLesson = createTestLesson();
-    //newCourse.addLesson(testLesson);
 
     final List<Lesson> oldLessons = oldCourse.getLessons();
     final List<Lesson> newLessons = newCourse.getLessons();
 
     final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
     if (unlockedStationsNumber > 0) {
-      createNewLessonDir(oldCourse, newCourse, project);
-      //new StudyProjectGenerator().flushCourse(oldCourse);
-
       DialogWrapper.DoNotAskOption option = createDoNotAskOption(taskManager);
 
       if (option.isToBeShown()) {
-        if (MessageDialogBuilder
-              .yesNo("Update project", "You unlocked the new station. Update project to get new missions?")
-              .yesText("Yes")
-              .noText(CommonBundle.message("button.cancel"))
-              .doNotAsk(option).show() != Messages.YES) {
-          return oldCourse;
-        }
-      }
-      return newCourse;
-    }
-
-    if (taskManager.getNewStationsPolicy.equals(CheckIOTaskManager.ALWAYS_GET_NEW_STATIONS)) {
-      return newCourse;
-    }
-
-    return oldCourse;
-  }
-
-  private static void createNewLessonDir(@NotNull final Course oldCourse, @NotNull final Course newCourse, @NotNull final Project project) {
-    final File resourceRoot = new File(oldCourse.getCourseDirectory(), oldCourse.getName());
-    final VirtualFile baseDir = project.getBaseDir();
-    final List<Lesson> oldLessons = oldCourse.getLessons();
-    final List<Lesson> newLessons = newCourse.getLessons();
-    int index = 1;
-    for (Lesson newLesson : newLessons) {
-      boolean isNew = true;
-      for (Lesson oldLesson : oldLessons) {
-        if (newLesson.getName().equals(oldLesson.getName())) {
-          isNew = false;
-          break;
-        }
-      }
-      if (isNew) {
-        oldCourse.addLesson(newLesson);
-        newLesson.setIndex(index);
-        ApplicationManager.getApplication().runWriteAction(() -> {
-          try {
-            StudyGenerator.createLesson(newLesson, baseDir, resourceRoot, project);
+        ApplicationManager.getApplication().invokeLater(() -> {
+          if (MessageDialogBuilder
+                .yesNo("Update project", "You unlocked the new station. Update project to get new missions?")
+                .yesText("Yes")
+                .noText(CommonBundle.message("button.cancel"))
+                .doNotAsk(option).show() != Messages.YES) {
+            return;
           }
-          catch (IOException e) {
-            LOG.warn(e.getMessage());
+          if (!taskManager.getNewStationsPolicy.equals(CheckIOTaskManager.ALWAYS_GET_NEW_STATIONS)) {
+            return;
           }
+
+          CheckIOUpdateProjectAction.createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
         });
       }
-      index++;
     }
   }
 
-  private static Backgroundable getCheckTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
-    return new com.intellij.openapi.progress.Task.Backgroundable(project, "Checking task", true) {
-      final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
-      final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-      final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
-      final String taskFileName = CheckIOUtils.getTaskFileNameFromTask(task);
-      final String code = task.getDocument(project, taskFileName).getText();
-      final JButton checkButton = selectedEditor.getCheckButton();
 
   private static OptionsDialog.DoNotAskOption createDoNotAskOption(@NotNull final CheckIOTaskManager taskManager) {
     return new DialogWrapper.DoNotAskOption() {
