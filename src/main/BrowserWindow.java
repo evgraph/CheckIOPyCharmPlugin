@@ -18,6 +18,8 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import javax.swing.*;
+import java.io.File;
+import java.net.URL;
 
 public class BrowserWindow extends JFrame {
   public static final String EVENT_TYPE_CLICK = "click";
@@ -66,10 +68,11 @@ public class BrowserWindow extends JFrame {
     }
   }
 
-  private static void updateLafDarcula(@org.jetbrains.annotations.NotNull final WebEngine engine) {
+  private void updateLafDarcula(@org.jetbrains.annotations.NotNull final WebEngine engine) {
     Platform.runLater(() -> {
+      final URL url = getClass().getResource("/resources/myDarcula.css");
       engine
-        .setUserStyleSheetLocation("file:///src/resources/myDarcula.css");
+        .setUserStyleSheetLocation("file:///" + url.getPath());
       engine.reload();
     });
   }
