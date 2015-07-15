@@ -195,34 +195,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       createNewLessonDir(oldCourse, newCourse, project);
       //new StudyProjectGenerator().flushCourse(oldCourse);
 
-      final OptionsDialog.DoNotAskOption option = new DialogWrapper.DoNotAskOption() {
-        @Override
-        public boolean isToBeShown() {
-          return taskManager.getNewStationsPolicy.equals(CheckIOTaskManager.ASK_TO_GET_NEW_STATIONS);
-        }
-
-        @Override
-        public void setToBeShown(boolean value, int exitCode) {
-          taskManager.getNewStationsPolicy =
-            exitCode == Messages.YES ? CheckIOTaskManager.ALWAYS_GET_NEW_STATIONS : CheckIOTaskManager.NEVER_GET_NEW_STATIONS;
-        }
-
-        @Override
-        public boolean canBeHidden() {
-          return true;
-        }
-
-        @Override
-        public boolean shouldSaveOptionsOnCancel() {
-          return false;
-        }
-
-        @NotNull
-        @Override
-        public String getDoNotShowMessage() {
-          return "Do not ask me again";
-        }
-      };
+      DialogWrapper.DoNotAskOption option = createDoNotAskOption(taskManager);
 
       if (option.isToBeShown()) {
         if (MessageDialogBuilder
@@ -282,63 +255,36 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       final String code = task.getDocument(project, taskFileName).getText();
       final JButton checkButton = selectedEditor.getCheckButton();
 
+  private static OptionsDialog.DoNotAskOption createDoNotAskOption(@NotNull final CheckIOTaskManager taskManager) {
+    return new DialogWrapper.DoNotAskOption() {
       @Override
-      public void onCancel() {
-        studyManager.setStatus(task, statusBeforeCheck);
-        selectedEditor.getCheckButton().setEnabled(true);
+      public boolean isToBeShown() {
+        return taskManager.getNewStationsPolicy.equals(CheckIOTaskManager.ASK_TO_GET_NEW_STATIONS);
       }
 
       @Override
-      public void onSuccess() {
-        ProjectView.getInstance(project).refresh();
-        selectedEditor.getCheckButton().setEnabled(true);
+      public void setToBeShown(boolean value, int exitCode) {
+        taskManager.getNewStationsPolicy =
+          exitCode == Messages.YES ? CheckIOTaskManager.ALWAYS_GET_NEW_STATIONS : CheckIOTaskManager.NEVER_GET_NEW_STATIONS;
       }
 
       @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        if (task == null || task.getText().isEmpty()) {
-          return;
-        }
-        CheckIOConnector.updateTokensInTaskManager(project);
+      public boolean canBeHidden() {
+        return true;
+      }
 
-        if (indicator.isCanceled()) {
-          ApplicationManager.getApplication().runReadAction(() -> {
-            CheckIOUtils.showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project, checkButton);
-          });
-          return;
-        }
-        final StudyStatus status = checkSolutionAndGetStatus(project, task, code);
-        studyManager.setStatus(task, status);
-        ApplicationManager.getApplication().invokeLater(
-          () -> CheckIOUtils
-            .showOperationResultPopUp(ourStudyStatusTaskCheckMessageHashMap.get(status), MessageType.INFO.getPopupBackground(),
-                                      project, checkButton)
-        );
+      @Override
+      public boolean shouldSaveOptionsOnCancel() {
+        return false;
+      }
+
+      @NotNull
+      @Override
+      public String getDoNotShowMessage() {
+        return "Do not ask me again";
       }
     };
   }
 
-  private static void checkAndUpdate(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
-    ApplicationManager.getApplication().invokeLater(() -> CommandProcessor.getInstance().runUndoTransparentAction(() -> {
-      selectedEditor.getCheckButton().setEnabled(false);
-      ProgressManager.getInstance().run(getCheckTask(project, selectedEditor));
-    }));
-  }
-
-  public void actionPerformed(AnActionEvent e) {
-    Project project = e.getProject();
-    if (project != null) {
-      check(project);
-    }
-  }
-
-  public void check(@NotNull final Project project) {
-    final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
-    if (selectedEditor == null) {
-      return;
-    }
-    selectedEditor.getCheckButton().setEnabled(false);
-    checkAndUpdate(project, selectedEditor);
-  }
 
 }
