@@ -54,6 +54,70 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
   };
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
+  public void actionPerformed(AnActionEvent e) {
+    Project project = e.getProject();
+    if (project != null) {
+      check(project);
+    }
+  }
+
+  public void check(@NotNull final Project project) {
+    final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
+    if (selectedEditor == null) {
+      return;
+    }
+    ApplicationManager.getApplication().invokeLater(() -> CommandProcessor.getInstance().runUndoTransparentAction(() -> {
+      selectedEditor.getCheckButton().setEnabled(false);
+      ProgressManager.getInstance().run(getCheckTask(project, selectedEditor));
+    }));
+  }
+
+  private static Backgroundable getCheckTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
+    return new com.intellij.openapi.progress.Task.Backgroundable(project, "Checking task", true) {
+      final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
+      final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
+      final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
+      final String taskFileName = CheckIOUtils.getTaskFileNameFromTask(task);
+      final String code = task.getDocument(project, taskFileName).getText();
+      final JButton checkButton = selectedEditor.getCheckButton();
+
+      @Override
+      public void onCancel() {
+        studyManager.setStatus(task, statusBeforeCheck);
+        selectedEditor.getCheckButton().setEnabled(true);
+      }
+
+      @Override
+      public void onSuccess() {
+        ProjectView.getInstance(project).refresh();
+        selectedEditor.getCheckButton().setEnabled(true);
+      }
+
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        if (task == null || task.getText().isEmpty()) {
+          return;
+        }
+        CheckIOConnector.updateTokensInTaskManager(project);
+
+        if (indicator.isCanceled()) {
+          ApplicationManager.getApplication().runReadAction(
+            () -> CheckIOUtils.
+              showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project, checkButton)
+          );
+          return;
+        }
+        final StudyStatus status = checkSolutionAndGetStatus(project, task, code);
+        studyManager.setStatus(task, status);
+        ApplicationManager.getApplication().invokeLater(
+          () -> CheckIOUtils
+            .showOperationResultPopUp(ourStudyStatusTaskCheckMessageHashMap.get(status), MessageType.INFO.getPopupBackground(),
+                                      project, checkButton)
+        );
+      }
+    };
+  }
+
   private static StudyStatus checkSolutionAndGetStatus(@NotNull final Project project,
                                                        @NotNull final Task task,
                                                        @NotNull final String code) {
