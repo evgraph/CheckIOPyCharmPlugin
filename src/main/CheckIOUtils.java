@@ -1,5 +1,10 @@
 package main;
 
+import actions.CheckIOCheckSolutionAction;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.DefaultLogger;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -9,21 +14,29 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
-import com.jetbrains.edu.courseFormat.AnswerPlaceholder;
-import com.jetbrains.edu.courseFormat.Task;
-import com.jetbrains.edu.courseFormat.TaskFile;
+import com.intellij.psi.PsiManager;
+import com.jetbrains.edu.courseFormat.*;
 import com.jetbrains.edu.learning.StudyUtils;
+import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ui.CheckIOTaskToolWindowFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class CheckIOUtils {
   public static final String TOOL_WINDOW_ID = "Task Info";
+  private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
   private CheckIOUtils() {
   }
@@ -110,5 +123,90 @@ public class CheckIOUtils {
         taskFile.addAnswerPlaceholder(answerPlaceholder);
       }
     }
+  }
+
+  public static void createNewLessonsDirsAndFlush(@NotNull final Course oldCourse,
+                                                  @NotNull final Course newCourse,
+                                                  @NotNull final Project project) {
+    final VirtualFile baseDir = project.getBaseDir();
+    final List<Lesson> oldLessons = oldCourse.getLessons();
+    final List<Lesson> newLessons = newCourse.getLessons();
+    int index = 1;
+    for (Lesson newLesson : newLessons) {
+      boolean isNew = true;
+      for (Lesson oldLesson : oldLessons) {
+        if (newLesson.getName().equals(oldLesson.getName())) {
+          isNew = false;
+          break;
+        }
+      }
+      if (isNew) {
+        oldCourse.addLesson(newLesson);
+        newLesson.setIndex(index);
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          try {
+            StudyGenerator.createLesson(newLesson, baseDir, new File(oldCourse.getCourseDirectory()), project);
+          }
+          catch (IOException e) {
+            LOG.warn(e.getMessage());
+          }
+        });
+      }
+      final File myCoursesDir = new File(PathManager.getConfigPath(), "courses");
+      flushLesson(newLesson, myCoursesDir + oldCourse.getName());
+      index++;
+    }
+    VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
+  }
+
+  private static void flushLesson(Lesson lesson, String courseDirectory) {
+    File lessonDirectory = new File(courseDirectory, "lesson" + String.valueOf(lesson.getIndex()));
+    FileUtil.createDirectory(lessonDirectory);
+    int taskIndex = 1;
+    for(Iterator i$1 = lesson.taskList.iterator(); i$1.hasNext(); ++taskIndex) {
+      Task task = (Task)i$1.next();
+      File taskDirectory = new File(lessonDirectory, "task" + String.valueOf(taskIndex));
+      FileUtil.createDirectory(taskDirectory);
+      Iterator testsText = task.taskFiles.entrySet().iterator();
+
+      while(testsText.hasNext()) {
+        Map.Entry taskText = (Map.Entry)testsText.next();
+        String e = (String)taskText.getKey();
+        TaskFile testsFile = (TaskFile)taskText.getValue();
+        File e1 = new File(taskDirectory, e);
+        FileUtil.createIfDoesntExist(e1);
+
+        try {
+          FileUtil.writeToFile(e1, testsFile.text);
+        } catch (IOException var17) {
+          LOG.error("ERROR copying file " + e);
+        }
+      }
+
+      Map var20 = task.getTestsText();
+      Iterator var21 = var20.entrySet().iterator();
+
+      while(var21.hasNext()) {
+        Map.Entry var23 = (Map.Entry)var21.next();
+        File var24 = new File(taskDirectory, (String)var23.getKey());
+        FileUtil.createIfDoesntExist(var24);
+
+        try {
+          FileUtil.writeToFile(var24, (String)var23.getValue());
+        } catch (IOException var19) {
+          LOG.error("ERROR copying tests file");
+        }
+      }
+
+      File var22 = new File(taskDirectory, "task.html");
+      FileUtil.createIfDoesntExist(var22);
+
+      try {
+        FileUtil.writeToFile(var22, task.getText());
+      } catch (IOException var18) {
+        LOG.error("ERROR copying tests file");
+      }
+    }
+
   }
 }
