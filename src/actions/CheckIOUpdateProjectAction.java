@@ -53,49 +53,51 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
-        final Course oldCourse = studyTaskManager.getCourse();
+        CheckIOConnector.updateTokensInTaskManager(project);
         final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
-        assert oldCourse != null;
-        final List<Lesson> oldLessons = oldCourse.getLessons();
-        final List<Lesson> newLessons = newCourse.getLessons();
-
-        final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
-        studyTaskManager.setCourse(newCourse);
-
-        if (unlockedStationsNumber > 0) {
-          final String messageEnding;
-          if (unlockedStationsNumber == 1) {
-            messageEnding = " new station";
-          }
-          else {
-            messageEnding = " new stations";
-          }
-          ApplicationManager.getApplication()
-            .invokeLater(() -> {
-              final String message = "You unlock " + unlockedStationsNumber + messageEnding;
-              final Notification notification = notificationGroup.createNotification(message, MessageType.INFO);
-              notification.notify(myProject);
-
-              selectedEditor.getCheckButton().setEnabled(true);
-            });
-
-        }
-        else {
-          ApplicationManager.getApplication().invokeLater(
-            () -> {
-              selectedEditor.getCheckButton().setEnabled(true);
-              final Notification notification = notificationGroup.createNotification("Project successfully updated", MessageType.INFO);
-              notification.notify(myProject);
-            }
-          );
-
-        }
+        createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
       }
+
+
     };
   }
 
+  public static void createFilesIfNewStationsUnlockedAndShowNotification(@NotNull final Project project, @NotNull final Course newCourse) {
+    final NotificationGroup notificationGroup = new NotificationGroup(
+      "Project updating messages", NotificationDisplayType.STICKY_BALLOON, true);
+    final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
+    final Course oldCourse = studyTaskManager.getCourse();
+    assert oldCourse != null;
+    final List<Lesson> oldLessons = oldCourse.getLessons();
+    final List<Lesson> newLessons = newCourse.getLessons();
 
+    final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
+
+    if (unlockedStationsNumber > 0) {
+      final String messageEnding;
+      if (unlockedStationsNumber == 1) {
+        messageEnding = " new station";
+      }
+      else {
+        messageEnding = " new stations";
+      }
+      ApplicationManager.getApplication()
+        .invokeLater(() -> {
+          CheckIOUtils.createNewLessonsDirsAndFlush(oldCourse, newCourse, project);
+          final String message = "You unlock " + unlockedStationsNumber + messageEnding;
+          final Notification notification = notificationGroup.createNotification(message, MessageType.INFO);
+          notification.notify(project);
+          oldCourse.initCourse(false);
+        });
+
+    }
+    else {
+      ApplicationManager.getApplication().invokeLater(
+        () -> {
+          final Notification notification = notificationGroup.createNotification("Project successfully updated", MessageType.INFO);
+          notification.notify(project);
+        }
+      );
 
 
   public void actionPerformed(AnActionEvent e) {
