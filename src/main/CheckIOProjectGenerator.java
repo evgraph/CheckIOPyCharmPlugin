@@ -11,6 +11,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.platform.DirectoryProjectGenerator;
 import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.learning.StudyProjectComponent;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
@@ -86,6 +87,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
         course.setCourseDirectory(myCoursesDir.getAbsolutePath());
         VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
         StudyProjectGenerator.openFirstTask(course, project);
+        StudyProjectComponent.getInstance(project).registerStudyToolwindow(course);
       }));
     new StudyProjectGenerator().flushCourse(course);
     course.initCourse(false);
