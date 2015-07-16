@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -24,7 +25,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mockserver.model.HttpStatusCode;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -250,7 +250,7 @@ public class CheckIOUserAuthorizer {
   private void getAndSetTokens(@NotNull final HttpUriRequest request) {
     final HttpResponse response = requestAccessToken(request);
 
-    if (response.getStatusLine().getStatusCode() == HttpStatusCode.OK_200.code()) {
+    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
       JSONObject jsonObject = new JSONObject();
       try {
         jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));

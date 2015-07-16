@@ -14,6 +14,7 @@ import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -25,7 +26,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
-import org.mockserver.model.HttpStatusCode;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -125,7 +125,7 @@ public class CheckIOConnector {
     final HttpGet request = makeMissionsRequest(token);
     final HttpResponse response = requestMissions(request);
 
-    if (response.getStatusLine().getStatusCode() == HttpStatusCode.UNAUTHORIZED_401.code()) {
+    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
       return false;
     }
     return true;
