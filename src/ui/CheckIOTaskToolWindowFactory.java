@@ -1,6 +1,5 @@
 package ui;
 
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -20,13 +19,6 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final String SOLUTIONS = "Solutions";
   private static final String PROFILE = "Profile";
   public TaskInfoPanel taskInfoPanel;
-
-  public void setListener(Project project, FileEditorManagerListener listener) {
-    if (listener != null) {
-      project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
-    }
-  }
-
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
     final Course course = StudyTaskManager.getInstance(project).getCourse();

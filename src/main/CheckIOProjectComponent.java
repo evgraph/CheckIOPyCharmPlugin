@@ -26,7 +26,6 @@ import ui.CheckIOTaskToolWindowFactory;
 
 public class CheckIOProjectComponent implements ProjectComponent {
   private Project myProject;
-  private FileEditorManagerListener myListener;
   private static Logger LOG = Logger.getInstance(CheckIOProjectComponent.class.getName());
 
   public CheckIOProjectComponent(Project project) {
@@ -87,7 +86,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       final CheckIOUser user = CheckIOTaskManager.getInstance(myProject).getUser();
       if (course != null && user != null) {
-        //CheckIOUpdateProjectAction.update(myProject);
         LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
         addToolWindowListener();
         final ToolWindow toolWindow = getTaskToolWindow();
@@ -111,9 +109,8 @@ public class CheckIOProjectComponent implements ProjectComponent {
     final ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
     final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
 
-    myListener = getListenerFor(myProject, toolWindowFactory);
-    assert toolWindowFactory != null;
-    toolWindowFactory.setListener(myProject, myListener);
+    FileEditorManagerListener listener = getListenerFor(myProject, toolWindowFactory);
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
   }
 
   private void createToolWindowContent(@NotNull final ToolWindow toolWindow) {
@@ -126,9 +123,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
   @Override
   public void projectClosed() {
-    //if (myListener != null) {
-    //  //FileEditorManager.getInstance(myProject).removeFileEditorManagerListener(myListener);
-    //}
   }
 
   @Override
