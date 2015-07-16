@@ -26,6 +26,10 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -211,8 +215,21 @@ public class CheckIOConnector {
 
   private static Task createTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
     final Task task = new Task(missionWrapper.slug);
-    task.setText("<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" /> \n" + missionWrapper.description);
+    task.setText(removeTryItBlockFromAndSetMetaInfo(missionWrapper.description));
     return task;
+  }
+
+  private static String removeTryItBlockFromAndSetMetaInfo(String taskHtml) {
+    String contentTypeString = "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" /> \n";
+
+    Document text = Jsoup.parse(taskHtml);
+    for (Element element : text.select("p.for_info_only")) {
+      Elements e = element.getElementsByTag("iframe");
+      if (e.size() > 0) {
+        element.remove();
+      }
+    }
+    return contentTypeString + text.body().html();
   }
 
   public static HttpPost createCheckRequest(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {

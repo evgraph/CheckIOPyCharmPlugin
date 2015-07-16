@@ -16,5 +16,6 @@
     <orderEntry type="library" name="json-20131018" level="project" />
     <orderEntry type="library" name="servlet-api-3.0" level="project" />
     <orderEntry type="library" name="org.mock-server:mockserver-netty:3.9.17" level="project" />
+    <orderEntry type="library" name="jsoup-1.8.2" level="project" />
   </component>
 </module>
