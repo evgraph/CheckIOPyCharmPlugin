@@ -1,4 +1,4 @@
-package actions;
+package com.jetbrains.checkio.actions;
 
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.notification.Notification;
@@ -12,11 +12,11 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
+import com.jetbrains.checkio.CheckIOConnector;
+import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import main.CheckIOConnector;
-import main.CheckIOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

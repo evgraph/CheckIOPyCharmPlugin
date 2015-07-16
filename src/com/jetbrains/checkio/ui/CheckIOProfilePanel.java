@@ -1,13 +1,13 @@
-package ui;
+package com.jetbrains.checkio.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollBar;
+import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Task;
-import main.CheckIOTaskManager;
-import main.CheckIOUser;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -15,12 +15,12 @@ import java.awt.*;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class ProfilePanel extends JPanel {
+public class CheckIOProfilePanel extends JPanel {
   private final static int USER_PROGRESS = 25;
-  private static final DefaultLogger LOG = new DefaultLogger(ProfilePanel.class.getName());
+  private static final DefaultLogger LOG = new DefaultLogger(CheckIOProfilePanel.class.getName());
   final JButton backFromProfileButton = new JButton(AllIcons.Actions.Back);
 
-  public ProfilePanel(Project project) {
+  public CheckIOProfilePanel(Project project) {
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     addAll(createBackButtonPanel(), new InfoPanel(project),
            new StationsProgressPanel("Home", "Elementary"), new TaskAndBadgesProgressPanel(project));

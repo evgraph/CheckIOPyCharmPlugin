@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio;
 
 import com.google.gson.Gson;
 import org.junit.*;

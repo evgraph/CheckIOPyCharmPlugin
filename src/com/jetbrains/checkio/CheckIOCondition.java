@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio;
 
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.Condition;

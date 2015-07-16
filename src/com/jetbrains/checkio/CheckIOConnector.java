@@ -1,10 +1,12 @@
-package main;
+package com.jetbrains.checkio;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.jetbrains.checkio.courseFormat.CheckIOTaskPublicationStatus;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
@@ -46,9 +48,10 @@ public class CheckIOConnector {
     put(true, StudyStatus.Solved);
     put(false, StudyStatus.Unchecked);
   }};
-  private static final Map<Boolean, TaskPublicationStatus> taskPublicationStatus = new HashMap<Boolean, TaskPublicationStatus>() {{
-    put(true, TaskPublicationStatus.Published);
-    put(false, TaskPublicationStatus.Unpublished);
+  private static final Map<Boolean, CheckIOTaskPublicationStatus> taskPublicationStatus =
+    new HashMap<Boolean, CheckIOTaskPublicationStatus>() {{
+      put(true, CheckIOTaskPublicationStatus.Published);
+      put(false, CheckIOTaskPublicationStatus.Unpublished);
   }};
   private static String myAccessToken;
   private static String myRefreshToken;
@@ -306,13 +309,13 @@ public class CheckIOConnector {
   }
 
   public static class MissionWrapper {
-    boolean isPublished;
-    int stationId;
-    String code;
-    boolean isSolved;
-    int id;
-    String description;
-    String slug;
-    String stationName;
+    public boolean isPublished;
+    public int stationId;
+    public String code;
+    public boolean isSolved;
+    public int id;
+    public String description;
+    public String slug;
+    public String stationName;
   }
 }

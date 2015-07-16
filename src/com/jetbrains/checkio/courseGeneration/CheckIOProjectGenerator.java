@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio.courseGeneration;
 
 import com.intellij.facet.ui.ValidationResult;
 import com.intellij.openapi.application.ApplicationManager;
@@ -10,6 +10,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.platform.DirectoryProjectGenerator;
+import com.jetbrains.checkio.CheckIOConnector;
+import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
+import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyProjectComponent;
 import com.jetbrains.edu.learning.StudyTaskManager;
@@ -19,7 +23,6 @@ import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ui.CheckIOIcons;
 
 import javax.swing.*;
 import java.io.File;

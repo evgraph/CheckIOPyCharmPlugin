@@ -1,10 +1,11 @@
-package main;
+package com.jetbrains.checkio;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;

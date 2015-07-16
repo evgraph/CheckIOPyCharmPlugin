@@ -1,4 +1,4 @@
-package ui;
+package com.jetbrains.checkio.ui;
 
 import com.intellij.openapi.util.IconLoader;
 

@@ -1,7 +1,8 @@
-package main;
+package com.jetbrains.checkio;
 
 
 import com.google.gson.Gson;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;

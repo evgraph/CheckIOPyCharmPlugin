@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio;
 
 import com.intellij.ide.ui.LafManager;
 import com.intellij.openapi.components.ProjectComponent;
@@ -14,6 +14,8 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowEP;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
+import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
@@ -22,7 +24,6 @@ import com.jetbrains.edu.learning.StudyUtils;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ui.CheckIOTaskToolWindowFactory;
 
 public class CheckIOProjectComponent implements ProjectComponent {
   private Project myProject;

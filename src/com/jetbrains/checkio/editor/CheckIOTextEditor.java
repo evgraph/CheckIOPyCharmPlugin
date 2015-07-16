@@ -1,6 +1,5 @@
-package main;
+package com.jetbrains.checkio.editor;
 
-import actions.CheckIOCheckSolutionAction;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -18,6 +17,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
 import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

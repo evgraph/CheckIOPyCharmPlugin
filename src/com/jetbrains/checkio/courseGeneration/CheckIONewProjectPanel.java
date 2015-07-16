@@ -1,8 +1,10 @@
-package main;
+package com.jetbrains.checkio.courseGeneration;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBCardLayout;
+import com.jetbrains.checkio.CheckIOConnector;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.service.SharedThreadPool;
 

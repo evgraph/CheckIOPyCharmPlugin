@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio.courseFormat;
 
 public class CheckIOUser {
   private String username = "";

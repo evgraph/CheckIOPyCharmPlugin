@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio.editor;
 
 
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -9,6 +9,7 @@ import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;

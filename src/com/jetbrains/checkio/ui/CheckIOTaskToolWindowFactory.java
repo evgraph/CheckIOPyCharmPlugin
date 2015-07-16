@@ -1,4 +1,4 @@
-package ui;
+package com.jetbrains.checkio.ui;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -6,10 +6,10 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import main.CheckIOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -18,7 +18,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final String TASK_DESCRIPTION = "Task description";
   private static final String SOLUTIONS = "Solutions";
   private static final String PROFILE = "Profile";
-  public TaskInfoPanel taskInfoPanel;
+  public CheckIOTaskInfoPanel taskInfoPanel;
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
     final Course course = StudyTaskManager.getInstance(project).getCourse();
@@ -35,9 +35,9 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     final JBCardLayout cardLayout = new JBCardLayout();
     final JPanel contentPanel = new JPanel(cardLayout);
 
-    taskInfoPanel = new TaskInfoPanel(taskTextPath, currentTaskName);
-    SolutionsPanel solutionsPanel = new SolutionsPanel();
-    ProfilePanel profilePanel = new ProfilePanel(project);
+    taskInfoPanel = new CheckIOTaskInfoPanel(taskTextPath, currentTaskName);
+    CheckIOSolutionsPanel solutionsPanel = new CheckIOSolutionsPanel();
+    CheckIOProfilePanel profilePanel = new CheckIOProfilePanel(project);
 
     contentPanel.add(TASK_DESCRIPTION, taskInfoPanel);
     contentPanel.add(SOLUTIONS, solutionsPanel);

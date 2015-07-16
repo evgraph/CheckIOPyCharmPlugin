@@ -29,13 +29,15 @@
 
 
   <extensions defaultExtensionNs="com.intellij">
-    <directoryProjectGenerator implementation="main.CheckIOProjectGenerator"/>
-    <toolWindow id="Task Info" anchor="right" factoryClass="ui.CheckIOTaskToolWindowFactory" conditionClass="main.CheckIOCondition"/>
+    <directoryProjectGenerator implementation="com.jetbrains.checkio.courseGeneration.CheckIOProjectGenerator"/>
+    <toolWindow id="Task Info" anchor="right" factoryClass="com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory"
+                conditionClass="com.jetbrains.checkio.CheckIOCondition"/>
 
     <!--<projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />-->
-    <projectService serviceInterface="main.CheckIOTaskManager" serviceImplementation="main.CheckIOTaskManager"/>
+    <projectService serviceInterface="com.jetbrains.checkio.CheckIOTaskManager"
+                    serviceImplementation="com.jetbrains.checkio.CheckIOTaskManager"/>
     <!--<treeStructureProvider implementation="com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider"/>-->
-    <fileEditorProvider implementation="main.CheckIOFileEditorProvider"/>
+    <fileEditorProvider implementation="com.jetbrains.checkio.editor.CheckIOFileEditorProvider"/>
 
   </extensions>
 
@@ -49,7 +51,7 @@
   <!--<project-components>-->
   <!--&lt;!&ndash; Add your project components here &ndash;&gt;-->
   <!--<component>-->
-  <!--<implementation-class>main.CheckIOProjectComponent</implementation-class>-->
+  <!--<implementation-class>CheckIOProjectComponent</implementation-class>-->
   <!--</component>-->
   <!--</project-components>-->
 
@@ -57,15 +59,15 @@
 
   <project-components>
     <component>
-      <implementation-class>main.CheckIOProjectComponent</implementation-class>
+      <implementation-class>com.jetbrains.checkio.CheckIOProjectComponent</implementation-class>
     </component>
   </project-components>
   <actions>
-    <action class="actions.CheckIOUpdateProjectAction" id="CheckIOUpdateProjectAction" text="Update project"
+    <action id="CheckIOUpdateProjectAction" class="com.jetbrains.checkio.actions.CheckIOUpdateProjectAction" text="Update project"
             icon="AllIcons.Actions.Download">
       <add-to-group group-id="MainToolBar" anchor="last"/>
       <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="Synchronize" anchor="after"/>
     </action>
-    <action id="CheckIOCheckSolutionAction" class="actions.CheckIOCheckSolutionAction" text="Check mission"/>
+    <action id="CheckIOCheckSolutionAction" class="com.jetbrains.checkio.actions.CheckIOCheckSolutionAction" text="Check mission"/>
   </actions>
 </idea-plugin>

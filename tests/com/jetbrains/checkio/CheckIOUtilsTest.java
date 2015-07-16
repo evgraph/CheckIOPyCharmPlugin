@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio;
 
 import com.jetbrains.edu.courseFormat.Task;
 import org.junit.Assert;

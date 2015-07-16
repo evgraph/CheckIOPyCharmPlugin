@@ -1,4 +1,4 @@
-package actions;
+package com.jetbrains.checkio.actions;
 
 import com.intellij.CommonBundle;
 import com.intellij.ide.projectView.ProjectView;
@@ -16,15 +16,15 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ui.OptionsDialog;
+import com.jetbrains.checkio.CheckIOConnector;
+import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.editor.CheckIOTextEditor;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
-import main.CheckIOConnector;
-import main.CheckIOTaskManager;
-import main.CheckIOTextEditor;
-import main.CheckIOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.jetbrains.annotations.NotNull;

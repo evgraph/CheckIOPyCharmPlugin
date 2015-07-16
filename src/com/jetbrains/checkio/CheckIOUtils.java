@@ -1,9 +1,7 @@
-package main;
+package com.jetbrains.checkio;
 
-import actions.CheckIOCheckSolutionAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -18,13 +16,13 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
-import com.intellij.psi.PsiManager;
+import com.jetbrains.checkio.editor.CheckIOTextEditor;
+import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.edu.courseFormat.*;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ui.CheckIOTaskToolWindowFactory;
 
 import javax.swing.*;
 import java.awt.*;

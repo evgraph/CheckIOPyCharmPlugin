@@ -1,22 +1,20 @@
-package ui;
-
-import main.BrowserWindow;
+package com.jetbrains.checkio.ui;
 
 import javax.swing.*;
 
-public class TaskInfoPanel extends JPanel {
+public class CheckIOTaskInfoPanel extends JPanel {
   private ButtonPanel myButtonPanel;
   private JLabel taskNameLabel;
   private static final int width = 450;
   private static final int height = 1000;
-  private BrowserWindow myBrowserWindow;
+  private CheckIOBrowserWindow myBrowserWindow;
 
 
-  public TaskInfoPanel(String taskTextPath, String taskName) {
+  public CheckIOTaskInfoPanel(String taskTextPath, String taskName) {
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     myButtonPanel = new ButtonPanel();
     taskNameLabel = new JLabel(taskName);
-    myBrowserWindow = new BrowserWindow(taskTextPath, width, height, false, true);
+    myBrowserWindow = new CheckIOBrowserWindow(taskTextPath, width, height, false, true);
     add(taskNameLabel);
     add(myBrowserWindow.myPanel);
     add(myButtonPanel);

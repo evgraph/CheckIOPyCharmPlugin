@@ -1,12 +1,12 @@
-package main;
+package com.jetbrains.checkio;
 
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.wm.ToolWindowEP;
-import ui.CheckIOTaskToolWindowFactory;
-import ui.TaskInfoPanel;
+import com.jetbrains.checkio.ui.CheckIOTaskInfoPanel;
+import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 
 
 public class CheckIOLafManagerListener implements LafManagerListener {
@@ -17,7 +17,7 @@ public class CheckIOLafManagerListener implements LafManagerListener {
     if (toolWindowFactory == null) {
       return;
     }
-    final TaskInfoPanel taskInfoPanel = toolWindowFactory.taskInfoPanel;
+    final CheckIOTaskInfoPanel taskInfoPanel = toolWindowFactory.taskInfoPanel;
     taskInfoPanel.updateLaf(manager.getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo);
   }
 }

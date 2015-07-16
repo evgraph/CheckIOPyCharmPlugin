@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio.ui;
 
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
@@ -18,10 +18,9 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import javax.swing.*;
-import java.io.File;
 import java.net.URL;
 
-public class BrowserWindow extends JFrame {
+public class CheckIOBrowserWindow extends JFrame {
   public static final String EVENT_TYPE_CLICK = "click";
   public JFXPanel myPanel;
   public WebView myWebComponent;
@@ -33,16 +32,16 @@ public class BrowserWindow extends JFrame {
   private boolean showProgress = true;
   private boolean refInNewBrowser = false;
 
-  public BrowserWindow(@NotNull final String url) {
+  public CheckIOBrowserWindow(@NotNull final String url) {
     init();
     load(url);
   }
 
-  public BrowserWindow(@NotNull final String url,
-                       final int width,
-                       final int height,
-                       final boolean showPeogress,
-                       final boolean refInNewBrowser) {
+  public CheckIOBrowserWindow(@NotNull final String url,
+                              final int width,
+                              final int height,
+                              final boolean showPeogress,
+                              final boolean refInNewBrowser) {
     init();
     this.width = width;
     this.height = height;
@@ -118,8 +117,8 @@ public class BrowserWindow extends JFrame {
             myEngine.getLoadWorker().cancel();
 
             final String href = ((Element)ev.getTarget()).getAttribute("href");
-            final BrowserWindow browserWindow = new BrowserWindow(href);
-            browserWindow.setVisible(true);
+            final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow(href);
+            checkIOBrowserWindow.setVisible(true);
             ev.preventDefault();
           }
         };

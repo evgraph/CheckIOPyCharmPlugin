@@ -1,4 +1,4 @@
-package ui;
+package com.jetbrains.checkio.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.treeStructure.Tree;
@@ -7,13 +7,13 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 
-public class SolutionsPanel extends JPanel {
+public class CheckIOSolutionsPanel extends JPanel {
   private static final String CLEAR_SOLUTIONS = "Clear solutions";
   private static final String CREATIVE_SOLUTIONS = "Creative solutions";
   private static final String SPEEDY_SOLUTIONS = "Speedy solutions";
   private JButton toTaskDescription;
 
-  public SolutionsPanel() {
+  public CheckIOSolutionsPanel() {
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     JPanel clearSolutionsPanel = createSolutionsPanel(CLEAR_SOLUTIONS);
     JPanel creativeSolutionsPanel = createSolutionsPanel(CREATIVE_SOLUTIONS);

@@ -1,4 +1,4 @@
-package main;
+package com.jetbrains.checkio;
 
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -10,6 +10,8 @@ import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.jetbrains.checkio.courseFormat.CheckIOTaskPublicationStatus;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +27,7 @@ import java.util.Map.Entry;
  */
 
 @State(
-  name = "main.CheckIOTaskManager",
+  name = "CheckIOTaskManager",
   storages = {
     @Storage(
       //id = "others",
@@ -39,7 +41,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public String getNewStationsPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   private CheckIOUser myUser;
-  public Map<Task, TaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
+  public Map<Task, CheckIOTaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
   public static final String ALWAYS_GET_NEW_STATIONS = "AlwaysGet";
   public static final String NEVER_GET_NEW_STATIONS = "NeverGet";
   public static final String ASK_TO_GET_NEW_STATIONS = "Ask";
@@ -77,7 +79,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     return myTaskIds.get(task.getName());
   }
 
-  public void setPublicationStatus(Task task, TaskPublicationStatus publicationStatus) {
+  public void setPublicationStatus(Task task, CheckIOTaskPublicationStatus publicationStatus) {
     if (myPublicationStatusMap == null) {
       myPublicationStatusMap = new HashMap<>();
     }
@@ -88,8 +90,8 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public ArrayList<Task> getPublishedTasks() {
     ArrayList<Task> publishedTasks = new ArrayList<>();
 
-    for (Entry<Task, TaskPublicationStatus> entry : myPublicationStatusMap.entrySet()) {
-      if (entry.getValue() == TaskPublicationStatus.Published) {
+    for (Entry<Task, CheckIOTaskPublicationStatus> entry : myPublicationStatusMap.entrySet()) {
+      if (entry.getValue() == CheckIOTaskPublicationStatus.Published) {
         publishedTasks.add(entry.getKey());
       }
     }
