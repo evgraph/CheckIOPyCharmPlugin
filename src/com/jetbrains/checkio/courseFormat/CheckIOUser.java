@@ -8,10 +8,6 @@ public class CheckIOUser {
   public CheckIOUser() {
   }
 
-  public int getUid() {
-    return uid;
-  }
-
   public void setUid(int uid) {
     this.uid = uid;
   }

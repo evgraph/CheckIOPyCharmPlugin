@@ -235,7 +235,7 @@ public class CheckIOUserAuthorizer {
     return request;
   }
 
-  private HttpResponse requestAccessToken(HttpUriRequest request) {
+  private static HttpResponse requestAccessToken(HttpUriRequest request) {
     HttpResponse response = null;
     final CloseableHttpClient client = HttpClientBuilder.create().build();
     try {
@@ -272,7 +272,6 @@ public class CheckIOUserAuthorizer {
       final OutputStream os = httpServletResponse.getOutputStream();
       os.write(SUCCESS_AUTHORIZATION_MESSAGE.getBytes(Charset.defaultCharset()));
       os.close();
-
 
       try {
         setTokensFirstTime(code);

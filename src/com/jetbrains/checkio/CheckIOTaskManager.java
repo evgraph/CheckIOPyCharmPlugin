@@ -21,18 +21,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-/**
- * Implementation of class which contains all the information
- * about study in context of current project
- */
-
 @State(
   name = "CheckIOTaskManager",
   storages = {
     @Storage(
-      //id = "others",
       file = StoragePathMacros.PROJECT_CONFIG_DIR + "/task_info.xml"
-      //scheme = StorageScheme.DIRECTORY_BASED
     )}
 )
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {

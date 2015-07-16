@@ -13,7 +13,6 @@ public class CheckIOConnectorTest extends Assert {
   public MockServerRule mockServerRule = new MockServerRule(this);
 
   private MockServerClient mockServerClient;
-  private CheckIOUserAuthorizer checkIOUserAuthorizer;
 
   @Before
   public void setUp() {

@@ -6,14 +6,12 @@ import com.intellij.ui.JBCardLayout;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOIcons;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.service.SharedThreadPool;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URL;
 
 
 public class CheckIONewProjectPanel {
@@ -22,8 +20,6 @@ public class CheckIONewProjectPanel {
   private static final String AUTHORIZATION_PANEL = "authorization panel";
   public JLabel authorizationResultLabel;
   private JPanel myContentPanel;
-  private JButton authorizationButton;
-
 
   public CheckIONewProjectPanel() {
     final JPanel projectCreationPanel = new JPanel(new GridBagLayout());
@@ -33,7 +29,7 @@ public class CheckIONewProjectPanel {
     final JBCardLayout cardLayout = new JBCardLayout();
     myContentPanel = new JPanel(cardLayout);
     final JPanel authorizationPanel = new JPanel(new BorderLayout());
-    authorizationButton = new JButton();
+    JButton authorizationButton = new JButton();
     authorizationButton.setIcon(CheckIOIcons.AUTHORIZATION);
     final JLabel authorizationDescriptionLabel = new JLabel("You should authorize to create a new project");
     authorizationPanel.add(authorizationButton, BorderLayout.PAGE_START);
@@ -43,7 +39,6 @@ public class CheckIONewProjectPanel {
     myContentPanel.add(PROJECT_CREATION_PANEL, projectCreationPanel);
 
     authorizationButton.addActionListener(new ActionListener() {
-
       @Override
       public void actionPerformed(ActionEvent e) {
         SharedThreadPool.getInstance().executeOnPooledThread(() -> {
@@ -75,15 +70,5 @@ public class CheckIONewProjectPanel {
 
   public JPanel getMainPanel() {
     return myContentPanel;
-  }
-
-  private ImageIcon createImageIcon(@NotNull final String path) {
-    final URL imgURL = getClass().getResource(path);
-    if (imgURL != null) {
-      return new ImageIcon(imgURL);
-    }
-    else {
-      return null;
-    }
   }
 }

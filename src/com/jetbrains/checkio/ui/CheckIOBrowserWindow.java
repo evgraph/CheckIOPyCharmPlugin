@@ -146,4 +146,3 @@ public class CheckIOBrowserWindow extends JFrame {
     return progress;
   }
 }
-

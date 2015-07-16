@@ -110,14 +110,6 @@ public class CheckIOProfilePanel extends JPanel {
       }
     }
 
-    //  class MyPublicationListener implements ListSelectionListener{
-    //    @Override
-    //    public void valueChanged(ListSelectionEvent e) {
-    //      e.getSource()
-    //    }
-    //  }
-    //}
-
     static class BadgesPanel extends JPanel {
       private ImageIcon badgeIcon;
       private JLabel badgeLabel;

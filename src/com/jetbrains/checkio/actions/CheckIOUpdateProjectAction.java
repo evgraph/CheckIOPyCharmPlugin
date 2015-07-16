@@ -32,9 +32,7 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
   }
 
   public static void update(@NotNull final Project project) {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      ProgressManager.getInstance().run(getUpdateTask(project));
-    });
+    ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getUpdateTask(project)));
   }
 
 
@@ -60,8 +58,6 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
         final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
         createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
       }
-
-
     };
   }
 
