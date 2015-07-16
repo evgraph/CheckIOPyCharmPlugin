@@ -123,7 +123,7 @@ public class CheckIOProfilePanel extends JPanel {
       private JLabel badgeLabel;
 
       public BadgesPanel() {
-        badgeIcon = createImageIcon("/resources/good_start.png");
+        badgeIcon = createImageIcon("/icons.checkio/badge.png");
         badgeLabel = new JLabel(badgeIcon);
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         add(badgeLabel);

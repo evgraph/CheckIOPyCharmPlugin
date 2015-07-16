@@ -69,7 +69,7 @@ public class CheckIOBrowserWindow extends JFrame {
 
   private void updateLafDarcula(@org.jetbrains.annotations.NotNull final WebEngine engine) {
     Platform.runLater(() -> {
-      final URL url = getClass().getResource("/resources/myDarcula.css");
+      final URL url = getClass().getResource("/style/myDarcula.css");
       engine
         .setUserStyleSheetLocation("file:///" + url.getPath());
       engine.reload();

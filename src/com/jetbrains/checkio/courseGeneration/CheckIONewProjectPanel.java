@@ -5,6 +5,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBCardLayout;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
+import com.jetbrains.checkio.ui.CheckIOIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.service.SharedThreadPool;
 
@@ -33,7 +34,7 @@ public class CheckIONewProjectPanel {
     myContentPanel = new JPanel(cardLayout);
     final JPanel authorizationPanel = new JPanel(new BorderLayout());
     authorizationButton = new JButton();
-    authorizationButton.setIcon(createImageIcon("/resources/checkio_2.png"));
+    authorizationButton.setIcon(CheckIOIcons.AUTHORIZATION);
     final JLabel authorizationDescriptionLabel = new JLabel("You should authorize to create a new project");
     authorizationPanel.add(authorizationButton, BorderLayout.PAGE_START);
     authorizationPanel.add(authorizationDescriptionLabel, BorderLayout.CENTER);

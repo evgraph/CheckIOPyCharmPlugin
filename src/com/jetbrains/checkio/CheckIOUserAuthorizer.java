@@ -72,7 +72,6 @@ public class CheckIOUserAuthorizer {
   public String myRefreshToken;
 
   private CheckIOUserAuthorizer() {
-
     loadProperties();
   }
 
@@ -146,7 +145,7 @@ public class CheckIOUserAuthorizer {
   }
 
   private void loadProperties() {
-    InputStream is = this.getClass().getResourceAsStream("/resources/oauthData.properties");
+    InputStream is = this.getClass().getResourceAsStream("/properties/oauthData.properties");
     try {
       ourProperties.load(is);
     }

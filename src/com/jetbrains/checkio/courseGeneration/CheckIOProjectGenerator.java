@@ -99,7 +99,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Nullable
   @Override
   public Icon getLogo() {
-    return CheckIOIcons.AllIcons.NEW_PROJECT;
+    return CheckIOIcons.NEW_PROJECT;
   }
 
   @NotNull
