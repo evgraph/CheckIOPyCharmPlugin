@@ -17,7 +17,6 @@ import javax.swing.*;
 public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
   private static final String TASK_DESCRIPTION = "Task description";
   private static final String SOLUTIONS = "Solutions";
-  private static final String PROFILE = "Profile";
   public CheckIOTaskInfoPanel taskInfoPanel;
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
@@ -37,11 +36,9 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
 
     taskInfoPanel = new CheckIOTaskInfoPanel(taskTextPath, currentTaskName);
     CheckIOSolutionsPanel solutionsPanel = new CheckIOSolutionsPanel();
-    CheckIOProfilePanel profilePanel = new CheckIOProfilePanel(project);
 
     contentPanel.add(TASK_DESCRIPTION, taskInfoPanel);
     contentPanel.add(SOLUTIONS, solutionsPanel);
-    contentPanel.add(PROFILE, profilePanel);
 
     final ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     final Content content = contentFactory.createContent(contentPanel, "", true);
@@ -50,13 +47,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory {
     taskInfoPanel.getShowSolutionsButton().addActionListener(
       e -> cardLayout.swipe(contentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO));
 
-    taskInfoPanel.getViewProfileButton().addActionListener(e -> cardLayout.swipe(contentPanel, PROFILE, JBCardLayout.SwipeDirection.AUTO));
-
     solutionsPanel.getToTaskDescription().addActionListener(
       e -> cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
-
-    profilePanel.getBackFromProfileButton().addActionListener(
-      e -> cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
-
   }
 }

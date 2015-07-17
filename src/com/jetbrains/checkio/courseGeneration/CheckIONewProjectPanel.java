@@ -18,8 +18,8 @@ public class CheckIONewProjectPanel {
   private static final Logger LOG = Logger.getInstance(CheckIONewProjectPanel.class.getName());
   private static final String PROJECT_CREATION_PANEL = "project panel";
   private static final String AUTHORIZATION_PANEL = "authorization panel";
-  public JLabel authorizationResultLabel;
-  private JPanel myContentPanel;
+  private final JLabel authorizationResultLabel;
+  private final JPanel myContentPanel;
 
   public CheckIONewProjectPanel() {
     final JPanel projectCreationPanel = new JPanel(new GridBagLayout());

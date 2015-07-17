@@ -41,12 +41,12 @@ public class CheckIOTextEditor implements TextEditor {
     initButtons(buttonsPanel);
   }
 
-  private static JButton addButton(@NotNull final JComponent parentComponent, @NotNull final String actionID,
-                                   @NotNull final Icon icon, @Nullable String defaultShortcutString) {
-    final AnAction action = ActionManager.getInstance().getAction(actionID);
+  private static JButton addButton(@NotNull final JComponent parentComponent,
+                                   @NotNull final Icon icon) {
+    final AnAction action = ActionManager.getInstance().getAction(CheckIOCheckSolutionAction.ACTION_ID);
     String toolTipText = KeymapUtil.createTooltipText(action.getTemplatePresentation().getText(), action);
-    if (!toolTipText.contains("(") && defaultShortcutString != null) {
-      KeyboardShortcut shortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(defaultShortcutString), null);
+    if (!toolTipText.contains("(")) {
+      KeyboardShortcut shortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(CheckIOCheckSolutionAction.SHORTCUT), null);
       toolTipText += " (" + KeymapUtil.getShortcutText(shortcut) + ")";
     }
     final JButton newButton = new JButton();
@@ -72,7 +72,7 @@ public class CheckIOTextEditor implements TextEditor {
 
   private void initButtons(@NotNull final JPanel buttonsPanel) {
     myCheckButton =
-      addButton(buttonsPanel, CheckIOCheckSolutionAction.ACTION_ID, InteractiveLearningIcons.Resolve, CheckIOCheckSolutionAction.SHORTCUT);
+      addButton(buttonsPanel, InteractiveLearningIcons.Resolve);
     myCheckButton.addActionListener(e -> {
       CheckIOCheckSolutionAction studyCheckAction =
         (CheckIOCheckSolutionAction)ActionManager.getInstance().getAction(CheckIOCheckSolutionAction.ACTION_ID);

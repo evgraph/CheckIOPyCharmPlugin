@@ -31,7 +31,7 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
     }
   }
 
-  public static void update(@NotNull final Project project) {
+  private static void update(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getUpdateTask(project)));
   }
 

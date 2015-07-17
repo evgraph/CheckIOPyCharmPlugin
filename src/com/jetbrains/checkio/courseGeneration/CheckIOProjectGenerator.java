@@ -11,11 +11,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.platform.DirectoryProjectGenerator;
 import com.jetbrains.checkio.CheckIOConnector;
+import com.jetbrains.checkio.CheckIOProjectComponent;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.edu.courseFormat.Course;
-import com.jetbrains.edu.learning.StudyProjectComponent;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
@@ -31,7 +31,7 @@ import java.io.File;
 public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implements DirectoryProjectGenerator {
 
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
-  CheckIONewProjectPanel mySettingsPanel;
+  private CheckIONewProjectPanel mySettingsPanel;
   private File myCoursesDir;
 
 
@@ -90,7 +90,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
         course.setCourseDirectory(myCoursesDir.getAbsolutePath());
         VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
         StudyProjectGenerator.openFirstTask(course, project);
-        StudyProjectComponent.getInstance(project).registerStudyToolwindow(course);
+        CheckIOProjectComponent.registerUserInfoToolWindow(course, project);
       }));
     new StudyProjectGenerator().flushCourse(course);
     course.initCourse(false);

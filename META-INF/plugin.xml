@@ -32,6 +32,8 @@
     <directoryProjectGenerator implementation="com.jetbrains.checkio.courseGeneration.CheckIOProjectGenerator"/>
     <toolWindow id="Task Info" anchor="right" factoryClass="com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory"
                 conditionClass="com.jetbrains.checkio.CheckIOCondition"/>
+    <toolWindow id="User Info" anchor="left" factoryClass="com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory"
+                conditionClass="com.jetbrains.checkio.CheckIOCondition"/>
 
     <!--<projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />-->
     <projectService serviceInterface="com.jetbrains.checkio.CheckIOTaskManager"

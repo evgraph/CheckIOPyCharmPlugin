@@ -28,12 +28,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class CheckIOUtils {
-  public static final String TOOL_WINDOW_ID = "Task Info";
+  public static final String TASK_TOOL_WINDOW_ID = "Task Info";
+  public static final String USER_INFO_TOOL_WINDOW_ID = "User Info";
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
   private CheckIOUtils() {
@@ -42,7 +42,7 @@ public class CheckIOUtils {
   @Nullable
   public static CheckIOTaskToolWindowFactory getCheckIOToolWindowFactory(@NotNull final ToolWindowEP[] toolWindowEPs) {
     for (ToolWindowEP toolWindowEP : toolWindowEPs) {
-      if (toolWindowEP.id.equals(TOOL_WINDOW_ID)) {
+      if (toolWindowEP.id.equals(TASK_TOOL_WINDOW_ID)) {
         return (CheckIOTaskToolWindowFactory)toolWindowEP.getToolWindowFactory();
       }
     }
@@ -50,7 +50,7 @@ public class CheckIOUtils {
   }
 
   @Nullable
-  public static Document getDocumentFromSelectedEditor(@NotNull final Project project) {
+  private static Document getDocumentFromSelectedEditor(@NotNull final Project project) {
     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
     assert fileEditorManager != null;
     Editor editor = fileEditorManager.getSelectedTextEditor();
@@ -161,14 +161,12 @@ public class CheckIOUtils {
     File lessonDirectory = new File(courseDirectory, "lesson" + String.valueOf(lesson.getIndex()));
     FileUtil.createDirectory(lessonDirectory);
     int taskIndex = 1;
-    for(Iterator i$1 = lesson.taskList.iterator(); i$1.hasNext(); ++taskIndex) {
-      Task task = (Task)i$1.next();
+    for (Task task : lesson.getTaskList()) {
       File taskDirectory = new File(lessonDirectory, "task" + String.valueOf(taskIndex));
       FileUtil.createDirectory(taskDirectory);
-      Iterator testsText = task.taskFiles.entrySet().iterator();
 
-      while(testsText.hasNext()) {
-        Map.Entry taskText = (Map.Entry)testsText.next();
+      for (Object o : task.taskFiles.entrySet()) {
+        Map.Entry taskText = (Map.Entry)o;
         String e = (String)taskText.getKey();
         TaskFile testsFile = (TaskFile)taskText.getValue();
         File e1 = new File(taskDirectory, e);
@@ -176,22 +174,23 @@ public class CheckIOUtils {
 
         try {
           FileUtil.writeToFile(e1, testsFile.text);
-        } catch (IOException var17) {
+        }
+        catch (IOException var17) {
           LOG.error("ERROR copying file " + e);
         }
       }
 
       Map var20 = task.getTestsText();
-      Iterator var21 = var20.entrySet().iterator();
 
-      while(var21.hasNext()) {
-        Map.Entry var23 = (Map.Entry)var21.next();
+      for (Object o : var20.entrySet()) {
+        Map.Entry var23 = (Map.Entry)o;
         File var24 = new File(taskDirectory, (String)var23.getKey());
         FileUtil.createIfDoesntExist(var24);
 
         try {
           FileUtil.writeToFile(var24, (String)var23.getValue());
-        } catch (IOException var19) {
+        }
+        catch (IOException var19) {
           LOG.error("ERROR copying tests file");
         }
       }

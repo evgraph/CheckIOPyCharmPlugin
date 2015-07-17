@@ -46,7 +46,7 @@ public class CheckIOSolutionsPanel extends JPanel {
     return toTaskDescription;
   }
 
-  public void setToTaskDescription(JButton toTaskDescription) {
+  private void setToTaskDescription(JButton toTaskDescription) {
     this.toTaskDescription = toTaskDescription;
   }
 

@@ -1,7 +1,10 @@
 package com.jetbrains.checkio;
 
 import com.google.gson.Gson;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.model.HttpRequest;
@@ -10,7 +13,7 @@ import org.mockserver.model.HttpResponse;
 
 public class CheckIOConnectorTest extends Assert {
   @Rule
-  public MockServerRule mockServerRule = new MockServerRule(this);
+  public final MockServerRule mockServerRule = new MockServerRule(this);
 
   private MockServerClient mockServerClient;
 
@@ -18,10 +21,6 @@ public class CheckIOConnectorTest extends Assert {
   public void setUp() {
     int port = mockServerRule.getHttpPort();
     CheckIOConnector.CHECKIO_API_URL = "http://localhost:" + port;
-  }
-
-  @After
-  public void tearDown() {
   }
 
   @Test

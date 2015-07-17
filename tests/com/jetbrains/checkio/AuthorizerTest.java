@@ -9,7 +9,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.model.HttpRequest;
@@ -22,7 +25,7 @@ import java.net.URISyntaxException;
 
 public class AuthorizerTest extends Assert {
   @Rule
-  public MockServerRule mockServerRule = new MockServerRule(this);
+  public final MockServerRule mockServerRule = new MockServerRule(this);
 
   private MockServerClient mockServerClient;
   private CheckIOUserAuthorizer checkIOUserAuthorizer;
@@ -33,10 +36,6 @@ public class AuthorizerTest extends Assert {
 
     checkIOUserAuthorizer = CheckIOUserAuthorizer.getInstance();
     checkIOUserAuthorizer.myServerUrl = "http://localhost:" + port;
-  }
-
-  @After
-  public void tearDown() {
   }
 
   @Test

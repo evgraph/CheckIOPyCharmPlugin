@@ -14,22 +14,25 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowEP;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.impl.ToolWindowManagerImpl;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
+import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
+import com.jetbrains.edu.learning.ui.StudyToolWindowFactory;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CheckIOProjectComponent implements ProjectComponent {
-  private Project myProject;
-  private static Logger LOG = Logger.getInstance(CheckIOProjectComponent.class.getName());
+  private final Project myProject;
+  private static final Logger LOG = Logger.getInstance(CheckIOProjectComponent.class.getName());
 
-  public CheckIOProjectComponent(Project project) {
+  private CheckIOProjectComponent(Project project) {
     myProject = project;
   }
 
@@ -83,14 +86,19 @@ public class CheckIOProjectComponent implements ProjectComponent {
   @Override
   public void projectOpened() {
     Platform.setImplicitExit(false);
+
+    ToolWindowManager.getInstance(myProject).unregisterToolWindow(StudyToolWindowFactory.STUDY_TOOL_WINDOW);
+
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       final CheckIOUser user = CheckIOTaskManager.getInstance(myProject).getUser();
       if (course != null && user != null) {
+        registerUserInfoToolWindow(course, myProject);
         LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
         addToolWindowListener();
         final ToolWindow toolWindow = getTaskToolWindow();
         createToolWindowContent(toolWindow);
+
         toolWindow.show(null);
       }
     });
@@ -98,12 +106,12 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
   private ToolWindow getTaskToolWindow() {
     final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-    ToolWindow toolWindow = toolWindowManager.getToolWindow(CheckIOUtils.TOOL_WINDOW_ID);
+    ToolWindow toolWindow = toolWindowManager.getToolWindow(CheckIOUtils.TASK_TOOL_WINDOW_ID);
     if (toolWindow == null) {
-      toolWindowManager.registerToolWindow(CheckIOUtils.TOOL_WINDOW_ID, true, ToolWindowAnchor.RIGHT);
+      toolWindowManager.registerToolWindow(CheckIOUtils.TASK_TOOL_WINDOW_ID, true, ToolWindowAnchor.RIGHT);
     }
 
-    return toolWindowManager.getToolWindow(CheckIOUtils.TOOL_WINDOW_ID);
+    return toolWindowManager.getToolWindow(CheckIOUtils.TASK_TOOL_WINDOW_ID);
   }
 
   private void addToolWindowListener() {
@@ -121,6 +129,25 @@ public class CheckIOProjectComponent implements ProjectComponent {
       toolWindowFactory.createToolWindowContent(myProject, toolWindow);
     }
   }
+
+  public static void registerUserInfoToolWindow(@Nullable final Course course, @NotNull final Project project) {
+    ToolWindowManagerImpl toolWindowManager = (ToolWindowManagerImpl)ToolWindowManager.getInstance(project);
+    if (course != null && !toolWindowManager.isToolWindowRegistered(CheckIOUtils.USER_INFO_TOOL_WINDOW_ID)) {
+      toolWindowManager.registerToolWindow(CheckIOUtils.USER_INFO_TOOL_WINDOW_ID, true, ToolWindowAnchor.LEFT);
+    }
+
+    ToolWindow userInfoToolWindow = toolWindowManager.getToolWindow(CheckIOUtils.USER_INFO_TOOL_WINDOW_ID);
+
+    if (userInfoToolWindow != null) {
+      userInfoToolWindow.show(null);
+      userInfoToolWindow.setSplitMode(true, null);
+      userInfoToolWindow.getContentManager().removeAllContents(false);
+      CheckIOUserInfoToolWindowFactory factory = new CheckIOUserInfoToolWindowFactory();
+      factory.createToolWindowContent(project, userInfoToolWindow);
+    }
+  }
+
+
 
   @Override
   public void projectClosed() {

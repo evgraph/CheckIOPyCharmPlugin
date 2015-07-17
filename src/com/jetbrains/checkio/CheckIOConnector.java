@@ -229,6 +229,8 @@ public class CheckIOConnector {
         element.remove();
       }
     }
+
+    text.select("p.for_editor_only, img.for_editor_only").forEach(Element::remove);
     return contentTypeString + text.body().html();
   }
 
@@ -268,7 +270,7 @@ public class CheckIOConnector {
     return response;
   }
 
-  public static HttpPost createRestoreRequest(@NotNull final String connectionId, @NotNull final String token) {
+  private static HttpPost createRestoreRequest(@NotNull final String connectionId, @NotNull final String token) {
     final HttpPost request = new HttpPost(RESTORE_CHECK_URL);
     final List<BasicNameValuePair> requestParameters = new ArrayList<>();
     requestParameters.add(new BasicNameValuePair("connection_id", connectionId));
@@ -309,7 +311,7 @@ public class CheckIOConnector {
     return new JSONArray(requestStringForJson);
   }
 
-  public static String getRunner(@NotNull final Task task, @NotNull final Project project) {
+  private static String getRunner(@NotNull final Task task, @NotNull final Project project) {
     final Sdk sdk = StudyUtils.findSdk(task, project);
     String runner = "";
     if (sdk != null) {

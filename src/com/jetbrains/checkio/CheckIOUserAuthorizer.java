@@ -169,7 +169,7 @@ public class CheckIOUserAuthorizer {
     return url;
   }
 
-  public HttpUriRequest makeUserInfoRequest(@NotNull final String accessToken) {
+  private HttpUriRequest makeUserInfoRequest(@NotNull final String accessToken) {
     URI uri = null;
     try {
       uri = new URIBuilder(myServerUrl + USER_INFO_URL)
@@ -182,7 +182,7 @@ public class CheckIOUserAuthorizer {
     return new HttpGet(uri);
   }
 
-  public HttpResponse requestUserInfo(@NotNull final HttpUriRequest request) {
+  private static HttpResponse requestUserInfo(@NotNull final HttpUriRequest request) {
     final CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpResponse response = null;
     try {
