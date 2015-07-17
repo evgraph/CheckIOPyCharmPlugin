@@ -21,9 +21,9 @@ import javax.swing.*;
 import java.net.URL;
 
 public class CheckIOBrowserWindow extends JFrame {
-  public static final String EVENT_TYPE_CLICK = "click";
+  private static final String EVENT_TYPE_CLICK = "click";
   public JFXPanel myPanel;
-  public WebView myWebComponent;
+  private WebView myWebComponent;
   private StackPane myPane;
   private WebEngine myEngine;
   private ProgressBar myProgressBar;
@@ -32,7 +32,7 @@ public class CheckIOBrowserWindow extends JFrame {
   private boolean showProgress = true;
   private boolean refInNewBrowser = false;
 
-  public CheckIOBrowserWindow(@NotNull final String url) {
+  private CheckIOBrowserWindow(@NotNull final String url) {
     init();
     load(url);
   }
@@ -40,12 +40,12 @@ public class CheckIOBrowserWindow extends JFrame {
   public CheckIOBrowserWindow(@NotNull final String url,
                               final int width,
                               final int height,
-                              final boolean showPeogress,
+                              final boolean showProgress,
                               final boolean refInNewBrowser) {
     init();
     this.width = width;
     this.height = height;
-    this.showProgress = showPeogress;
+    this.showProgress = showProgress;
     this.refInNewBrowser = refInNewBrowser;
     load(url);
   }
@@ -57,22 +57,26 @@ public class CheckIOBrowserWindow extends JFrame {
 
   public void updateLaf(boolean isDarcula) {
     if (isDarcula) {
-      updateLafDarcula(myEngine);
+      updateLafDarcula();
     }
     else {
       Platform.runLater(() -> {
+        final URL scrollBarStyleUrl = getClass().getResource("/style/scrollBar.css");
+        myPane.getStylesheets().add("file:///" + scrollBarStyleUrl.getPath());
         myEngine.setUserStyleSheetLocation(null);
         myEngine.reload();
       });
     }
   }
 
-  private void updateLafDarcula(@org.jetbrains.annotations.NotNull final WebEngine engine) {
+  private void updateLafDarcula() {
     Platform.runLater(() -> {
-      final URL url = getClass().getResource("/style/myDarcula.css");
-      engine
-        .setUserStyleSheetLocation("file:///" + url.getPath());
-      engine.reload();
+      final URL engineStyleUrl = getClass().getResource("/style/myDarcula.css");
+      final URL scrollBarStyleUrl = getClass().getResource("/style/scrollBarDarcula.css");
+      myEngine
+        .setUserStyleSheetLocation("file:///" + engineStyleUrl.getPath());
+      myPane.getStylesheets().add("file:///" + scrollBarStyleUrl.getPath());
+      myEngine.reload();
     });
   }
 
@@ -86,6 +90,7 @@ public class CheckIOBrowserWindow extends JFrame {
         myPane.getChildren().addAll(myWebComponent, myProgressBar);
       }
       else {
+
         myPane.getChildren().add(myWebComponent);
       }
       if (refInNewBrowser) {

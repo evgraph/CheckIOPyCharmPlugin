@@ -1,13 +1,24 @@
-
+::-webkit-scrollbar-corner {
+background-color: #3c3f41;
+}
 body {
     background-color: 3c3f41;
     font-size: 12pt;
     font-family: Serif;
     font-weight: normal;
-    scrollbar-color: 3c3f41;
     margin-left: 0;
     margin-right: 0;
-    color: #bbbbbb
+    color: #dddddd
+}
+
+
+p img {
+    background-color: bbbbbb;
+}
+
+textarea {
+background-color: 3c3f41;
+color: #dddddd
 }
 
 p {
