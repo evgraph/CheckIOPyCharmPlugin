@@ -185,6 +185,7 @@ public class CheckIOConnector {
     studyManager.setStatus(task, taskSolutionStatus.get(missionWrapper.isSolved));
     taskManager.setPublicationStatus(task, taskPublicationStatus.get(missionWrapper.isPublished));
     taskManager.setTaskId(task, missionWrapper.id);
+    taskManager.myInitialTaskTextMap.put(task.getName(), missionWrapper.code);
   }
 
 

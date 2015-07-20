@@ -35,6 +35,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public Map<String, Integer> myTaskIds = new HashMap<>();
   private CheckIOUser myUser;
   public Map<Task, CheckIOTaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
+  public Map<String, String> myInitialTaskTextMap = new HashMap<>();
   public static final String ALWAYS_GET_NEW_STATIONS = "AlwaysGet";
   public static final String NEVER_GET_NEW_STATIONS = "NeverGet";
   public static final String ASK_TO_GET_NEW_STATIONS = "Ask";
