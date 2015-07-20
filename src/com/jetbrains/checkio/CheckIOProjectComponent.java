@@ -46,9 +46,8 @@ public class CheckIOProjectComponent implements ProjectComponent {
   @Override
   public void projectOpened() {
     Platform.setImplicitExit(false);
-
-    ToolWindowManager.getInstance(myProject).unregisterToolWindow(StudyToolWindowFactory.STUDY_TOOL_WINDOW);
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
+      ToolWindowManager.getInstance(myProject).unregisterToolWindow(StudyToolWindowFactory.STUDY_TOOL_WINDOW);
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       final CheckIOUser user = CheckIOTaskManager.getInstance(myProject).getUser();
       if (course != null && user != null) {
