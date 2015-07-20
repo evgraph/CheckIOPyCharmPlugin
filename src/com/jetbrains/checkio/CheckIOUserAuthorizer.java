@@ -146,6 +146,9 @@ public class CheckIOUserAuthorizer {
 
   private void loadProperties() {
     InputStream is = this.getClass().getResourceAsStream("/properties/oauthData.properties");
+    if (is == null) {
+      LOG.error("Properties file not found.");
+    }
     try {
       ourProperties.load(is);
     }
