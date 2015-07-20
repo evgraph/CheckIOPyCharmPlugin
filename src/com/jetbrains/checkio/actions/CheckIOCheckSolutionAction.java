@@ -3,9 +3,11 @@ package com.jetbrains.checkio.actions;
 import com.intellij.CommonBundle;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task.Backgroundable;
@@ -19,12 +21,12 @@ import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
-import com.jetbrains.checkio.editor.CheckIOTextEditor;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
+import icons.InteractiveLearningIcons;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +52,11 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
   };
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
+  public CheckIOCheckSolutionAction() {
+    super("Check Task (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
+          "Check current mission", InteractiveLearningIcons.Resolve);
+  }
+
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
@@ -58,35 +65,25 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
   }
 
   public void check(@NotNull final Project project) {
-    final CheckIOTextEditor selectedEditor = CheckIOTextEditor.getSelectedEditor(project);
-    if (selectedEditor == null) {
-      return;
-    }
-    ApplicationManager.getApplication().invokeLater(() -> CommandProcessor.getInstance().runUndoTransparentAction(() -> {
-      selectedEditor.getCheckButton().setEnabled(false);
-      ProgressManager.getInstance().run(getCheckTask(project, selectedEditor));
-    }));
+    ApplicationManager.getApplication().invokeLater(
+      () -> CommandProcessor.getInstance().runUndoTransparentAction(() -> ProgressManager.getInstance().run(getCheckTask(project))));
   }
 
-  private static Backgroundable getCheckTask(@NotNull final Project project, @NotNull final CheckIOTextEditor selectedEditor) {
+  private static Backgroundable getCheckTask(@NotNull final Project project) {
     return new com.intellij.openapi.progress.Task.Backgroundable(project, "Checking task", true) {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
       final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
       final String taskFileName = CheckIOUtils.getTaskFileNameFromTask(task);
       final String code = task.getDocument(project, taskFileName).getText();
-      final JButton checkButton = selectedEditor.getCheckButton();
-
       @Override
       public void onCancel() {
         studyManager.setStatus(task, statusBeforeCheck);
-        selectedEditor.getCheckButton().setEnabled(true);
       }
 
       @Override
       public void onSuccess() {
         ProjectView.getInstance(project).refresh();
-        selectedEditor.getCheckButton().setEnabled(true);
       }
 
       @Override
@@ -99,7 +96,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
         if (indicator.isCanceled()) {
           ApplicationManager.getApplication().runReadAction(
             () -> CheckIOUtils.
-              showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project, checkButton)
+              showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project)
           );
           return;
         }
@@ -108,7 +105,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
         ApplicationManager.getApplication().invokeLater(
           () -> CheckIOUtils
             .showOperationResultPopUp(ourStudyStatusTaskCheckMessageHashMap.get(status), MessageType.INFO.getPopupBackground(),
-                                      project, checkButton)
+                                      project)
         );
       }
     };

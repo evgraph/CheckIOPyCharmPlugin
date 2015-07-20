@@ -31,15 +31,13 @@
   <extensions defaultExtensionNs="com.intellij">
     <directoryProjectGenerator implementation="com.jetbrains.checkio.courseGeneration.CheckIOProjectGenerator"/>
     <toolWindow id="Task Info" anchor="right" factoryClass="com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory"
-                conditionClass="com.jetbrains.checkio.CheckIOCondition"/>
+                conditionClass="com.jetbrains.edu.learning.ui.StudyCondition"/>
     <toolWindow id="User Info" anchor="left" factoryClass="com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory"
-                conditionClass="com.jetbrains.checkio.CheckIOCondition"/>
+                conditionClass="com.jetbrains.edu.learning.ui.StudyCondition"/>
 
     <!--<projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />-->
     <projectService serviceInterface="com.jetbrains.checkio.CheckIOTaskManager"
                     serviceImplementation="com.jetbrains.checkio.CheckIOTaskManager"/>
-    <!--<treeStructureProvider implementation="com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider"/>-->
-    <fileEditorProvider implementation="com.jetbrains.checkio.editor.CheckIOFileEditorProvider"/>
 
   </extensions>
 
@@ -65,11 +63,10 @@
     </component>
   </project-components>
   <actions>
-    <action id="CheckIOUpdateProjectAction" class="com.jetbrains.checkio.actions.CheckIOUpdateProjectAction" text="Update project"
-            icon="AllIcons.Actions.Download">
-      <add-to-group group-id="MainToolBar" anchor="last"/>
-      <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="Synchronize" anchor="after"/>
+    <action id="CheckIOUpdateProjectAction" class="com.jetbrains.checkio.actions.CheckIOUpdateProjectAction" text="Update project">
     </action>
     <action id="CheckIOCheckSolutionAction" class="com.jetbrains.checkio.actions.CheckIOCheckSolutionAction" text="Check mission"/>
+    <action class="com.jetbrains.checkio.actions.CheckIORefreshFileAction" id="CheckIORefreshTaskAction"/>
+    <action class="com.jetbrains.checkio.actions.CheckIOShowHintAction" id="CheckIOShowHintAction"/>
   </actions>
 </idea-plugin>

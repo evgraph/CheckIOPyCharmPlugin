@@ -1,11 +1,11 @@
 package com.jetbrains.checkio.actions;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.ProjectView;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationDisplayType;
-import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -19,10 +19,19 @@ import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.List;
 
 
 public class CheckIOUpdateProjectAction extends DumbAwareAction {
+  public static final String ACTION_ID = "CheckIOCheckSolutionAction";
+  public static final String SHORTCUT = "ctrl shift pressed D";
+
+  public CheckIOUpdateProjectAction() {
+    super("Update project (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
+          "Update project",
+          AllIcons.Actions.Download);
+  }
 
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
@@ -37,14 +46,11 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
 
 
   private static Task.Backgroundable getUpdateTask(@NotNull final Project project) {
-    final NotificationGroup notificationGroup = new NotificationGroup(
-      "Project updating messages", NotificationDisplayType.STICKY_BALLOON, true);
 
     return new Task.Backgroundable(project, "Updating project", false) {
       @Override
       public void onCancel() {
-        final Notification notification = notificationGroup.createNotification("Project updating cancelled", MessageType.INFO);
-        notification.notify(myProject);
+        CheckIOUtils.showOperationResultPopUp("Project updating cancelled", MessageType.WARNING.getPopupBackground(), project);
       }
 
       @Override
@@ -62,8 +68,6 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
   }
 
   public static void createFilesIfNewStationsUnlockedAndShowNotification(@NotNull final Project project, @NotNull final Course newCourse) {
-    final NotificationGroup notificationGroup = new NotificationGroup(
-      "Project updating messages", NotificationDisplayType.STICKY_BALLOON, true);
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
     final Course oldCourse = studyTaskManager.getCourse();
     assert oldCourse != null;
@@ -84,18 +88,14 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
         .invokeLater(() -> {
           CheckIOUtils.createNewLessonsDirsAndFlush(oldCourse, newCourse, project);
           final String message = "You unlock " + unlockedStationsNumber + messageEnding;
-          final Notification notification = notificationGroup.createNotification(message, MessageType.INFO);
-          notification.notify(project);
+          CheckIOUtils.showOperationResultPopUp(message, MessageType.INFO.getPopupBackground(), project);
           oldCourse.initCourse(false);
         });
 
     }
     else {
       ApplicationManager.getApplication().invokeLater(
-        () -> {
-          final Notification notification = notificationGroup.createNotification("Project successfully updated", MessageType.INFO);
-          notification.notify(project);
-        }
+        () -> CheckIOUtils.showOperationResultPopUp("Project successfully updated", MessageType.INFO.getPopupBackground(), project)
       );
 
     }

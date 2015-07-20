@@ -29,9 +29,7 @@ import java.io.File;
 
 
 public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implements DirectoryProjectGenerator {
-
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
-  private CheckIONewProjectPanel mySettingsPanel;
   private File myCoursesDir;
 
 
@@ -111,7 +109,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Nullable
   @Override
   public JPanel extendBasePanel() throws ProcessCanceledException {
-    mySettingsPanel = new CheckIONewProjectPanel();
-    return mySettingsPanel.getMainPanel();
+    CheckIONewProjectPanel settingsPanel = new CheckIONewProjectPanel();
+    return settingsPanel.getMainPanel();
   }
 }

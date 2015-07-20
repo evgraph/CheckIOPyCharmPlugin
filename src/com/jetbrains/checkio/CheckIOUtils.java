@@ -11,25 +11,21 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
-import com.jetbrains.checkio.editor.CheckIOTextEditor;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.edu.courseFormat.*;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
+import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public class CheckIOUtils {
   public static final String TASK_TOOL_WINDOW_ID = "Task Info";
@@ -76,25 +72,13 @@ public class CheckIOUtils {
     return null;
   }
 
-  private static void showInfoPopUp(@NotNull final Project project, @NotNull final Balloon balloon, @NotNull final JButton button) {
-    final CheckIOTextEditor studyEditor = CheckIOTextEditor.getSelectedEditor(project);
-
-    assert studyEditor != null;
-    balloon.showInCenterOf(button);
-    Disposer.register(project, balloon);
-  }
-
   public static void showOperationResultPopUp(final String text,
                                               Color color,
-                                              @NotNull final Project project,
-                                              @NotNull final JButton button) {
+                                              @NotNull final Project project) {
     BalloonBuilder balloonBuilder =
       JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(text, null, color, null);
     final Balloon balloon = balloonBuilder.createBalloon();
-    final CheckIOTextEditor textEditor = CheckIOTextEditor.getSelectedEditor(project);
-    if (textEditor != null) {
-      showInfoPopUp(project, balloon, button);
-    }
+    StudyUtils.showCheckPopUp(project, balloon);
   }
 
   public static String getTaskFileNameFromTask(@NotNull final Task task) {
@@ -150,60 +134,10 @@ public class CheckIOUtils {
           }
         });
       }
-      final File myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-      flushLesson(newLesson, myCoursesDir + oldCourse.getName());
+      final File myCoursesDir = new File(PathManager.getConfigPath(), "courses" + oldCourse.getName());
+      StudyProjectGenerator.flushLesson(myCoursesDir, newLesson);
       index++;
     }
     VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
-  }
-
-  private static void flushLesson(Lesson lesson, String courseDirectory) {
-    File lessonDirectory = new File(courseDirectory, "lesson" + String.valueOf(lesson.getIndex()));
-    FileUtil.createDirectory(lessonDirectory);
-    int taskIndex = 1;
-    for (Task task : lesson.getTaskList()) {
-      File taskDirectory = new File(lessonDirectory, "task" + String.valueOf(taskIndex));
-      FileUtil.createDirectory(taskDirectory);
-
-      for (Object o : task.taskFiles.entrySet()) {
-        Map.Entry taskText = (Map.Entry)o;
-        String e = (String)taskText.getKey();
-        TaskFile testsFile = (TaskFile)taskText.getValue();
-        File e1 = new File(taskDirectory, e);
-        FileUtil.createIfDoesntExist(e1);
-
-        try {
-          FileUtil.writeToFile(e1, testsFile.text);
-        }
-        catch (IOException var17) {
-          LOG.error("ERROR copying file " + e);
-        }
-      }
-
-      Map var20 = task.getTestsText();
-
-      for (Object o : var20.entrySet()) {
-        Map.Entry var23 = (Map.Entry)o;
-        File var24 = new File(taskDirectory, (String)var23.getKey());
-        FileUtil.createIfDoesntExist(var24);
-
-        try {
-          FileUtil.writeToFile(var24, (String)var23.getValue());
-        }
-        catch (IOException var19) {
-          LOG.error("ERROR copying tests file");
-        }
-      }
-
-      File var22 = new File(taskDirectory, "task.html");
-      FileUtil.createIfDoesntExist(var22);
-
-      try {
-        FileUtil.writeToFile(var22, task.getText());
-      } catch (IOException var18) {
-        LOG.error("ERROR copying tests file");
-      }
-    }
-
   }
 }

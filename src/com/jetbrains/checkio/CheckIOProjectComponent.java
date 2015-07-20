@@ -1,104 +1,63 @@
 package com.jetbrains.checkio;
 
 import com.intellij.ide.ui.LafManager;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowEP;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.impl.ToolWindowManagerImpl;
+import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
+import com.jetbrains.checkio.actions.CheckIORefreshFileAction;
+import com.jetbrains.checkio.actions.CheckIOShowHintAction;
+import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
-import com.jetbrains.edu.courseFormat.Task;
-import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.ui.StudyToolWindowFactory;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.util.HashMap;
+import java.util.Map;
+
 public class CheckIOProjectComponent implements ProjectComponent {
   private final Project myProject;
+  private static Map<String, String> myDeletedShortcuts = new HashMap<>();
   private static final Logger LOG = Logger.getInstance(CheckIOProjectComponent.class.getName());
 
   private CheckIOProjectComponent(Project project) {
     myProject = project;
   }
 
-  private static FileEditorManagerListener getListenerFor(final Project project, final CheckIOTaskToolWindowFactory toolWindowFactory) {
-    return new FileEditorManagerListener() {
-      @Override
-      public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        Task task = getTask(file);
-        setTaskInfoPanel(task);
-      }
 
-      @Override
-      public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      }
-
-      @Override
-      public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-        VirtualFile file = event.getNewFile();
-        if (file != null) {
-          Task task = getTask(file);
-          setTaskInfoPanel(task);
-        }
-      }
-
-      @Nullable
-      private Task getTask(@NotNull VirtualFile file) {
-        TaskFile taskFile = StudyUtils.getTaskFile(project, file);
-        if (taskFile != null) {
-          return taskFile.getTask();
-        }
-        else {
-          LOG.warn("Task file is null. Maybe user opened the task file text file");
-          return null;
-        }
-      }
-
-      private void setTaskInfoPanel(@Nullable final Task task) {
-        if (task == null) {
-          return;
-        }
-        String taskTextUrl = CheckIOUtils.getTaskTextUrl(project, task);
-        String taskName = task.getName();
-        if (toolWindowFactory.taskInfoPanel != null) {
-          toolWindowFactory.taskInfoPanel.setTaskText(taskTextUrl);
-          toolWindowFactory.taskInfoPanel.setTaskNameLabelText(taskName);
-        }
-      }
-    };
-  }
 
   @Override
   public void projectOpened() {
     Platform.setImplicitExit(false);
 
     ToolWindowManager.getInstance(myProject).unregisterToolWindow(StudyToolWindowFactory.STUDY_TOOL_WINDOW);
-
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       final CheckIOUser user = CheckIOTaskManager.getInstance(myProject).getUser();
       if (course != null && user != null) {
+        registerShortcuts();
         registerUserInfoToolWindow(course, myProject);
-        LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
-        addToolWindowListener();
+        LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener(myProject));
         final ToolWindow toolWindow = getTaskToolWindow();
         createToolWindowContent(toolWindow);
-
         toolWindow.show(null);
       }
     });
@@ -113,15 +72,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
     return toolWindowManager.getToolWindow(CheckIOUtils.TASK_TOOL_WINDOW_ID);
   }
-
-  private void addToolWindowListener() {
-    final ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
-    final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
-
-    FileEditorManagerListener listener = getListenerFor(myProject, toolWindowFactory);
-    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
-  }
-
   private void createToolWindowContent(@NotNull final ToolWindow toolWindow) {
     final ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
     final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
@@ -147,10 +97,41 @@ public class CheckIOProjectComponent implements ProjectComponent {
     }
   }
 
+  private static void registerShortcuts() {
+    addShortcut(CheckIOCheckSolutionAction.SHORTCUT, CheckIOCheckSolutionAction.ACTION_ID, false);
+    addShortcut(CheckIOUpdateProjectAction.SHORTCUT, CheckIOUpdateProjectAction.ACTION_ID, false);
+    addShortcut(CheckIORefreshFileAction.SHORTCUT, CheckIORefreshFileAction.ACTION_ID, false);
+    addShortcut(CheckIOShowHintAction.SHORTCUT, CheckIOShowHintAction.ACTION_ID, false);
+  }
+
+  private static void addShortcut(@NotNull final String shortcutString, @NotNull final String actionIdString, boolean isAdditional) {
+    Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
+    Shortcut[] shortcuts = keymap.getShortcuts(actionIdString);
+    if (shortcuts.length > 0 && !isAdditional) {
+      return;
+    }
+    Shortcut studyActionShortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(shortcutString), null);
+    String[] actionsIds = keymap.getActionIds(studyActionShortcut);
+    for (String actionId : actionsIds) {
+      myDeletedShortcuts.put(actionId, shortcutString);
+      keymap.removeShortcut(actionId, studyActionShortcut);
+    }
+    keymap.addShortcut(actionIdString, studyActionShortcut);
+  }
 
 
   @Override
   public void projectClosed() {
+    final Course course = StudyTaskManager.getInstance(myProject).getCourse();
+    if (course != null) {
+      if (!myDeletedShortcuts.isEmpty()) {
+        for (Map.Entry<String, String> shortcut : myDeletedShortcuts.entrySet()) {
+          final Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
+          final Shortcut actionShortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(shortcut.getValue()), null);
+          keymap.addShortcut(shortcut.getKey(), actionShortcut);
+        }
+      }
+    }
   }
 
   @Override
