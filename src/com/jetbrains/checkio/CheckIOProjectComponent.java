@@ -1,6 +1,5 @@
 package com.jetbrains.checkio;
 
-import com.intellij.ide.ui.LafManager;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.components.ProjectComponent;
@@ -55,7 +54,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
       if (course != null && user != null) {
         registerShortcuts();
         registerUserInfoToolWindow(course, myProject);
-        LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener(myProject));
         final ToolWindow toolWindow = getTaskToolWindow();
         createToolWindowContent(toolWindow);
         toolWindow.show(null);
