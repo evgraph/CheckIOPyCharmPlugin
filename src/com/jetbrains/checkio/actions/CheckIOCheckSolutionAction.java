@@ -21,28 +21,22 @@ import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import icons.InteractiveLearningIcons;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
 
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class CheckIOCheckSolutionAction extends DumbAwareAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
   public static final String SHORTCUT = "ctrl pressed PERIOD";
-  private static final String SOLUTION_CHECK_STATUS = "check";
-  private static final String SOLUTION_WAIT_STATUS = "wait";
-  private static final int SOLVED_STATUS_CODE = 1;
   private static final HashMap<StudyStatus, String> ourStudyStatusTaskCheckMessageHashMap = new HashMap<StudyStatus, String>() {
     {
       put(StudyStatus.Solved, "Congratulations!");
@@ -100,60 +94,25 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
           );
           return;
         }
-        final StudyStatus status = checkSolutionAndGetStatus(project, task, code);
-        studyManager.setStatus(task, status);
+        final String testHtml = CheckIOConnector.checkSolutionAndGetTestHtml(project, task, code);
+        final StudyStatus status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
+
         ApplicationManager.getApplication().invokeLater(
           () -> CheckIOUtils
             .showOperationResultPopUp(ourStudyStatusTaskCheckMessageHashMap.get(status), MessageType.INFO.getPopupBackground(),
                                       project)
         );
+
+        if (status == StudyStatus.Solved) {
+          final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
+          assert toolWindowFactory != null;
+          toolWindowFactory.myCheckIOToolWindow.showTestResults(testHtml);
+          askToUpdateProject(project);
+        }
       }
     };
   }
 
-  private static StudyStatus checkSolutionAndGetStatus(@NotNull final Project project,
-                                                       @NotNull final Task task,
-                                                       @NotNull final String code) {
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    StudyStatus status = StudyStatus.Unchecked;
-    HttpPost request;
-    try {
-      request = CheckIOConnector.createCheckRequest(project, task, code);
-    }
-    catch (IllegalStateException e) {
-      LOG.warn(e.getMessage());
-      return StudyStatus.Unchecked;
-    }
-
-    HttpResponse response = CheckIOConnector.executeCheckRequest(request);
-    JSONArray jsonArray = CheckIOConnector.makeJSONArrayFromResponse(response);
-    JSONArray result = (JSONArray)jsonArray.get(jsonArray.length() - 1);
-
-    while (result != null && result.get(0) == SOLUTION_WAIT_STATUS) {
-      int time = result.getInt(2);
-      try {
-        TimeUnit.SECONDS.sleep(time);
-      }
-      catch (InterruptedException e) {
-        LOG.error(e.getMessage());
-      }
-
-      response = CheckIOConnector.restore((String)result.get(1), taskManager.accessToken);
-      jsonArray = CheckIOConnector.makeJSONArrayFromResponse(response);
-      result = (JSONArray)jsonArray.get(jsonArray.length() - 1);
-    }
-    if (result != null && result.get(0).equals(SOLUTION_CHECK_STATUS)) {
-      int statusCode = (int)result.get(1);
-      if (statusCode == SOLVED_STATUS_CODE) {
-        status = StudyStatus.Solved;
-        askToUpdateProject(project);
-      }
-      else {
-        status = StudyStatus.Failed;
-      }
-    }
-    return status;
-  }
 
   private static void askToUpdateProject(@NotNull final Project project) {
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
@@ -219,6 +178,4 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       }
     };
   }
-
-
 }

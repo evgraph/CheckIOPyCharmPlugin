@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 public class CheckIOConnector {
@@ -47,6 +48,7 @@ public class CheckIOConnector {
   private static final String PARAMETER_ACCESS_TOKEN = "token";
   private static final String CHECK_URL = "http://www.checkio.org/center/1/ucheck/";
   private static final String RESTORE_CHECK_URL = "http://www.checkio.org/center/1/restore/";
+  private static final String SOLUTION_WAIT_STATUS = "wait";
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
   private static final Map<Boolean, StudyStatus> taskSolutionStatus = new HashMap<Boolean, StudyStatus>() {{
     put(true, StudyStatus.Solved);
@@ -98,9 +100,10 @@ public class CheckIOConnector {
     taskManager.refreshToken = myRefreshToken;
   }
 
+
   @NotNull
   public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) {
-    setCourseAndLessonByNameMap(project);
+    setCourseAndLessonByName(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String token = taskManager.accessToken;
     assert token != null;
@@ -115,7 +118,8 @@ public class CheckIOConnector {
     return course;
   }
 
-  private static void setCourseAndLessonByNameMap(@NotNull final Project project) {
+
+  private static void setCourseAndLessonByName(@NotNull final Project project) {
     course = StudyTaskManager.getInstance(project).getCourse();
     lessonsByName = new HashMap<>();
     course = new Course();
@@ -235,6 +239,7 @@ public class CheckIOConnector {
     return contentTypeString + text.body().html();
   }
 
+
   public static HttpPost createCheckRequest(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String taskId = taskManager.getTaskId(task).toString();
@@ -326,6 +331,62 @@ public class CheckIOConnector {
     }
 
     return runner;
+  }
+
+  public static String checkSolutionAndGetTestHtml(@NotNull final Project project,
+                                                   @NotNull final Task task,
+                                                   @NotNull final String code) {
+    checkSolution(project, task, code);
+    return "<p> okkkkkk </p>";
+  }
+
+  public static StudyStatus getSolutionStatusAndSetInStudyManager(@NotNull final Project project, @NotNull final Task task) {
+    setCourseAndLessonByName(project);
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
+    final String token = taskManager.accessToken;
+    assert token != null;
+    int id = taskManager.getTaskId(task);
+    StudyStatus status = StudyStatus.Unchecked;
+    final MissionWrapper[] missionWrappers = getMissions(token);
+
+    for (MissionWrapper missionWrapper : missionWrappers) {
+      if (missionWrapper.id == id) {
+        status = taskSolutionStatus.get(missionWrapper.isSolved);
+        studyManager.setStatus(task, status);
+        break;
+      }
+    }
+    return status;
+  }
+
+  public static void checkSolution(@NotNull final Project project,
+                                   @NotNull final Task task,
+                                   @NotNull final String code) {
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    try {
+      HttpPost request = createCheckRequest(project, task, code);
+      HttpResponse response = executeCheckRequest(request);
+      JSONArray jsonArray = makeJSONArrayFromResponse(response);
+      JSONArray result = (JSONArray)jsonArray.get(jsonArray.length() - 1);
+
+      while (result != null && result.get(0) == SOLUTION_WAIT_STATUS) {
+        int time = result.getInt(2);
+        try {
+          TimeUnit.SECONDS.sleep(time);
+        }
+        catch (InterruptedException e) {
+          LOG.error(e.getMessage());
+        }
+
+        response = restore((String)result.get(1), taskManager.accessToken);
+        jsonArray = makeJSONArrayFromResponse(response);
+        result = (JSONArray)jsonArray.get(jsonArray.length() - 1);
+      }
+    }
+    catch (IllegalStateException e) {
+      LOG.warn(e.getMessage());
+    }
   }
 
   public static class MissionWrapper {
