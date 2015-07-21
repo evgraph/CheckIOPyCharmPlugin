@@ -1,8 +1,5 @@
 package com.jetbrains.checkio.ui;
 
-import com.intellij.ide.ui.LafManager;
-import com.intellij.ide.ui.LafManagerListener;
-import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -53,22 +50,21 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
     mySolutionsPanel = new CheckIOSolutionsPanel();
 
-
-    final JBCardLayout cardLayout = new JBCardLayout();
-    final JPanel contentPanel = new JPanel(cardLayout);
+    
+    final JBCardLayout myCardLayout = new JBCardLayout();
+    final JPanel contentPanel = new JPanel(myCardLayout);
     contentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
     contentPanel.add(SOLUTIONS, mySolutionsPanel);
     setContent(contentPanel);
 
-    LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
 
     FileEditorManagerListener listener = new CheckIOFileEditorListener(project);
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
     myTaskInfoPanel.getShowSolutionsButton().addActionListener(
-      e -> cardLayout.swipe(contentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO));
+      e -> myCardLayout.swipe(contentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO));
 
     mySolutionsPanel.getToTaskDescription().addActionListener(
-      e -> cardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
+      e -> myCardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
   }
 
   private static JPanel createToolbarPanel() {
@@ -139,13 +135,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
         myTaskInfoPanel.setTaskText(taskTextUrl);
         myTaskInfoPanel.setTaskNameLabelText(taskName);
       }
-    }
-  }
-
-  class CheckIOLafManagerListener implements LafManagerListener {
-    @Override
-    public void lookAndFeelChanged(LafManager manager) {
-      myTaskInfoPanel.updateLaf(manager.getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo);
     }
   }
 }

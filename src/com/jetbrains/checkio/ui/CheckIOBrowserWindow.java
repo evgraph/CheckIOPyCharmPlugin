@@ -1,6 +1,7 @@
 package com.jetbrains.checkio.ui;
 
 import com.intellij.ide.ui.LafManager;
+import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.sun.istack.internal.NotNull;
 import javafx.application.Platform;
@@ -36,7 +37,6 @@ public class CheckIOBrowserWindow extends JFrame {
     init();
     load(url);
   }
-
   public CheckIOBrowserWindow(@NotNull final String url,
                               final int width,
                               final int height,
@@ -52,6 +52,7 @@ public class CheckIOBrowserWindow extends JFrame {
 
   private void init() {
     myPanel = new JFXPanel();
+    LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
     initComponents();
   }
 
@@ -149,5 +150,12 @@ public class CheckIOBrowserWindow extends JFrame {
         }
       });
     return progress;
+  }
+
+  class CheckIOLafManagerListener implements LafManagerListener {
+    @Override
+    public void lookAndFeelChanged(LafManager manager) {
+      updateLaf(manager.getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo);
+    }
   }
 }
