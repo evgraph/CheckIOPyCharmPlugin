@@ -4,14 +4,12 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowEP;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.impl.ToolWindowManagerImpl;
 import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
@@ -20,6 +18,7 @@ import com.jetbrains.checkio.actions.CheckIOShowHintAction;
 import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
+import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyTaskManager;
@@ -62,16 +61,15 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
   private ToolWindow getTaskToolWindow() {
     final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-    ToolWindow toolWindow = toolWindowManager.getToolWindow(CheckIOUtils.TASK_TOOL_WINDOW_ID);
+    ToolWindow toolWindow = toolWindowManager.getToolWindow(CheckIOToolWindow.ID);
     if (toolWindow == null) {
-      toolWindowManager.registerToolWindow(CheckIOUtils.TASK_TOOL_WINDOW_ID, true, ToolWindowAnchor.RIGHT);
+      toolWindowManager.registerToolWindow(CheckIOToolWindow.ID, true, ToolWindowAnchor.RIGHT);
     }
 
-    return toolWindowManager.getToolWindow(CheckIOUtils.TASK_TOOL_WINDOW_ID);
+    return toolWindowManager.getToolWindow(CheckIOToolWindow.ID);
   }
   private void createToolWindowContent(@NotNull final ToolWindow toolWindow) {
-    final ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
-    final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory(toolWindowEPs);
+    final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
     if (toolWindowFactory != null) {
       toolWindowFactory.createToolWindowContent(myProject, toolWindow);
     }

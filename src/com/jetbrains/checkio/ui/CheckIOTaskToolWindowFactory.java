@@ -14,6 +14,7 @@ import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
 
 public class CheckIOTaskToolWindowFactory implements ToolWindowFactory, DumbAware {
+  public  CheckIOToolWindow myCheckIOToolWindow;
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
@@ -21,12 +22,13 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory, DumbAwar
     final Course course = studyManager.getCourse();
     final CheckIOUser user = taskManager.getUser();
     if (course != null && user != null) {
-      final CheckIOToolWindow checkIOToolWindow = new CheckIOToolWindow(project);
-
+      myCheckIOToolWindow = new CheckIOToolWindow(project);
       final ContentManager contentManager = toolWindow.getContentManager();
-      final Content content = contentManager.getFactory().createContent(checkIOToolWindow, null, false);
+      final Content content = contentManager.getFactory().createContent(myCheckIOToolWindow, null, false);
       contentManager.addContent(content);
-      Disposer.register(project, checkIOToolWindow);
+      Disposer.register(project, myCheckIOToolWindow);
     }
   }
+
+
 }

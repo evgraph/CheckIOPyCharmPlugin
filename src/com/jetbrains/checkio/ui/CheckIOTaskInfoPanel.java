@@ -35,10 +35,6 @@ public class CheckIOTaskInfoPanel extends JPanel {
     myBrowserWindow.load(taskTextPath);
   }
 
-  public void updateLaf(boolean isDarcula) {
-    myBrowserWindow.updateLaf(isDarcula);
-  }
-
   public void setTaskNameLabelText(String taskName) {
     this.taskNameLabel.setText(taskName);
   }

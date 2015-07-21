@@ -5,6 +5,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -15,6 +16,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
+import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.courseFormat.*;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
@@ -28,7 +30,6 @@ import java.io.IOException;
 import java.util.List;
 
 public class CheckIOUtils {
-  public static final String TASK_TOOL_WINDOW_ID = "Task Info";
   public static final String USER_INFO_TOOL_WINDOW_ID = "User Info";
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
@@ -36,9 +37,10 @@ public class CheckIOUtils {
   }
 
   @Nullable
-  public static CheckIOTaskToolWindowFactory getCheckIOToolWindowFactory(@NotNull final ToolWindowEP[] toolWindowEPs) {
+  public static CheckIOTaskToolWindowFactory getCheckIOToolWindowFactory() {
+    final ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
     for (ToolWindowEP toolWindowEP : toolWindowEPs) {
-      if (toolWindowEP.id.equals(TASK_TOOL_WINDOW_ID)) {
+      if (toolWindowEP.id.equals(CheckIOToolWindow.ID)) {
         return (CheckIOTaskToolWindowFactory)toolWindowEP.getToolWindowFactory();
       }
     }
