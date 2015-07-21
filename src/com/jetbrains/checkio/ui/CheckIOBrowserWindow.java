@@ -30,8 +30,19 @@ public class CheckIOBrowserWindow extends JFrame {
   private ProgressBar myProgressBar;
   private int width = 700;
   private int height = 700;
+
   private boolean showProgress = true;
   private boolean refInNewBrowser = false;
+
+
+  public void setShowProgress(boolean showProgress) {
+    this.showProgress = showProgress;
+  }
+
+  public void setSize(int width, int height) {
+    this.width = width;
+    this.height = height;
+  }
 
   private CheckIOBrowserWindow(@NotNull final String url) {
     init();
@@ -48,6 +59,10 @@ public class CheckIOBrowserWindow extends JFrame {
     this.showProgress = showProgress;
     this.refInNewBrowser = refInNewBrowser;
     load(url);
+  }
+
+  public CheckIOBrowserWindow() {
+    init();
   }
 
   private void init() {
@@ -111,6 +126,10 @@ public class CheckIOBrowserWindow extends JFrame {
 
   public void load(@NotNull final String url) {
     Platform.runLater(() -> myEngine.load(url));
+  }
+
+  public void loadContent(@NotNull final String content) {
+    Platform.runLater(() -> myEngine.loadContent(content));
   }
 
   private void initHyperlinkListener() {

@@ -32,10 +32,15 @@ import javax.swing.*;
 
 
 public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProvider, Disposable {
+  public static final String ID = "Task Info";
   private static final String TASK_DESCRIPTION = "Task description";
   private static final String SOLUTIONS = "Solutions";
+  private static final String TEST_RESULTS = "Test results";
   public CheckIOTaskInfoPanel myTaskInfoPanel;
   public CheckIOSolutionsPanel mySolutionsPanel;
+  public CheckIOTestResultsWindow myTestResultsWindow;
+  private JBCardLayout myMyCardLayout;
+  private JPanel myContentPanel;
 
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
@@ -49,22 +54,31 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
     mySolutionsPanel = new CheckIOSolutionsPanel();
+    myTestResultsWindow = new CheckIOTestResultsWindow();
 
-    
-    final JBCardLayout myCardLayout = new JBCardLayout();
-    final JPanel contentPanel = new JPanel(myCardLayout);
-    contentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
-    contentPanel.add(SOLUTIONS, mySolutionsPanel);
-    setContent(contentPanel);
+
+    myMyCardLayout = new JBCardLayout();
+    myContentPanel = new JPanel(myMyCardLayout);
+    myContentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
+    myContentPanel.add(SOLUTIONS, mySolutionsPanel);
+    myContentPanel.add(TEST_RESULTS, myTestResultsWindow);
+    setContent(myContentPanel);
 
 
     FileEditorManagerListener listener = new CheckIOFileEditorListener(project);
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
     myTaskInfoPanel.getShowSolutionsButton().addActionListener(
-      e -> myCardLayout.swipe(contentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO));
+      e -> myMyCardLayout.swipe(myContentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO));
 
     mySolutionsPanel.getToTaskDescription().addActionListener(
-      e -> myCardLayout.swipe(contentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
+      e -> myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
+    myTestResultsWindow.backButton.addActionListener(
+      e -> myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
+  }
+
+  public void showTestResults(@NotNull final String testResultsText) {
+    myTestResultsWindow.loadTestResultsFromHtmlString(testResultsText);
+    myMyCardLayout.swipe(myContentPanel, TEST_RESULTS, JBCardLayout.SwipeDirection.AUTO);
   }
 
   private static JPanel createToolbarPanel() {
