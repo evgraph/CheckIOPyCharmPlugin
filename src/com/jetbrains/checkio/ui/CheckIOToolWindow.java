@@ -12,6 +12,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -116,6 +117,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+      toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
     }
 
     @Override
