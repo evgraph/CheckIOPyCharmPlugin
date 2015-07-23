@@ -54,7 +54,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
         registerUserInfoToolWindow(course, myProject);
         final ToolWindow toolWindow = getTaskToolWindow();
         createToolWindowContent(toolWindow);
-        toolWindow.show(null);
       }
     });
   }

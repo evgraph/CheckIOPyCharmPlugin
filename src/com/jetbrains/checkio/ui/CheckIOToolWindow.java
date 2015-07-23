@@ -6,12 +6,14 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.util.ui.JBUI;
@@ -20,11 +22,14 @@ import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
 import com.jetbrains.checkio.actions.CheckIORefreshFileAction;
 import com.jetbrains.checkio.actions.CheckIOShowHintAction;
 import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
+import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
+import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.actions.StudyNextStudyTaskAction;
 import com.jetbrains.edu.learning.actions.StudyPreviousStudyTaskAction;
+import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +42,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private static final String TASK_DESCRIPTION = "Task description";
   private static final String SOLUTIONS = "Solutions";
   private static final String TEST_RESULTS = "Test results";
+  private static final Logger LOG = Logger.getInstance(CheckIOToolWindow.class);
   public CheckIOTaskInfoPanel myTaskInfoPanel;
   public CheckIOSolutionsPanel mySolutionsPanel;
   public CheckIOTestResultsWindow myTestResultsWindow;
@@ -49,8 +55,20 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     final JPanel toolbarPanel = createToolbarPanel();
     setToolbar(toolbarPanel);
 
-    final StudyEditor studyEditor = StudyUtils.getSelectedStudyEditor(project);
-    if (studyEditor == null) return;
+    StudyEditor studyEditor = StudyUtils.getSelectedStudyEditor(project);
+    if (studyEditor == null) {
+      final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
+      final Course course = studyManager.getCourse();
+      if (course != null) {
+        StudyProjectGenerator.openFirstTask(course, project);
+        studyEditor = StudyUtils.getSelectedStudyEditor(project);
+      }
+      else {
+        LOG.error("Try to create checkIO tool window  when course is null.");
+        return;
+      }
+    }
+    assert studyEditor != null;
     final Task task = studyEditor.getTaskFile().getTask();
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
@@ -111,7 +129,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      Task task = getTask(file);
+      final Task task = getTask(file);
+      final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+      final ToolWindow toolWindow = toolWindowManager.getToolWindow(ID);
+      toolWindow.setAvailable(true, null);
+      toolWindow.show(null);
+
       setTaskInfoPanel(task);
     }
 
@@ -119,6 +142,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
       toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
+
+      final Editor selectedEditor = StudyUtils.getSelectedEditor(myProject);
+      if (selectedEditor == null) {
+        toolWindowManager.getToolWindow(ID).hide(null);
+        toolWindowManager.getToolWindow(ID).setAvailable(false, null);
+      }
     }
 
     @Override
