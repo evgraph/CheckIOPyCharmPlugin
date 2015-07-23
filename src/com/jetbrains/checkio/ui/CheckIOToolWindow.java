@@ -157,6 +157,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
         Task task = getTask(file);
         setTaskInfoPanel(task);
       }
+
+      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+      toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
     }
 
     @Nullable
