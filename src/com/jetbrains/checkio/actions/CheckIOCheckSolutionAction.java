@@ -82,7 +82,8 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        if (task == null || task.getText().isEmpty()) {
+        if (task == null || code.isEmpty()) {
+          CheckIOUtils.showOperationResultPopUp("Couldn't find task or task is empty", MessageType.WARNING.getPopupBackground(), project);
           return;
         }
         CheckIOConnector.updateTokensInTaskManager(project);
