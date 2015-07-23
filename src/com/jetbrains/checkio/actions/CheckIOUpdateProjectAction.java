@@ -5,6 +5,7 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -26,6 +27,7 @@ import java.util.List;
 public class CheckIOUpdateProjectAction extends DumbAwareAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
   public static final String SHORTCUT = "ctrl shift pressed D";
+  private static final Logger LOG = Logger.getInstance(CheckIOUpdateProjectAction.class);
 
   public CheckIOUpdateProjectAction() {
     super("Update project (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
@@ -37,6 +39,9 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
     Project project = e.getProject();
     if (project != null) {
       update(project);
+    }
+    else {
+      LOG.warn("Project is null");
     }
   }
 
