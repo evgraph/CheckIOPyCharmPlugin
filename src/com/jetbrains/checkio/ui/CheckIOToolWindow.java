@@ -130,11 +130,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       final Task task = getTask(file);
-      final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-      final ToolWindow toolWindow = toolWindowManager.getToolWindow(ID);
-      toolWindow.setAvailable(true, null);
-      toolWindow.show(null);
-
       setTaskInfoPanel(task);
     }
 
@@ -145,20 +140,19 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
       final Editor selectedEditor = StudyUtils.getSelectedEditor(myProject);
       if (selectedEditor == null) {
-        toolWindowManager.getToolWindow(ID).hide(null);
-        toolWindowManager.getToolWindow(ID).setAvailable(false, null);
+        hideTaskToolWindow();
       }
     }
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-      VirtualFile file = event.getNewFile();
+      final VirtualFile file = event.getNewFile();
       if (file != null) {
-        Task task = getTask(file);
+        final Task task = getTask(file);
         setTaskInfoPanel(task);
       }
 
-      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+      final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
       toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
     }
 
@@ -176,14 +170,29 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     private void setTaskInfoPanel(@Nullable final Task task) {
       if (task == null) {
+        hideTaskToolWindow();
         return;
       }
+
       String taskTextUrl = CheckIOUtils.getTaskTextUrl(myProject, task);
       String taskName = task.getName();
       if (myTaskInfoPanel != null) {
         myTaskInfoPanel.setTaskText(taskTextUrl);
         myTaskInfoPanel.setTaskNameLabelText(taskName);
+        showTaskToolWindow();
       }
+    }
+
+    private void hideTaskToolWindow() {
+      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+      toolWindowManager.getToolWindow(ID).setAvailable(false, null);
+    }
+
+    private void showTaskToolWindow() {
+      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+      final ToolWindow toolWindow = toolWindowManager.getToolWindow(ID);
+      toolWindow.setAvailable(true, null);
+      toolWindow.show(null);
     }
   }
 }
