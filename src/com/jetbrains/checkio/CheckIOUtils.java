@@ -12,9 +12,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
+import com.jetbrains.checkio.courseFormat.CheckIOPublication;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.courseFormat.*;
@@ -141,5 +144,53 @@ public class CheckIOUtils {
       index++;
     }
     VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
+  }
+
+  public static void createPublicationsFiles(@NotNull Project project,
+                                             @NotNull final Task task,
+                                             @NotNull final CheckIOPublication[] publications) {
+    final File directory = getPublicationsDirectory(project, task);
+    for (CheckIOPublication publication : publications) {
+      final File file = new File(directory, publication.getPublicationFileNameWithExtension());
+      FileUtil.createIfDoesntExist(file);
+      try {
+        FileUtil.writeToFile(file, publication.myText);
+      }
+      catch (IOException e) {
+        LOG.warn(e.getMessage());
+      }
+    }
+  }
+
+  public static VirtualFile getPublicationFile(@NotNull final Project project,
+                                               @NotNull final String publicationNameWithExtension,
+                                               @NotNull Task task) {
+    final VirtualFile baseDirectory = project.getBaseDir();
+    final VirtualFile publicationsDirectory = baseDirectory.findChild(".publications");
+    if (publicationsDirectory != null) {
+      final VirtualFile publicationDirectoryForTask = publicationsDirectory.findChild(task.getName());
+      if (publicationDirectoryForTask != null) {
+        return publicationDirectoryForTask.findChild(publicationNameWithExtension);
+      }
+    }
+    return null;
+  }
+
+
+  public static File getPublicationsDirectory(@NotNull final Project project, @NotNull final Task task) {
+    final String publicationDirectory = project.getBasePath() + "/.publications/" + task.getName();
+    final File publicationDir = new File(publicationDirectory);
+    if (!publicationDir.exists()) {
+      publicationDir.mkdirs();
+    }
+    return publicationDir;
+  }
+
+  public static String getPublicationLink(@NotNull final CheckIOPublication publication) {
+    return "";
+  }
+
+  public static String getUserProfileLink(@NotNull final CheckIOUser user) {
+    return "http://www.checkio.org/user/" + user.getUsername();
   }
 }

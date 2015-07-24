@@ -18,10 +18,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOUtils;
-import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
-import com.jetbrains.checkio.actions.CheckIORefreshFileAction;
-import com.jetbrains.checkio.actions.CheckIOShowHintAction;
-import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
+import com.jetbrains.checkio.actions.*;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
@@ -47,7 +44,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   public CheckIOSolutionsPanel mySolutionsPanel;
   public CheckIOTestResultsWindow myTestResultsWindow;
   private JBCardLayout myMyCardLayout;
-  private JPanel myContentPanel;
+  public JPanel myContentPanel;
 
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
@@ -72,14 +69,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     final Task task = studyEditor.getTaskFile().getTask();
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
-    mySolutionsPanel = new CheckIOSolutionsPanel();
     myTestResultsWindow = new CheckIOTestResultsWindow();
 
 
     myMyCardLayout = new JBCardLayout();
     myContentPanel = new JPanel(myMyCardLayout);
     myContentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
-    myContentPanel.add(SOLUTIONS, mySolutionsPanel);
     myContentPanel.add(TEST_RESULTS, myTestResultsWindow);
     setContent(myContentPanel);
 
@@ -87,12 +82,18 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     FileEditorManagerListener listener = new CheckIOFileEditorListener(project);
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
     myTaskInfoPanel.getShowSolutionsButton().addActionListener(
-      e -> myMyCardLayout.swipe(myContentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO));
+      e -> showSolutionsPanel());
 
-    mySolutionsPanel.getToTaskDescription().addActionListener(
-      e -> myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
     myTestResultsWindow.backButton.addActionListener(
-      e -> myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO));
+      e -> showTaskInfoPanel());
+  }
+
+  public void showSolutionsPanel() {
+    myMyCardLayout.swipe(myContentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO);
+  }
+
+  public void showTaskInfoPanel() {
+    myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
   }
 
   public void showTestResults(@NotNull final String testResultsText) {
@@ -108,6 +109,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     group.add(new CheckIORefreshFileAction());
     group.add(new CheckIOShowHintAction());
     group.add(new CheckIOUpdateProjectAction());
+    group.add(new CheckIOShowSolutionsAction());
 
     final ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("CheckIO", group, true);
     return JBUI.Panels.simplePanel(actionToolBar.getComponent());
@@ -170,7 +172,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     private void setTaskInfoPanel(@Nullable final Task task) {
       if (task == null) {
-        hideTaskToolWindow();
+        //hideTaskToolWindow();
         return;
       }
 

@@ -37,6 +37,7 @@ import java.util.List;
 public class CheckIOCheckSolutionAction extends DumbAwareAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
   public static final String SHORTCUT = "ctrl pressed PERIOD";
+  private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
   private static final HashMap<StudyStatus, String> ourStudyStatusTaskCheckMessageHashMap = new HashMap<StudyStatus, String>() {
     {
       put(StudyStatus.Solved, "Congratulations!");
@@ -44,7 +45,6 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       put(StudyStatus.Unchecked, "Task wasn't checked. Please try later.");
     }
   };
-  private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
   public CheckIOCheckSolutionAction() {
     super("Check Task (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
@@ -55,6 +55,9 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
     Project project = e.getProject();
     if (project != null) {
       check(project);
+    }
+    else {
+      LOG.warn("Project is null");
     }
   }
 

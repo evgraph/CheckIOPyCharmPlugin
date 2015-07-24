@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.jetbrains.checkio.courseFormat.CheckIOPublication;
+import com.jetbrains.checkio.courseFormat.CheckIOPublicationCategory;
 import com.jetbrains.checkio.courseFormat.CheckIOTaskPublicationStatus;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
@@ -387,6 +389,16 @@ public class CheckIOConnector {
     catch (IllegalStateException e) {
       LOG.warn(e.getMessage());
     }
+  }
+
+  public static CheckIOPublication[] getPublicationsForTask(@NotNull final Task task) {
+    final CheckIOUser author = new CheckIOUser();
+    author.setUsername("Expert");
+    author.setLevel(234);
+    final String text = "print(\"Hello world!\")";
+    return new CheckIOPublication[]{new CheckIOPublication(author, text, CheckIOPublicationCategory.Creative),
+      new CheckIOPublication(author, text, CheckIOPublicationCategory.Clear),
+      new CheckIOPublication(author, text, CheckIOPublicationCategory.Speedy)};
   }
 
   public static class MissionWrapper {
