@@ -3,6 +3,7 @@ package com.jetbrains.checkio.courseFormat;
 import org.jetbrains.annotations.NotNull;
 
 public class CheckIOPublication {
+  public static final String PUBLICATION_PREFIX = "solutionBy";
   public CheckIOUser myAuthor;
   public String myText;
   public CheckIOPublicationCategory myCategory;
@@ -19,7 +20,7 @@ public class CheckIOPublication {
   }
 
   public String getPublicationName() {
-    return "solutionBy" + myAuthor.getUsername();
+    return PUBLICATION_PREFIX + myAuthor.getUsername();
   }
 
   public String getPublicationFileNameWithExtension() {

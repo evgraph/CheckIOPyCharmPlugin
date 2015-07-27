@@ -53,7 +53,7 @@ public class CheckIOShowSolutionsAction extends AnAction {
         ApplicationManager.getApplication().invokeLater(() -> {
           CheckIOToolWindow toolWindow = toolWindowFactory.myCheckIOToolWindow;
           toolWindow.mySolutionsPanel = new CheckIOSolutionsPanel(publications, project, toolWindow);
-          toolWindow.myContentPanel.add("Solutions", toolWindow.mySolutionsPanel);
+          toolWindow.myContentPanel.add(CheckIOToolWindow.SOLUTIONS, toolWindow.mySolutionsPanel);
           toolWindow.showSolutionsPanel();
         });
       }
