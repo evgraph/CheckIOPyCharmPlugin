@@ -119,15 +119,20 @@ public class CheckIOSolutionsPanel extends JPanel {
   private void setPublicationsInfoPanel(@NotNull final CheckIOPublication publication) {
     final BoxLayout layout = new BoxLayout(publicationInfoPanel, BoxLayout.PAGE_AXIS);
     publicationInfoPanel.setLayout(layout);
-    final JLabel userNameLabel = new JLabel(UIUtil.toHtml("<b>User: </b>" + publication.myAuthor.getUsername(), 5));
+    publicationInfoPanel.removeAll();
+    final JLabel userNameLabel =
+      new JLabel(UIUtil.toHtml("<b>User: </b>" + "<a href=\"\">" + publication.myAuthor.getUsername() + "</a>", 5));
     final JLabel userLevelLabel = new JLabel(UIUtil.toHtml("<b>Level: </b>" + publication.myAuthor.getLevel(), 5));
-    final JLabel viewOnWebLabel = new JLabel("View solution on web");
+    final JLabel viewOnWebLabel = new JLabel(UIUtil.toHtml(publication.myCategory + " <a href=\"\">solution</a> for " + task.getName()));
     userNameLabel.addMouseListener(new MyMouseListener(CheckIOUtils.getUserProfileLink(publication.myAuthor)));
     viewOnWebLabel.addMouseListener(new MyMouseListener(CheckIOUtils.getPublicationLink(publication)));
 
+
+    publicationInfoPanel.add(viewOnWebLabel);
+    publicationInfoPanel.add(Box.createRigidArea(new Dimension(0, 10)));
     publicationInfoPanel.add(userNameLabel);
     publicationInfoPanel.add(userLevelLabel);
-    publicationInfoPanel.add(viewOnWebLabel);
+    publicationInfoPanel.add(Box.createRigidArea(new Dimension(0, 20)));
   }
 
   private static class MyMouseListener implements MouseListener {
