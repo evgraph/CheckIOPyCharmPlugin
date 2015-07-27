@@ -1,6 +1,7 @@
 package com.jetbrains.checkio.ui;
 
 
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -8,6 +9,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
 import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
@@ -19,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.List;
 
 public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
@@ -33,7 +37,8 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
     if (course != null && user != null) {
       contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.PAGE_AXIS));
       contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-      final JLabel userNameLabel = new JLabel(UIUtil.toHtml("<b>User: </b>" + user.getUsername(), 5));
+      final JLabel userNameLabel = new JLabel(UIUtil.toHtml("<b>User: </b>" + "<a href=\"\">" + user.getUsername() + "</a>", 5));
+      userNameLabel.addMouseListener(new MyMouseListener(user));
       final JLabel userLevelLabel = new JLabel(UIUtil.toHtml("<b>Level: </b>" + user.getLevel(), 5));
       contentPanel.add(userNameLabel);
       contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -87,5 +92,38 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
     contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
     JLabel statisticLabel = new JLabel(labelText);
     contentPanel.add(statisticLabel);
+  }
+
+  private class MyMouseListener implements MouseListener {
+    private CheckIOUser myUser;
+
+    public MyMouseListener(@NotNull final CheckIOUser user) {
+      myUser = user;
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      BrowserUtil.browse(CheckIOUtils.getUserProfileLink(myUser));
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
+    }
   }
 }
