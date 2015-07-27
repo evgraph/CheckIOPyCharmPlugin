@@ -10,7 +10,6 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.jetbrains.checkio.CheckIOConnector;
@@ -24,7 +23,7 @@ import javax.swing.*;
 import java.util.List;
 
 
-public class CheckIOUpdateProjectAction extends DumbAwareAction {
+public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
   public static final String SHORTCUT = "ctrl shift pressed D";
   private static final Logger LOG = Logger.getInstance(CheckIOUpdateProjectAction.class);
@@ -35,6 +34,7 @@ public class CheckIOUpdateProjectAction extends DumbAwareAction {
           AllIcons.Actions.Download);
   }
 
+  @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {

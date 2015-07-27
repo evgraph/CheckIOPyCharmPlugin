@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -14,7 +13,7 @@ import icons.InteractiveLearningIcons;
 
 import javax.swing.*;
 
-public class CheckIOShowHintAction extends DumbAwareAction {
+public class CheckIOShowHintAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOShowHintAction";
   public static final String SHORTCUT = "ctrl pressed 7";
   private static final Logger LOG = Logger.getInstance(CheckIOShowHintAction.class);

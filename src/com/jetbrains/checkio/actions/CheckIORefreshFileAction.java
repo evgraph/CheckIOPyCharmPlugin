@@ -10,7 +10,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.impl.DocumentImpl;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.keymap.KeymapUtil;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.jetbrains.checkio.CheckIOTaskManager;
@@ -20,7 +19,7 @@ import com.jetbrains.edu.courseFormat.Task;
 import javax.swing.*;
 
 
-public class CheckIORefreshFileAction extends DumbAwareAction {
+public class CheckIORefreshFileAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIORefreshTaskAction";
   public static final String SHORTCUT = "ctrl shift pressed X";
   private static final Logger LOG = Logger.getInstance(CheckIORefreshFileAction.class);

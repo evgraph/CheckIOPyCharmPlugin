@@ -11,7 +11,6 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task.Backgroundable;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
@@ -34,7 +33,7 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.List;
 
-public class CheckIOCheckSolutionAction extends DumbAwareAction {
+public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
   public static final String SHORTCUT = "ctrl pressed PERIOD";
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
@@ -51,6 +50,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
           "Check current mission", InteractiveLearningIcons.Resolve);
   }
 
+  @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
@@ -60,6 +60,7 @@ public class CheckIOCheckSolutionAction extends DumbAwareAction {
       LOG.warn("Project is null");
     }
   }
+
 
   public void check(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(
