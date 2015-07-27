@@ -145,7 +145,7 @@ public class CheckIOSolutionsPanel extends JPanel {
       final BoxLayout layout = new BoxLayout(this, BoxLayout.PAGE_AXIS);
       setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
       setLayout(layout);
-      myViewOnWebLabel = new JLabel("ooo");
+      myViewOnWebLabel = new JLabel("");
       myUserNameLabel = new JLabel();
       myUserLevelLabel = new JLabel();
       add(Box.createRigidArea(new Dimension(0, 10)));

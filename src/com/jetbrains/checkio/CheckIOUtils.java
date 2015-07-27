@@ -38,6 +38,7 @@ public class CheckIOUtils {
   public static final int width = 450;
   public static final int height = 1000;
 
+
   private CheckIOUtils() {
   }
 
@@ -194,5 +195,9 @@ public class CheckIOUtils {
 
   public static String getUserProfileLink(@NotNull final CheckIOUser user) {
     return "http://www.checkio.org/user/" + user.getUsername();
+  }
+
+  public static boolean isPublicationFile(@NotNull final VirtualFile file) {
+    return file.getName().contains(CheckIOPublication.PUBLICATION_PREFIX);
   }
 }

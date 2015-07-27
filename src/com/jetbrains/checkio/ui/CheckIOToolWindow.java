@@ -37,7 +37,7 @@ import javax.swing.*;
 public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProvider, Disposable {
   public static final String ID = "Task Info";
   private static final String TASK_DESCRIPTION = "Task description";
-  private static final String SOLUTIONS = "Solutions";
+  public static final String SOLUTIONS = "Solutions";
   private static final String TEST_RESULTS = "Test results";
   private static final Logger LOG = Logger.getInstance(CheckIOToolWindow.class);
   public CheckIOTaskInfoPanel myTaskInfoPanel;
@@ -81,8 +81,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     FileEditorManagerListener listener = new CheckIOFileEditorListener(project);
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
-    myTaskInfoPanel.getShowSolutionsButton().addActionListener(
-      e -> showSolutionsPanel());
 
     myTestResultsWindow.backButton.addActionListener(
       e -> showTaskInfoPanel());
@@ -132,7 +130,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       final Task task = getTask(file);
-      setTaskInfoPanel(task);
+      if (task != null) {
+        setTaskInfoPanelAndSwipeIfNeeded(task, false);
+      }
     }
 
     @Override
@@ -141,21 +141,43 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
       toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
 
       final Editor selectedEditor = StudyUtils.getSelectedEditor(myProject);
-      if (selectedEditor == null) {
+      if (selectedEditor == null || !CheckIOUtils.isPublicationFile(file)) {
         hideTaskToolWindow();
       }
+
     }
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-      final VirtualFile file = event.getNewFile();
-      if (file != null) {
-        final Task task = getTask(file);
-        setTaskInfoPanel(task);
+      final VirtualFile newFile = event.getNewFile();
+      final VirtualFile oldFile = event.getOldFile();
+      if (newFile != null) {
+        if (CheckIOUtils.isPublicationFile(newFile)) {
+          myMyCardLayout.swipe(myContentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO);
+          return;
+        }
+        final Task task = getTask(newFile);
+        if (task != null) {
+          boolean shouldSwipeToTaskDescription = !isPublicationFileOfSelectedTaskFile(oldFile, task);
+          setTaskInfoPanelAndSwipeIfNeeded(task, shouldSwipeToTaskDescription);
+        }
       }
 
       final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
       toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
+    }
+
+    private boolean isPublicationFileOfSelectedTaskFile(@Nullable final VirtualFile oldFile, @NotNull final Task task) {
+      if (oldFile != null && CheckIOUtils.isPublicationFile(oldFile)) {
+        return task.getName().equals(publicationTaskName(oldFile));
+      }
+      return false;
+    }
+
+    private String publicationTaskName(@NotNull final VirtualFile file) {
+      final VirtualFile taskFile = file.getParent();
+      assert taskFile != null;
+      return taskFile.getNameWithoutExtension();
     }
 
     @Nullable
@@ -165,23 +187,21 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
         return taskFile.getTask();
       }
       else {
-        LOG.warn("Task file is null. Maybe user opened the task file text file");
+        //LOG.warn("Task file is null. Maybe user opened the task file text file");
         return null;
       }
     }
 
-    private void setTaskInfoPanel(@Nullable final Task task) {
-      if (task == null) {
-        //hideTaskToolWindow();
-        return;
-      }
-
+    private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
       String taskTextUrl = CheckIOUtils.getTaskTextUrl(myProject, task);
       String taskName = task.getName();
       if (myTaskInfoPanel != null) {
         myTaskInfoPanel.setTaskText(taskTextUrl);
         myTaskInfoPanel.setTaskNameLabelText(taskName);
         showTaskToolWindow();
+      }
+      if (shouldSwipe) {
+        myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
       }
     }
 
