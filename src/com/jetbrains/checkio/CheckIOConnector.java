@@ -396,9 +396,10 @@ public class CheckIOConnector {
     author.setUsername("Expert");
     author.setLevel(234);
     final String text = "print(\"Hello world!\")";
-    return new CheckIOPublication[]{new CheckIOPublication(author, text, CheckIOPublicationCategory.Creative),
-      new CheckIOPublication(author, text, CheckIOPublicationCategory.Clear),
-      new CheckIOPublication(author, text, CheckIOPublicationCategory.Speedy)};
+    final String sdk = "python-27";
+    return new CheckIOPublication[]{new CheckIOPublication(author, text, CheckIOPublicationCategory.Creative, sdk),
+      new CheckIOPublication(author, text, CheckIOPublicationCategory.Clear, sdk),
+      new CheckIOPublication(author, text, CheckIOPublicationCategory.Speedy, sdk)};
   }
 
   public static class MissionWrapper {
