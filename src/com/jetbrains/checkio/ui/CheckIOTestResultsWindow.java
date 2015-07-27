@@ -1,6 +1,7 @@
 package com.jetbrains.checkio.ui;
 
 import com.intellij.icons.AllIcons;
+import com.jetbrains.checkio.CheckIOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -14,7 +15,7 @@ public class CheckIOTestResultsWindow extends JPanel {
 
   public CheckIOTestResultsWindow() {
     myBrowserWindow = new CheckIOBrowserWindow();
-    myBrowserWindow.setSize(450, 1000);
+    myBrowserWindow.setSize(CheckIOUtils.width, CheckIOUtils.height);
     myBrowserWindow.setShowProgress(false);
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     add(createButtonPanel());

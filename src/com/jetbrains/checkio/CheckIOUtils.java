@@ -35,6 +35,8 @@ import java.util.List;
 public class CheckIOUtils {
   public static final String USER_INFO_TOOL_WINDOW_ID = "User Info";
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
+  public static final int width = 450;
+  public static final int height = 1000;
 
   private CheckIOUtils() {
   }
@@ -180,8 +182,8 @@ public class CheckIOUtils {
   public static File getPublicationsDirectory(@NotNull final Project project, @NotNull final Task task) {
     final String publicationDirectory = project.getBasePath() + "/.publications/" + task.getName();
     final File publicationDir = new File(publicationDirectory);
-    if (!publicationDir.exists()) {
-      publicationDir.mkdirs();
+    if (!publicationDir.mkdirs()) {
+      LOG.info(publicationDir + "already exists");
     }
     return publicationDir;
   }

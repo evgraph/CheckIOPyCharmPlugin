@@ -10,8 +10,6 @@ import javax.swing.*;
 public class CheckIOTaskInfoPanel extends JPanel {
   private final ButtonPanel myButtonPanel;
   private final JLabel taskNameLabel;
-  private static final int width = 450;
-  private static final int height = 1000;
   private final CheckIOBrowserWindow myBrowserWindow;
 
 
@@ -21,7 +19,7 @@ public class CheckIOTaskInfoPanel extends JPanel {
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     myButtonPanel = new ButtonPanel();
     taskNameLabel = new JLabel(task.getName());
-    myBrowserWindow = new CheckIOBrowserWindow(taskTextPath, width, height, false, true);
+    myBrowserWindow = new CheckIOBrowserWindow(taskTextPath, CheckIOUtils.width, CheckIOUtils.height, false, true);
     add(taskNameLabel);
     add(myBrowserWindow.myPanel);
     add(myButtonPanel);

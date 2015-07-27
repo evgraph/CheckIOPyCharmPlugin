@@ -88,7 +88,7 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
 
   private JPanel getHintsPanel(@NotNull final List<String> hints) {
     final JPanel hintPanel = new JPanel(new GridLayout(hints.size() * -1, 1));
-    hintPanel.setSize(400, 400);
+    hintPanel.setSize(CheckIOUtils.height, CheckIOUtils.height);
     for (String hint : hints) {
       JLabel label = new JLabel(UIUtil.toHtml("<b>" + hint + "</b>", 5));
       hintPanel.add(label);
