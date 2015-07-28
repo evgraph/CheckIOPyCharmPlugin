@@ -140,11 +140,10 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
       ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
       toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
 
-      final Editor selectedEditor = StudyUtils.getSelectedEditor(myProject);
-      if (selectedEditor == null || !CheckIOUtils.isPublicationFile(file)) {
+      final Editor selectedEditor = source.getSelectedTextEditor();
+      if (selectedEditor == null) {
         hideTaskToolWindow();
       }
-
     }
 
     @Override
@@ -157,10 +156,13 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
           return;
         }
         final Task task = getTask(newFile);
-        if (task != null) {
+        boolean isStudyFile = task != null;
+        if (isStudyFile) {
           boolean shouldSwipeToTaskDescription = !isPublicationFileOfSelectedTaskFile(oldFile, task);
           setTaskInfoPanelAndSwipeIfNeeded(task, shouldSwipeToTaskDescription);
+          return;
         }
+        hideTaskToolWindow();
       }
 
       final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
@@ -186,10 +188,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
       if (taskFile != null) {
         return taskFile.getTask();
       }
-      else {
-        //LOG.warn("Task file is null. Maybe user opened the task file text file");
-        return null;
-      }
+      return null;
     }
 
     private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
