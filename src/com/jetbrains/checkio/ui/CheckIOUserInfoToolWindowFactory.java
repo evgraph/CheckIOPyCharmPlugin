@@ -21,8 +21,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 
 public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
@@ -94,7 +94,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
     contentPanel.add(statisticLabel);
   }
 
-  private class MyMouseListener implements MouseListener {
+  private static class MyMouseListener extends MouseAdapter {
     private CheckIOUser myUser;
 
     public MyMouseListener(@NotNull final CheckIOUser user) {
@@ -104,26 +104,6 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
     @Override
     public void mouseClicked(MouseEvent e) {
       BrowserUtil.browse(CheckIOUtils.getUserProfileLink(myUser));
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-
     }
   }
 }

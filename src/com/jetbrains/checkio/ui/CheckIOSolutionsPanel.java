@@ -2,12 +2,12 @@ package com.jetbrains.checkio.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
@@ -16,6 +16,7 @@ import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOPublicationCategory;
 import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.python.psi.PyFile;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -24,8 +25,8 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -166,7 +167,7 @@ public class CheckIOSolutionsPanel extends JPanel {
     }
 
 
-    private class MyMouseListener implements MouseListener {
+    private class MyMouseListener extends MouseAdapter {
       private String url = "";
 
       public MyMouseListener(ListenerKind kind) {
@@ -183,26 +184,6 @@ public class CheckIOSolutionsPanel extends JPanel {
       @Override
       public void mouseClicked(MouseEvent e) {
         BrowserUtil.browse(url);
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-
-      }
-
-      @Override
-      public void mouseEntered(MouseEvent e) {
-
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-
       }
     }
 
@@ -230,10 +211,10 @@ public class CheckIOSolutionsPanel extends JPanel {
           CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
           ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(
             () -> publicationInfoPanel.setUserInfo(publication)));
-
         }
         FileEditorManager.getInstance(myProject).openFile(publicationFile, true);
-        ProjectView.getInstance(myProject).refresh();
+        PyFile pyFile = (PyFile)PsiUtilCore.getPsiFile(myProject, publicationFile);
+        LOG.warn("Level after open " + pyFile.getLanguageLevel());
       }
     }
   }
