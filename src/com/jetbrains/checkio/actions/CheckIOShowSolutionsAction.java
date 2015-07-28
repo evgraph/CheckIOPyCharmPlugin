@@ -8,6 +8,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
@@ -18,6 +21,7 @@ import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.service.SharedThreadPool;
 
 import javax.swing.*;
@@ -50,14 +54,25 @@ public class CheckIOShowSolutionsAction extends AnAction {
       CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
       CheckIOUtils.createPublicationsFiles(project, task, publications);
       if (toolWindowFactory != null) {
+
+        CheckIOToolWindow toolWindow = toolWindowFactory.myCheckIOToolWindow;
         ApplicationManager.getApplication().invokeLater(() -> {
-          CheckIOToolWindow toolWindow = toolWindowFactory.myCheckIOToolWindow;
+          ApplicationManager.getApplication().runWriteAction(() -> {
+            VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+            showToolWindows(project, toolWindow);
+          });
           toolWindow.mySolutionsPanel = new CheckIOSolutionsPanel(publications, project, toolWindow);
           toolWindow.myContentPanel.add(CheckIOToolWindow.SOLUTIONS, toolWindow.mySolutionsPanel);
           toolWindow.showSolutionsPanel();
         });
       }
     });
+  }
+
+  //TODO: remove
+  private static void showToolWindows(@NotNull final Project project, @NotNull final CheckIOToolWindow toolWindow) {
+    final ToolWindowManager manager = ToolWindowManager.getInstance(project);
+    manager.getToolWindow(ToolWindowId.PROJECT_VIEW).show(null);
   }
 
   @Override
