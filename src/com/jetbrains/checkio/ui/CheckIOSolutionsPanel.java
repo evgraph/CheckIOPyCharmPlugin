@@ -1,6 +1,5 @@
 package com.jetbrains.checkio.ui;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -20,7 +19,6 @@ import com.jetbrains.python.psi.PyFile;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
@@ -40,25 +38,31 @@ public class CheckIOSolutionsPanel extends JPanel {
   private Tree tree;
   private Task task;
   private static final Logger LOG = Logger.getInstance(CheckIOSolutionsPanel.class);
-
-  private JButton backButton;
+  private JPanel contentPanel;
 
   public CheckIOSolutionsPanel(@NotNull final CheckIOPublication[] publications, @NotNull final Project project,
                                @NotNull final CheckIOToolWindow toolWindow) {
     myProject = project;
-    setLayout(new BorderLayout());
+    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     clearPublications = new ArrayList<>();
     speedyPublications = new ArrayList<>();
     creativePublications = new ArrayList<>();
 
     initHashMap();
     setPublicationsByCategory(publications);
+    setContentPanel();
+    add(CheckIOToolWindow.createButtonPanel(toolWindow));
+    add(contentPanel);
+  }
+
+  private void setContentPanel() {
+
+    contentPanel = new JPanel(new BorderLayout());
     final JPanel solutionsPanel = createSolutionsPanel();
     publicationInfoPanel = new PublicationsPanel();
 
-    add(publicationInfoPanel, BorderLayout.PAGE_START);
-    add(solutionsPanel, BorderLayout.WEST);
-    add(createButtonPanel(toolWindow), BorderLayout.PAGE_END);
+    contentPanel.add(publicationInfoPanel, BorderLayout.PAGE_START);
+    contentPanel.add(solutionsPanel, BorderLayout.WEST);
   }
 
   private void initHashMap() {
@@ -126,15 +130,7 @@ public class CheckIOSolutionsPanel extends JPanel {
   }
 
 
-  private JPanel createButtonPanel(@NotNull final CheckIOToolWindow toolWindow) {
-    JPanel buttonPanel = new JPanel();
-    backButton = new JButton(AllIcons.Actions.Back);
-    backButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    backButton.addActionListener(e -> toolWindow.showTaskInfoPanel());
-    buttonPanel.add(backButton);
-    return buttonPanel;
-  }
 
   private class PublicationsPanel extends JPanel {
     private JLabel myViewOnWebLabel;
@@ -144,7 +140,7 @@ public class CheckIOSolutionsPanel extends JPanel {
 
     public PublicationsPanel() {
       final BoxLayout layout = new BoxLayout(this, BoxLayout.PAGE_AXIS);
-      setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+      setBorder(BorderFactory.createEtchedBorder());
       setLayout(layout);
       myViewOnWebLabel = new JLabel("");
       myUserNameLabel = new JLabel();

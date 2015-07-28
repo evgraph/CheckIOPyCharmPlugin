@@ -1,5 +1,6 @@
 package com.jetbrains.checkio.ui;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -32,6 +33,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 
 public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProvider, Disposable {
@@ -69,7 +73,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     final Task task = studyEditor.getTaskFile().getTask();
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
-    myTestResultsWindow = new CheckIOTestResultsWindow();
+    myTestResultsWindow = new CheckIOTestResultsWindow(this);
 
 
     myMyCardLayout = new JBCardLayout();
@@ -81,9 +85,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     FileEditorManagerListener listener = new CheckIOFileEditorListener(project);
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
-
-    myTestResultsWindow.backButton.addActionListener(
-      e -> showTaskInfoPanel());
   }
 
   public void showSolutionsPanel() {
@@ -118,9 +119,24 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   }
 
+  public static JPanel createButtonPanel(@NotNull final CheckIOToolWindow toolWindow) {
+    final JPanel buttonPanel = new JPanel(new BorderLayout());
+    buttonPanel.setPreferredSize(new Dimension(CheckIOUtils.width, 30));
+    final JLabel label = new JLabel(AllIcons.Diff.Arrow);
+    label.setToolTipText("Back to task text");
+    buttonPanel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        toolWindow.showTaskInfoPanel();
+      }
+    });
+    buttonPanel.add(label, BorderLayout.WEST);
+    return buttonPanel;
+  }
+
+
 
   class CheckIOFileEditorListener implements FileEditorManagerListener {
-    final Logger LOG = Logger.getInstance(CheckIOFileEditorListener.class.getName());
     private Project myProject;
 
     public CheckIOFileEditorListener(@NotNull final Project project) {
