@@ -6,8 +6,10 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -49,6 +51,16 @@ public class CheckIOShowSolutionsAction extends AnAction {
       LOG.warn("Task is null");
       return;
     }
+
+    ApplicationManager.getApplication().invokeLater(() -> {
+      final FileEditorManager manager = FileEditorManager.getInstance(project);
+      final VirtualFile[] openFiles = manager.getOpenFiles();
+      for (VirtualFile file : openFiles) {
+        if (CheckIOUtils.isPublicationFile(file)) {
+          manager.closeFile(file);
+        }
+      }
+    });
     SharedThreadPool.getInstance().executeOnPooledThread(() -> {
       final CheckIOPublication[] publications = CheckIOConnector.getPublicationsForTask(task);
       CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
@@ -73,6 +85,7 @@ public class CheckIOShowSolutionsAction extends AnAction {
   private static void showToolWindows(@NotNull final Project project, @NotNull final CheckIOToolWindow toolWindow) {
     final ToolWindowManager manager = ToolWindowManager.getInstance(project);
     manager.getToolWindow(ToolWindowId.PROJECT_VIEW).show(null);
+    manager.getToolWindow(CheckIOToolWindow.ID).activate(null);
   }
 
   @Override
