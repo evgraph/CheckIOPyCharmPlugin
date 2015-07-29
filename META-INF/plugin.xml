@@ -41,6 +41,10 @@
     <projectService serviceInterface="com.jetbrains.checkio.CheckIOTaskManager"
                     serviceImplementation="com.jetbrains.checkio.CheckIOTaskManager"/>
 
+    <localInspection language="Python" shortName="CheckIOInterpreterInspection" suppressId="CheckIOInterpreterInspection"
+                     bundle="properties.CheckIOBundle" key="Interpreter.mismatch" groupKey="INSP.GROUP.python"
+                     enabledByDefault="true" level="WARNING" implementationClass="com.jetbrains.checkio.CheckIOInterpreterInspection"/>
+
   </extensions>
 
 

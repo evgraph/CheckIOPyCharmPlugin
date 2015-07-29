@@ -12,7 +12,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
@@ -24,6 +26,7 @@ import com.jetbrains.edu.courseFormat.*;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
+import com.jetbrains.python.psi.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +37,7 @@ import java.util.List;
 
 public class CheckIOUtils {
   public static final String USER_INFO_TOOL_WINDOW_ID = "User Info";
+  public static final Key<LanguageLevel> CHECKIO_LANGUAGE_LEVEL_KEY = new Key<>("CheckIOLanguageLevel");
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
   public static final int width = 450;
   public static final int height = 1000;
@@ -155,7 +159,8 @@ public class CheckIOUtils {
                                              @NotNull final CheckIOPublication[] publications) {
     final File directory = getPublicationsDirectory(project, task);
     for (CheckIOPublication publication : publications) {
-      final File file = new File(directory, publication.getPublicationFileNameWithExtension());
+      final String publicationNameWithoutExtension = publication.getPublicationFileNameWithExtension();
+      final File file = new File(directory, publicationNameWithoutExtension);
       FileUtil.createIfDoesntExist(file);
       try {
         FileUtil.writeToFile(file, publication.myText);
@@ -163,7 +168,11 @@ public class CheckIOUtils {
       catch (IOException e) {
         LOG.warn(e.getMessage());
       }
+      final VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
+      assert virtualFile != null;
+      virtualFile.putUserDataIfAbsent(CHECKIO_LANGUAGE_LEVEL_KEY, publication.getLanguageLevel());
     }
+
   }
 
   public static VirtualFile getPublicationFile(@NotNull final Project project,
@@ -199,6 +208,6 @@ public class CheckIOUtils {
   }
 
   public static boolean isPublicationFile(@NotNull final VirtualFile file) {
-    return file.getName().contains(CheckIOPublication.PUBLICATION_PREFIX);
+    return file.getUserData(CHECKIO_LANGUAGE_LEVEL_KEY) != null;
   }
 }

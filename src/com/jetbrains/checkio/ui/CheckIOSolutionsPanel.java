@@ -6,7 +6,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
@@ -15,7 +14,6 @@ import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOPublicationCategory;
 import com.jetbrains.edu.courseFormat.Task;
-import com.jetbrains.python.psi.PyFile;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -203,14 +201,11 @@ public class CheckIOSolutionsPanel extends JPanel {
       final VirtualFile publicationFile = CheckIOUtils.getPublicationFile(myProject, publicationFileName, task);
       if (publicationFile != null) {
         DefaultMutableTreeNode[] nodes = tree.getSelectedNodes(DefaultMutableTreeNode.class, null);
-        for (DefaultMutableTreeNode node : nodes) {
-          CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
-          ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(
-            () -> publicationInfoPanel.setUserInfo(publication)));
-        }
+        DefaultMutableTreeNode node = nodes[0];
+        CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
+        ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(
+          () -> publicationInfoPanel.setUserInfo(publication)));
         FileEditorManager.getInstance(myProject).openFile(publicationFile, true);
-        PyFile pyFile = (PyFile)PsiUtilCore.getPsiFile(myProject, publicationFile);
-        LOG.warn("Level after open " + pyFile.getLanguageLevel());
       }
     }
   }
