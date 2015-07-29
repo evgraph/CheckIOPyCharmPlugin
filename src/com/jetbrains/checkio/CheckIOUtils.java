@@ -169,8 +169,9 @@ public class CheckIOUtils {
         LOG.warn(e.getMessage());
       }
       final VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
-      assert virtualFile != null;
-      virtualFile.putUserDataIfAbsent(CHECKIO_LANGUAGE_LEVEL_KEY, publication.getLanguageLevel());
+      if (virtualFile != null) {
+        virtualFile.putUserDataIfAbsent(CHECKIO_LANGUAGE_LEVEL_KEY, publication.getLanguageLevel());
+      }
     }
 
   }
