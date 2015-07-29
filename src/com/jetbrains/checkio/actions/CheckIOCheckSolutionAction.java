@@ -20,6 +20,7 @@ import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.UpdateProjectPolicy;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
@@ -142,7 +143,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
                 .doNotAsk(option).show() != Messages.YES) {
             return;
           }
-          if (!taskManager.getNewStationsPolicy.equals(CheckIOTaskManager.ALWAYS_GET_NEW_STATIONS)) {
+          if (!(taskManager.getUpdateProjectPolicy() == UpdateProjectPolicy.Always)) {
             return;
           }
 
@@ -157,13 +158,12 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     return new DialogWrapper.DoNotAskOption() {
       @Override
       public boolean isToBeShown() {
-        return taskManager.getNewStationsPolicy.equals(CheckIOTaskManager.ASK_TO_GET_NEW_STATIONS);
+        return taskManager.getUpdateProjectPolicy() == UpdateProjectPolicy.Ask;
       }
 
       @Override
       public void setToBeShown(boolean value, int exitCode) {
-        taskManager.getNewStationsPolicy =
-          exitCode == Messages.YES ? CheckIOTaskManager.ALWAYS_GET_NEW_STATIONS : CheckIOTaskManager.NEVER_GET_NEW_STATIONS;
+        taskManager.setUpdateProjectPolicy(exitCode == Messages.YES ? UpdateProjectPolicy.Always : UpdateProjectPolicy.Never);
       }
 
       @Override
