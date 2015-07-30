@@ -130,6 +130,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
         toolWindow.showTaskInfoPanel();
       }
     });
+    label.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        toolWindow.showTaskInfoPanel();
+      }
+    });
     buttonPanel.add(label, BorderLayout.WEST);
     return buttonPanel;
   }
