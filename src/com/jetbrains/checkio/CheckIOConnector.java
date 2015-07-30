@@ -187,7 +187,6 @@ public class CheckIOConnector {
                                                @NotNull final MissionWrapper missionWrapper) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    CheckIOUtils.addAnswerPlaceholderIfDoesntExist(task);
     studyManager.setStatus(task, taskSolutionStatus.get(missionWrapper.isSolved));
     taskManager.setPublicationStatus(task, taskPublicationStatus.get(missionWrapper.isPublished));
     taskManager.setTaskId(task, missionWrapper.id);

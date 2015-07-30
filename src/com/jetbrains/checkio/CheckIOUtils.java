@@ -107,19 +107,6 @@ public class CheckIOUtils {
     return "file://" + virtualFile.getCanonicalPath() + "/task.html";
   }
 
-  public static void addAnswerPlaceholderIfDoesntExist(@NotNull final Task task) {
-    final String taskFileName = getTaskFileNameFromTask(task);
-    final TaskFile taskFile;
-    if ((taskFile = task.getTaskFile(taskFileName)) != null) {
-      if (taskFile.getAnswerPlaceholders().isEmpty()) {
-        AnswerPlaceholder answerPlaceholder = new AnswerPlaceholder();
-        answerPlaceholder.setTaskText(taskFileName);
-        answerPlaceholder.setIndex(0);
-        taskFile.addAnswerPlaceholder(answerPlaceholder);
-      }
-    }
-  }
-
   public static void createNewLessonsDirsAndFlush(@NotNull final Course oldCourse,
                                                   @NotNull final Course newCourse,
                                                   @NotNull final Project project) {
