@@ -8,8 +8,6 @@ import javax.swing.*;
 
 public class CheckIOTestResultsWindow extends JPanel {
   private CheckIOBrowserWindow myBrowserWindow;
-  public JButton backButton;
-
 
   public CheckIOTestResultsWindow(@NotNull final CheckIOToolWindow toolWindow) {
     myBrowserWindow = new CheckIOBrowserWindow();

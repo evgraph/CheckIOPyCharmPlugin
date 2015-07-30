@@ -334,6 +334,7 @@ public class CheckIOConnector {
     return runner;
   }
 
+  //TODO: change (api needed)
   public static String checkSolutionAndGetTestHtml(@NotNull final Project project,
                                                    @NotNull final Task task,
                                                    @NotNull final String code) {
@@ -361,6 +362,7 @@ public class CheckIOConnector {
     return status;
   }
 
+  //TODO: update (new api needed)
   public static void checkSolution(@NotNull final Project project,
                                    @NotNull final Task task,
                                    @NotNull final String code) {
@@ -390,15 +392,26 @@ public class CheckIOConnector {
     }
   }
 
+  //TODO: change (api needed)
   public static CheckIOPublication[] getPublicationsForTask(@NotNull final Task task) {
     final CheckIOUser author = new CheckIOUser();
     author.setUsername("Expert");
     author.setLevel(234);
+    final CheckIOUser author1 = new CheckIOUser();
+    author1.setUsername("Expert1");
+    author1.setLevel(234);
+    final CheckIOUser author2 = new CheckIOUser();
+    author2.setUsername("Expert2");
+    author2.setLevel(234);
+
     final String text = "print(\"Hello world!\")";
-    final String sdk = "python-27";
-    return new CheckIOPublication[]{new CheckIOPublication(author, text, CheckIOPublicationCategory.Creative, sdk),
-      new CheckIOPublication(author, text, CheckIOPublicationCategory.Clear, sdk),
-      new CheckIOPublication(author, text, CheckIOPublicationCategory.Speedy, sdk)};
+    final String text1 = "print(\"Hello world!!!\")";
+    final String text2 = "print(\"Hello world!!!!\")";
+    final String sdk27 = "python-27";
+    final String sdk3 = "python-3";
+    return new CheckIOPublication[]{new CheckIOPublication(author, text, CheckIOPublicationCategory.Creative, sdk27),
+      new CheckIOPublication(author1, text1, CheckIOPublicationCategory.Clear, sdk3),
+      new CheckIOPublication(author2, text2, CheckIOPublicationCategory.Speedy, sdk27)};
   }
 
   public static class MissionWrapper {

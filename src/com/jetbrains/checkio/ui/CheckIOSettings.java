@@ -9,7 +9,6 @@ import javax.swing.*;
 
 
 public class CheckIOSettings extends DiffSettingsConfigurable {
-
   private CheckIOSettingsPanel mySettingsPanel;
 
   @NotNull

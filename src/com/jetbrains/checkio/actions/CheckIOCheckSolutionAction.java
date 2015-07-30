@@ -110,11 +110,12 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         );
 
         if (status == StudyStatus.Solved) {
-          final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
-          assert toolWindowFactory != null;
-          toolWindowFactory.myCheckIOToolWindow.showTestResults(testHtml);
           askToUpdateProject(project);
         }
+
+        final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
+        assert toolWindowFactory != null;
+        toolWindowFactory.myCheckIOToolWindow.showTestResults(testHtml);
       }
     };
   }

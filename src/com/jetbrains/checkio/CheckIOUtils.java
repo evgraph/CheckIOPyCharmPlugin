@@ -9,6 +9,7 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -22,7 +23,10 @@ import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
-import com.jetbrains.edu.courseFormat.*;
+import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.courseFormat.Lesson;
+import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
@@ -187,10 +191,28 @@ public class CheckIOUtils {
     return publicationDir;
   }
 
+  //TODO: update (api needed)
   public static String getPublicationLink(@NotNull final CheckIOPublication publication) {
     return "";
   }
 
+  //TODO: update (api needed)
+  public static String getForumLink(@NotNull Task task, @NotNull final Project project) {
+    final Sdk sdk= StudyUtils.findSdk(task, project);
+    int taskId = CheckIOTaskManager.getInstance(project).getTaskId(task);
+    String link = "";
+    if (sdk!= null) {
+      final String version = sdk.getVersionString();
+      ;link = "http://www.checkio.org/forum/add/?source=hints&task_id=" +
+             taskId +
+             "t&interpreter=python-" +
+             version +
+             " &q=tag%3Afor_advisers,hint.bryukh";
+    }
+    return  link;
+  }
+
+  //TODO: update (api needed)
   public static String getUserProfileLink(@NotNull final CheckIOUser user) {
     return "http://www.checkio.org/user/" + user.getUsername();
   }

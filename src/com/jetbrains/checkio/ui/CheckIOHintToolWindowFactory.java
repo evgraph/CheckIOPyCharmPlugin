@@ -29,17 +29,21 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
   public static final String ID = "Hints";
   private LinkedBlockingQueue<JLabel> hintQueue = new LinkedBlockingQueue<>();
   private static final Logger LOG = Logger.getInstance(CheckIOHintToolWindowFactory.class);
+  private Task myTask;
+  private Project myProject;
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow window) {
-    final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
+    myTask = CheckIOUtils.getTaskFromSelectedEditor(project);
+    myProject = project;
 
-    if (task == null) {
+    if (myTask == null) {
       LOG.warn("User request hints for an empty editor");
       ToolWindowManager.getInstance(project).unregisterToolWindow(ID);
       return;
     }
-    //final ArrayList<String> hints = taskManager.myTaskHints.get(task.getName());
+    //TODO: change (api needed)
+    //final ArrayList<String> hints = taskManager.myTaskHints.get(myTask.getName());
     final List<String> hints = Arrays.asList("Try to run the code and see which test fails", "The problem is likely an empty dictionary.",
                                              "Try to add special case processing.",
                                              "Look carefully when your code checks keys and values in the \"for ... in ...\" loop.",
@@ -64,7 +68,7 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
     constraints.fill = GridBagConstraints.BOTH;
     constraints.ipady = 250;
     contentPanel.add(hintsPanel, constraints);
-    
+
     constraints.weighty = 0;
     constraints.gridy = 1;
     constraints.ipady = 0;
@@ -117,13 +121,11 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
     public void mouseClicked(MouseEvent e) {
       if (hintQueue.size() == 0) {
         BrowserUtil
-          .browse("http://www.checkio.org/forum/add/?source=hints&task_id=325&interpreter=python-27&q=tag%3Afor_advisers,hint.bryukh");
+          .browse(CheckIOUtils.getForumLink(myTask, myProject));
       }
       if (hintQueue.size() == 1) {
         moreHintsLabel
-          .setText(UIUtil.toHtml("<a class=\"hints__group__help__forum\" target=\"_blank\" href=\"/forum/add/?source=hints&amp;" +
-                                 "task_id=325&amp;interpreter=python-27&amp;q=tag%3Afor_advisers,hint.bryukh\">" +
-                                 "Continue on forum...</a>"));
+          .setText(UIUtil.toHtml("<a href=\"\"> Continue on forum...</a>"));
       }
       if (hintQueue.size() > 0) {
         showNewHint();

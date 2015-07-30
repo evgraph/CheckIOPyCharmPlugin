@@ -96,7 +96,6 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
           CheckIOUtils.showOperationResultPopUp(message, MessageType.INFO.getPopupBackground(), project);
           oldCourse.initCourse(false);
         });
-
     }
     else {
       ApplicationManager.getApplication().invokeLater(

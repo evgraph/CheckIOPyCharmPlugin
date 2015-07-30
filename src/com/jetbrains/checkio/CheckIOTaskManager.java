@@ -19,7 +19,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 @State(
   name = "CheckIOTaskManager",
@@ -37,12 +36,12 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   private CheckIOUser myUser;
   public Map<Task, CheckIOTaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
   public Map<String, String> myInitialTaskTextMap = new HashMap<>();
+  //TODO: update (api needed)
   public Map<String, ArrayList<String>> myTaskHints = new HashMap<>();
 
   private CheckIOTaskManager() {
     if (myUpdateProjectPolicy == null) {
       myUpdateProjectPolicy = UpdateProjectPolicy.Ask;
-
     }
   }
 
@@ -87,17 +86,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     myPublicationStatusMap.put(task, publicationStatus);
   }
 
-
-  public ArrayList<Task> getPublishedTasks() {
-    ArrayList<Task> publishedTasks = new ArrayList<>();
-
-    for (Entry<Task, CheckIOTaskPublicationStatus> entry : myPublicationStatusMap.entrySet()) {
-      if (entry.getValue() == CheckIOTaskPublicationStatus.Published) {
-        publishedTasks.add(entry.getKey());
-      }
-    }
-    return publishedTasks;
-  }
   @Nullable
   @Override
   public CheckIOTaskManager getState() {

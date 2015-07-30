@@ -54,7 +54,6 @@ public class CheckIOSolutionsPanel extends JPanel {
   }
 
   private void setContentPanel() {
-
     contentPanel = new JPanel(new BorderLayout());
     final JPanel solutionsPanel = createSolutionsPanel();
     publicationInfoPanel = new PublicationsPanel();
@@ -126,9 +125,6 @@ public class CheckIOSolutionsPanel extends JPanel {
 
     return tree;
   }
-
-
-
 
   private class PublicationsPanel extends JPanel {
     private JLabel myViewOnWebLabel;

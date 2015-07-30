@@ -75,13 +75,11 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
     myTestResultsWindow = new CheckIOTestResultsWindow(this);
 
-
     myMyCardLayout = new JBCardLayout();
     myContentPanel = new JPanel(myMyCardLayout);
     myContentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
     myContentPanel.add(TEST_RESULTS, myTestResultsWindow);
     setContent(myContentPanel);
-
 
     FileEditorManagerListener listener = new CheckIOFileEditorListener(project);
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
@@ -239,5 +237,3 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
   }
 }
-
-
