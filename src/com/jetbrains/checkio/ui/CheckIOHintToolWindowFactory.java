@@ -5,9 +5,11 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
@@ -17,8 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -49,29 +51,31 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
                                              "You can replace a value if it equals {}");
 
     final JPanel contentPanel = new JPanel(new GridBagLayout());
-    final JPanel hintsPanel = getHintsPanel(hints);
+    final JScrollPane hintsPanel = getHintsPanel(hints);
+    contentPanel.setMinimumSize(new Dimension(0, 0));
     final JPanel label = getMoreHintsLabel();
     GridBagConstraints constraints = new GridBagConstraints();
-    constraints.gridwidth = 2;
-    constraints.gridheight = 1;
+    constraints.gridwidth = GridBagConstraints.RELATIVE;
+    constraints.weightx = 1;
+    constraints.weighty = 1;
     constraints.gridx = 0;
     constraints.gridy = 0;
     constraints.insets = new Insets(0, 0, 1, 0);
+    constraints.fill = GridBagConstraints.BOTH;
     constraints.ipady = 250;
-
     contentPanel.add(hintsPanel, constraints);
+    
+    constraints.weighty = 0;
     constraints.gridy = 1;
     constraints.ipady = 0;
-    constraints.fill = GridBagConstraints.HORIZONTAL;
+    constraints.fill = GridBagConstraints.BOTH;
     contentPanel.add(label, constraints);
     showNewHint();
-
 
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(contentPanel, "", true);
     window.getContentManager().addContent(content);
   }
-
 
   private JPanel getMoreHintsLabel() {
     final JPanel panel = new JPanel(new GridLayout(1, 1));
@@ -82,13 +86,12 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
     moreHintsLabel.setOpaque(true);
     moreHintsLabel.setBackground(UIUtil.getTextFieldBackground());
     panel.add(moreHintsLabel);
-
     return panel;
   }
 
-  private JPanel getHintsPanel(@NotNull final List<String> hints) {
-    final JPanel hintPanel = new JPanel(new GridLayout(hints.size() * -1, 1));
-    hintPanel.setSize(CheckIOUtils.height, CheckIOUtils.height);
+  private JScrollPane getHintsPanel(@NotNull final List<String> hints) {
+    final ScrollablePanel hintPanel = new ScrollablePanel(new GridLayout(hints.size() * -1, 1));
+    hintPanel.setPreferredSize(new Dimension(600, 400));
     for (String hint : hints) {
       JLabel label = new JLabel(UIUtil.toHtml("<b>" + hint + "</b>", 5));
       hintPanel.add(label);
@@ -96,14 +99,14 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
       label.setBorder(BorderFactory.createEtchedBorder());
       hintQueue.offer(label);
     }
-    return hintPanel;
+    return ScrollPaneFactory.createScrollPane(hintPanel);
   }
 
   private void showNewHint() {
     hintQueue.poll().setVisible(true);
   }
 
-  private class HintsMouseListener implements MouseListener {
+  private class HintsMouseListener extends MouseAdapter {
     private JLabel moreHintsLabel;
 
     public HintsMouseListener(@NotNull final JLabel moreHintsLabel) {
@@ -125,26 +128,6 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
       if (hintQueue.size() > 0) {
         showNewHint();
       }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-
     }
   }
 }
