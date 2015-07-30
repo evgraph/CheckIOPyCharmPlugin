@@ -1,6 +1,6 @@
 *.class
 
-*.properties
+oauthData.properties
 *.war
 *.ear
 
