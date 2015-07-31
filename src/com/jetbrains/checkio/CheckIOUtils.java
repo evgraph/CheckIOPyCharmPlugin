@@ -1,5 +1,6 @@
 package com.jetbrains.checkio;
 
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -8,6 +9,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -18,6 +20,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
@@ -29,6 +34,7 @@ import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
+import com.jetbrains.edu.learning.editor.StudyEditor;
 import com.jetbrains.python.psi.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +45,6 @@ import java.io.IOException;
 import java.util.List;
 
 public class CheckIOUtils {
-  public static final String USER_INFO_TOOL_WINDOW_ID = "User Info";
   public static final Key<LanguageLevel> CHECKIO_LANGUAGE_LEVEL_KEY = new Key<>("CheckIOLanguageLevel");
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
   public static final int width = 450;
@@ -184,6 +189,29 @@ public class CheckIOUtils {
       LOG.info(publicationDir + "already exists");
     }
     return publicationDir;
+  }
+
+  public static void updateTaskToolWindow(@NotNull final Project project) {
+    ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID).
+      getContentManager().removeAllContents(false);
+    final CheckIOTaskToolWindowFactory factory = getCheckIOToolWindowFactory();
+    if (factory != null) {
+      factory.createToolWindowContent(project, ToolWindowManager.getInstance(project).
+        getToolWindow(CheckIOToolWindow.ID));
+    }
+  }
+
+  public static void selectCurrentTask(@NotNull final Project project) {
+    final StudyEditor selectedEditor = StudyUtils.getSelectedStudyEditor(project);
+    FileEditorManager.getInstance(project).getSelectedTextEditor();
+    if (selectedEditor != null) {
+      final VirtualFile virtualFile = FileEditorManagerEx.getInstanceEx(project).getFile(selectedEditor);
+      if (virtualFile != null) {
+        final PsiFile file = PsiManager.getInstance(project).findFile(virtualFile);
+        VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+        ProjectView.getInstance(project).select(file, virtualFile, true);
+      }
+    }
   }
 
   //TODO: update (api needed)

@@ -4,11 +4,13 @@ import com.intellij.facet.ui.ValidationResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.DefaultLogger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.platform.DirectoryProjectGenerator;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOProjectComponent;
@@ -16,7 +18,11 @@ import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.courseFormat.Lesson;
+import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
@@ -26,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Map;
 
 
 public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implements DirectoryProjectGenerator {
@@ -73,26 +80,41 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   public Object showGenerationSettings(VirtualFile baseDir) throws ProcessCanceledException {
     return null;
   }
-
   @Override
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
     setParametersInTaskManager(project);
     final Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
     StudyTaskManager.getInstance(project).setCourse(course);
     myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-
+    new StudyProjectGenerator().flushCourse(course);
+    course.initCourse(false);
     ApplicationManager.getApplication().invokeLater(
       () -> ApplicationManager.getApplication().runWriteAction(() -> {
         final File courseDirectory = new File(myCoursesDir, course.getName());
         StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
         course.setCourseDirectory(myCoursesDir.getAbsolutePath());
-        VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
-        StudyProjectGenerator.openFirstTask(course, project);
-        CheckIOProjectComponent.registerUserInfoToolWindow(course, project);
+        CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
+        openFirstTask(course, project);
       }));
-    new StudyProjectGenerator().flushCourse(course);
-    course.initCourse(false);
   }
+
+  public static void openFirstTask(@NotNull final Course course, @NotNull final Project project) {
+    LocalFileSystem.getInstance().refresh(false);
+    final Lesson firstLesson = StudyUtils.getFirst(course.getLessons());
+    final Task firstTask = StudyUtils.getFirst(firstLesson.getTaskList());
+    final VirtualFile taskDir = firstTask.getTaskDir(project);
+    if (taskDir == null) return;
+    final Map<String, TaskFile> taskFiles = firstTask.getTaskFiles();
+    for (Map.Entry<String, TaskFile> entry : taskFiles.entrySet()) {
+      final String name = entry.getKey();
+      final VirtualFile virtualFile = ((VirtualDirectoryImpl)taskDir).refreshAndFindChild(name);
+      if (virtualFile != null) {
+        FileEditorManager.getInstance(project).openFile(virtualFile, true);
+      }
+    }
+  }
+
+
 
   @Nullable
   @Override

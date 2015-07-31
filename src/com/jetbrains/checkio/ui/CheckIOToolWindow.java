@@ -6,7 +6,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -20,14 +19,11 @@ import com.intellij.ui.JBCardLayout;
 import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.*;
-import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
-import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.actions.StudyNextStudyTaskAction;
 import com.jetbrains.edu.learning.actions.StudyPreviousStudyTaskAction;
-import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +39,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private static final String TASK_DESCRIPTION = "Task description";
   public static final String SOLUTIONS = "Solutions";
   private static final String TEST_RESULTS = "Test results";
-  private static final Logger LOG = Logger.getInstance(CheckIOToolWindow.class);
   public CheckIOTaskInfoPanel myTaskInfoPanel;
   public CheckIOSolutionsPanel mySolutionsPanel;
   public CheckIOTestResultsWindow myTestResultsWindow;
@@ -57,19 +52,10 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     setToolbar(toolbarPanel);
 
     StudyEditor studyEditor = StudyUtils.getSelectedStudyEditor(project);
+
     if (studyEditor == null) {
-      final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-      final Course course = studyManager.getCourse();
-      if (course != null) {
-        StudyProjectGenerator.openFirstTask(course, project);
-        studyEditor = StudyUtils.getSelectedStudyEditor(project);
-      }
-      else {
-        LOG.error("Try to create checkIO tool window  when course is null.");
-        return;
-      }
+      return;
     }
-    assert studyEditor != null;
     final Task task = studyEditor.getTaskFile().getTask();
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
@@ -107,6 +93,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     group.add(new CheckIOShowHintAction());
     group.add(new CheckIOUpdateProjectAction());
     group.add(new CheckIOShowSolutionsAction());
+    group.add(new CheckIOShowUserInfoAction());
 
     final ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("CheckIO", group, true);
     return JBUI.Panels.simplePanel(actionToolBar.getComponent());
@@ -212,8 +199,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
-      String taskTextUrl = CheckIOUtils.getTaskTextUrl(myProject, task);
-      String taskName = task.getName();
+      final String taskTextUrl = CheckIOUtils.getTaskTextUrl(myProject, task);
+      final String taskName = task.getName();
       if (myTaskInfoPanel != null) {
         myTaskInfoPanel.setTaskText(taskTextUrl);
         myTaskInfoPanel.setTaskNameLabelText(taskName);

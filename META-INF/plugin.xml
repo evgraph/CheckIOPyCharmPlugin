@@ -42,7 +42,7 @@
     <projectService serviceInterface="com.jetbrains.checkio.CheckIOTaskManager"
                     serviceImplementation="com.jetbrains.checkio.CheckIOTaskManager"/>
 
-    <localInspection language="Python" shortName="CheckIOInterpreterInspection" suppressId="CheckIOInterpreterInspection"
+    <localInspection shortName="CheckIOInterpreterInspection" suppressId="CheckIOInterpreterInspection"
                      bundle="properties.CheckIOBundle" key="Interpreter.mismatch" groupKey="INSP.GROUP.python"
                      enabledByDefault="true" level="WARNING" implementationClass="com.jetbrains.checkio.CheckIOInterpreterInspection"/>
 
@@ -67,6 +67,7 @@
   <project-components>
     <component>
       <implementation-class>com.jetbrains.checkio.CheckIOProjectComponent</implementation-class>
+      <interface-class>com.jetbrains.checkio.CheckIOProjectComponent</interface-class>
     </component>
   </project-components>
   <actions>
@@ -79,5 +80,7 @@
             description="Show solutions">
       <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt P"/>
     </action>
+    <action id="CheckIOShowUserInfo" class="com.jetbrains.checkio.actions.CheckIOShowUserInfoAction" text="ShowUserInfo"
+            description="Show user info"/>
   </actions>
 </idea-plugin>

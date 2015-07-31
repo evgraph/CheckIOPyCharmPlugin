@@ -26,10 +26,13 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
+  public static final String ID = "User Info";
+
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow window) {
     final JPanel contentPanel = new JPanel();
-    contentPanel.setPreferredSize(new Dimension(100, 300));
+    contentPanel.setMaximumSize(new Dimension(100, 300));
+
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
     final CheckIOTaskManager checkIOTaskManager = CheckIOTaskManager.getInstance(project);
     final Course course = studyTaskManager.getCourse();
