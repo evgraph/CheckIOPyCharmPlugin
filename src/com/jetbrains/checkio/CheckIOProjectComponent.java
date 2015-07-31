@@ -17,13 +17,11 @@ import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
 import com.jetbrains.checkio.actions.CheckIORefreshFileAction;
 import com.jetbrains.checkio.actions.CheckIOShowHintAction;
 import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
-import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.ui.StudyToolWindowFactory;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,17 +45,14 @@ public class CheckIOProjectComponent implements ProjectComponent {
   @Override
   public void projectOpened() {
     Platform.setImplicitExit(false);
-    final Course course = StudyTaskManager.getInstance(myProject).getCourse();
-    final CheckIOUser user = CheckIOTaskManager.getInstance(myProject).getUser();
-    if (course != null && user != null) {
-      ToolWindowManager.getInstance(myProject).unregisterToolWindow(StudyToolWindowFactory.STUDY_TOOL_WINDOW);
-    }
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
-      if (course != null && user != null) {
+      final Course course = StudyTaskManager.getInstance(myProject).getCourse();
+      if (course != null && course.getCourseType().equals(CheckIOUtils.COURSE_TYPE)) {
         registerShortcuts();
         registerUserInfoToolWindow(course, myProject);
         final ToolWindow toolWindow = getTaskToolWindow();
         createToolWindowContent(toolWindow);
+        toolWindow.show(null);
       }
     });
   }

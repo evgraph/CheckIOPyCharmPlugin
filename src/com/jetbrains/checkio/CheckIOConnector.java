@@ -127,6 +127,7 @@ public class CheckIOConnector {
     course = new Course();
     course.setLanguage("Python");
     course.setName("CheckIO");
+    course.setCourseType(CheckIOUtils.COURSE_TYPE);
     course.setDescription("CheckIO project");
   }
 

@@ -45,7 +45,7 @@ public class CheckIOUtils {
   public static final int width = 450;
   public static final int height = 1000;
   public static final String PUBLICATION_FOLDER_NAME = "/.publications/";
-
+  public static final String COURSE_TYPE = "CHECK_IO";
 
   private CheckIOUtils() {
   }
@@ -198,7 +198,7 @@ public class CheckIOUtils {
     String link = "";
     if (sdk!= null) {
       final String version = sdk.getVersionString();
-      ;link = "http://www.checkio.org/forum/add/?source=hints&task_id=" +
+      link = "http://www.checkio.org/forum/add/?source=hints&task_id=" +
              taskId +
              "t&interpreter=python-" +
              version +
