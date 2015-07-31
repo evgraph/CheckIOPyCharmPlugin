@@ -1,6 +1,8 @@
 package com.jetbrains.checkio.ui;
 
 import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.ui.LafManager;
+import com.intellij.ide.ui.laf.IntelliJLookAndFeelInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -57,6 +59,12 @@ public class CheckIOSolutionsPanel extends JPanel {
     contentPanel = new JPanel(new BorderLayout());
     final JPanel solutionsPanel = createSolutionsPanel();
     publicationInfoPanel = new PublicationsPanel();
+
+    if (LafManager.getInstance().getCurrentLookAndFeel() instanceof IntelliJLookAndFeelInfo) {
+      publicationInfoPanel.setBackground(UIUtil.getTreeBackground());
+      solutionsPanel.setBackground(UIUtil.getTreeBackground());
+      contentPanel.setBackground(UIUtil.getTreeBackground());
+    }
 
     contentPanel.add(publicationInfoPanel, BorderLayout.PAGE_START);
     contentPanel.add(solutionsPanel, BorderLayout.WEST);
