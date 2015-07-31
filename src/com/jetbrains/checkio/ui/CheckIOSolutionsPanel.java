@@ -201,6 +201,7 @@ public class CheckIOSolutionsPanel extends JPanel {
         CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
         ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(
           () -> publicationInfoPanel.setUserInfo(publication)));
+        publicationFile.putUserDataIfAbsent(CheckIOUtils.CHECKIO_LANGUAGE_LEVEL_KEY, publication.getLanguageLevel());
         FileEditorManager.getInstance(myProject).openFile(publicationFile, true);
       }
     }

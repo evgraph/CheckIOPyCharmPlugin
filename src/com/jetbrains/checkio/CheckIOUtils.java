@@ -15,7 +15,6 @@ import com.intellij.openapi.ui.popup.BalloonBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
@@ -158,10 +157,6 @@ public class CheckIOUtils {
       }
       catch (IOException e) {
         LOG.warn(e.getMessage());
-      }
-      final VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
-      if (virtualFile != null) {
-        virtualFile.putUserDataIfAbsent(CHECKIO_LANGUAGE_LEVEL_KEY, publication.getLanguageLevel());
       }
     }
 
