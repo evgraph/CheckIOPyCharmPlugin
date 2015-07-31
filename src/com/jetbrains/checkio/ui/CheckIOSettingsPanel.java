@@ -13,6 +13,7 @@ import javax.swing.*;
 public class CheckIOSettingsPanel {
   public JPanel myPanel;
   private JComboBox myUpdateProjectComboBox;
+  private JLabel myLabel;
 
   public CheckIOSettingsPanel() {
     final Project project = ProjectUtil.guessCurrentProject(myPanel);
