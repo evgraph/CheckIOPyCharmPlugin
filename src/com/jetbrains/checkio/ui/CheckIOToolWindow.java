@@ -167,13 +167,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
         if (isStudyFile) {
           boolean shouldSwipeToTaskDescription = !isPublicationFileOfSelectedTaskFile(oldFile, task);
           setTaskInfoPanelAndSwipeIfNeeded(task, shouldSwipeToTaskDescription);
+          final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+          toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
           return;
         }
         hideTaskToolWindow();
       }
-
-      final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-      toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
     }
 
     private boolean isPublicationFileOfSelectedTaskFile(@Nullable final VirtualFile oldFile, @NotNull final Task task) {
