@@ -1,8 +1,11 @@
 package com.jetbrains.checkio.ui;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.sun.istack.internal.NotNull;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
@@ -11,6 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,6 +23,7 @@ import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
 import javax.swing.*;
+import java.awt.*;
 import java.net.URL;
 
 public class CheckIOBrowserWindow extends JFrame {
@@ -28,10 +33,15 @@ public class CheckIOBrowserWindow extends JFrame {
   private StackPane myPane;
   private WebEngine myEngine;
   private ProgressBar myProgressBar;
-  private int width = 700;
-  private int height = 700;
+  private int width;
+  private int height;
 
   private boolean showProgress = true;
+
+  public void setRefInNewBrowser(boolean refInNewBrowser) {
+    this.refInNewBrowser = refInNewBrowser;
+  }
+
   private boolean refInNewBrowser = false;
 
 
@@ -39,33 +49,14 @@ public class CheckIOBrowserWindow extends JFrame {
     this.showProgress = showProgress;
   }
 
-  public void setSize(int width, int height) {
+  public CheckIOBrowserWindow(int width, int height) {
     this.width = width;
     this.height = height;
-  }
-
-  private CheckIOBrowserWindow(@NotNull final String url) {
-    init();
-    load(url);
-  }
-  public CheckIOBrowserWindow(@NotNull final String url,
-                              final int width,
-                              final int height,
-                              final boolean showProgress,
-                              final boolean refInNewBrowser) {
-    init();
-    this.width = width;
-    this.height = height;
-    this.showProgress = showProgress;
-    this.refInNewBrowser = refInNewBrowser;
-    load(url);
-  }
-
-  public CheckIOBrowserWindow() {
     init();
   }
 
   private void init() {
+    setLayout(new BorderLayout());
     myPanel = new JFXPanel();
     LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
     initComponents();
@@ -118,9 +109,9 @@ public class CheckIOBrowserWindow extends JFrame {
       updateLaf(LafManager.getInstance().getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo);
     });
 
-    this.add(myPanel);
-    this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    this.setSize(width, height);
+    add(myPanel, BorderLayout.CENTER);
+    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    setSize(width, height);
   }
 
 
@@ -142,8 +133,14 @@ public class CheckIOBrowserWindow extends JFrame {
             myEngine.getLoadWorker().cancel();
 
             final String href = ((Element)ev.getTarget()).getAttribute("href");
-            final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow(href);
-            checkIOBrowserWindow.setVisible(true);
+            ApplicationManager.getApplication().invokeLater(() -> {
+              final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow(700, 700);
+              checkIOBrowserWindow.addBackAndOpenButtons();
+              checkIOBrowserWindow.setRefInNewBrowser(false);
+              checkIOBrowserWindow.setShowProgress(true);
+              checkIOBrowserWindow.load(href);
+              checkIOBrowserWindow.setVisible(true);
+            });
             ev.preventDefault();
           }
         };
@@ -155,6 +152,42 @@ public class CheckIOBrowserWindow extends JFrame {
         }
       }
     });
+  }
+
+  private void addBackAndOpenButtons() {
+    final JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+
+    final JButton backButton = new JButton(AllIcons.Actions.Back);
+    backButton.setEnabled(false);
+    backButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(-1)));
+    backButton.setToolTipText("Click to go back");
+
+    final JButton forwardButton = new JButton(AllIcons.Actions.Forward);
+    forwardButton.setEnabled(false);
+    forwardButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(1)));
+    forwardButton.setToolTipText("Click to go forward");
+
+    final JButton openInBrowser = new JButton(AllIcons.Actions.Browser_externalJavaDoc);
+    openInBrowser.addActionListener(e -> BrowserUtil.browse(myEngine.getLocation()));
+    openInBrowser.setToolTipText("Clicl to open link in browser");
+    panel.setMaximumSize(new Dimension(40, myPanel.getHeight()));
+    panel.add(backButton);
+    panel.add(forwardButton);
+    panel.add(openInBrowser);
+    add(panel, BorderLayout.PAGE_START);
+
+    Platform.runLater(() -> myEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
+      if (newState == Worker.State.SUCCEEDED) {
+        final WebHistory history = myEngine.getHistory();
+        boolean isGoBackAvailable = history.getCurrentIndex() > 0;
+        boolean isGoForwardAvailable = history.getCurrentIndex() < history.getEntries().size() - 1;
+        ApplicationManager.getApplication().invokeLater(() -> {
+          backButton.setEnabled(isGoBackAvailable);
+          forwardButton.setEnabled(isGoForwardAvailable);
+        });
+      }
+    }));
   }
 
   private ProgressBar makeProgressBarWithListener() {

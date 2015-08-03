@@ -10,8 +10,7 @@ public class CheckIOTestResultsWindow extends JPanel {
   private CheckIOBrowserWindow myBrowserWindow;
 
   public CheckIOTestResultsWindow(@NotNull final CheckIOToolWindow toolWindow) {
-    myBrowserWindow = new CheckIOBrowserWindow();
-    myBrowserWindow.setSize(CheckIOUtils.width, CheckIOUtils.height);
+    myBrowserWindow = new CheckIOBrowserWindow(CheckIOUtils.width, CheckIOUtils.height);
     myBrowserWindow.setShowProgress(false);
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     add(CheckIOToolWindow.createButtonPanel(toolWindow));
