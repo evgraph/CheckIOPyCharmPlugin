@@ -21,12 +21,21 @@ public class CheckIOShowUserInfoAction extends AnAction {
     final Project project = e.getProject();
     if (project != null) {
       final ToolWindowManager manager = ToolWindowManager.getInstance(project);
-      if (manager.getToolWindow(CheckIOUserInfoToolWindowFactory.ID) == null) {
+      ToolWindow toolWindow = manager.getToolWindow(CheckIOUserInfoToolWindowFactory.ID);
+      if (toolWindow == null) {
         manager.registerToolWindow(CheckIOUserInfoToolWindowFactory.ID, false, ToolWindowAnchor.RIGHT);
-        final ToolWindow toolWindow = manager.getToolWindow(CheckIOUserInfoToolWindowFactory.ID);
+        toolWindow = manager.getToolWindow(CheckIOUserInfoToolWindowFactory.ID);
         toolWindow.setSplitMode(true, null);
         new CheckIOUserInfoToolWindowFactory().createToolWindowContent(project, toolWindow);
         toolWindow.show(null);
+      }
+      else {
+        if (toolWindow.isVisible()) {
+          toolWindow.hide(null);
+        }
+        else {
+          toolWindow.show(null);
+        }
       }
     }
   }
