@@ -31,6 +31,7 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
   private static final Logger LOG = Logger.getInstance(CheckIOHintToolWindowFactory.class);
   private Task myTask;
   private Project myProject;
+  private ScrollablePanel myHintPanel;
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow window) {
@@ -94,20 +95,22 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
   }
 
   private JScrollPane getHintsPanel(@NotNull final List<String> hints) {
-    final ScrollablePanel hintPanel = new ScrollablePanel(new GridLayout(hints.size() * -1, 1));
-    hintPanel.setPreferredSize(new Dimension(600, 400));
+    myHintPanel = new ScrollablePanel(new GridLayout(hints.size() * -1, 1));
+    myHintPanel.setPreferredSize(new Dimension(600, 400));
     for (String hint : hints) {
       JLabel label = new JLabel(UIUtil.toHtml("<b>" + hint + "</b>", 5));
-      hintPanel.add(label);
+      myHintPanel.add(label);
       label.setVisible(false);
       label.setBorder(BorderFactory.createEtchedBorder());
       hintQueue.offer(label);
     }
-    return ScrollPaneFactory.createScrollPane(hintPanel);
+    return ScrollPaneFactory.createScrollPane(myHintPanel);
   }
 
-  private void showNewHint() {
-    hintQueue.poll().setVisible(true);
+  private JLabel showNewHint() {
+    final JLabel label = hintQueue.poll();
+    label.setVisible(true);
+    return label;
   }
 
   private class HintsMouseListener extends MouseAdapter {
@@ -128,7 +131,8 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
           .setText(UIUtil.toHtml("<a href=\"\"> Continue on forum...</a>"));
       }
       if (hintQueue.size() > 0) {
-        showNewHint();
+        JLabel label = showNewHint();
+        myHintPanel.scrollRectToVisible(new Rectangle(label.getX(), label.getY(), label.getHeight(), label.getHeight()));
       }
     }
   }
