@@ -10,6 +10,8 @@ import org.mockserver.junit.MockServerRule;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 
+import java.io.IOException;
+
 
 public class CheckIOConnectorTest extends Assert {
   @Rule
@@ -48,7 +50,13 @@ public class CheckIOConnectorTest extends Assert {
           .withHeader("Content-Type", "application/json")
           .withBody(new Gson().toJson(missionWrappers))
       );
-    CheckIOConnector.MissionWrapper[] actuals = CheckIOConnector.getMissions("token");
+    CheckIOConnector.MissionWrapper[] actuals = new CheckIOConnector.MissionWrapper[0];
+    try {
+      actuals = CheckIOConnector.getMissions("token");
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
 
     assertEquals(actuals.length, 1);
     CheckIOConnector.MissionWrapper actual = actuals[0];

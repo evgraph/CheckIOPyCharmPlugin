@@ -31,6 +31,7 @@ import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -91,31 +92,36 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
           CheckIOUtils.showOperationResultPopUp("Couldn't find task or task is empty", MessageType.WARNING.getPopupBackground(), project);
           return;
         }
-        CheckIOConnector.updateTokensInTaskManager(project);
 
-        if (indicator.isCanceled()) {
-          ApplicationManager.getApplication().runReadAction(
-            () -> CheckIOUtils.
-              showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project)
+        try {
+          CheckIOConnector.updateTokensInTaskManager(project);
+          if (indicator.isCanceled()) {
+            ApplicationManager.getApplication().runReadAction(
+              () -> CheckIOUtils.
+                showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project)
+            );
+            return;
+          }
+          final String testHtml = CheckIOConnector.checkSolutionAndGetTestHtml(project, task, code);
+          final StudyStatus status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
+
+          ApplicationManager.getApplication().invokeLater(
+            () -> CheckIOUtils
+              .showOperationResultPopUp(ourStudyStatusTaskCheckMessageHashMap.get(status), MessageType.INFO.getPopupBackground(),
+                                        project)
           );
-          return;
+
+          if (status == StudyStatus.Solved) {
+            askToUpdateProject(project);
+          }
+
+          final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
+          assert toolWindowFactory != null;
+          toolWindowFactory.myCheckIOToolWindow.showTestResults(testHtml);
         }
-        final String testHtml = CheckIOConnector.checkSolutionAndGetTestHtml(project, task, code);
-        final StudyStatus status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
-
-        ApplicationManager.getApplication().invokeLater(
-          () -> CheckIOUtils
-            .showOperationResultPopUp(ourStudyStatusTaskCheckMessageHashMap.get(status), MessageType.INFO.getPopupBackground(),
-                                      project)
-        );
-
-        if (status == StudyStatus.Solved) {
-          askToUpdateProject(project);
+        catch (IOException e) {
+          CheckIOUtils.makeNoInternetConnectionNotifier(project);
         }
-
-        final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
-        assert toolWindowFactory != null;
-        toolWindowFactory.myCheckIOToolWindow.showTestResults(testHtml);
       }
     };
   }
@@ -125,32 +131,39 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final Course oldCourse = studyTaskManager.getCourse();
-    final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
-    assert oldCourse != null;
+    final Course newCourse;
+    try {
+      newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+      assert oldCourse != null;
 
-    final List<Lesson> oldLessons = oldCourse.getLessons();
-    final List<Lesson> newLessons = newCourse.getLessons();
+      final List<Lesson> oldLessons = oldCourse.getLessons();
+      final List<Lesson> newLessons = newCourse.getLessons();
 
-    final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
-    if (unlockedStationsNumber > 0) {
-      DialogWrapper.DoNotAskOption option = createDoNotAskOption(taskManager);
+      final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
+      if (unlockedStationsNumber > 0) {
+        DialogWrapper.DoNotAskOption option = createDoNotAskOption(taskManager);
 
-      if (option.isToBeShown()) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          if (MessageDialogBuilder
-                .yesNo("Update project", "You unlocked the new station. Update project to get new missions?")
-                .yesText("Yes")
-                .noText(CommonBundle.message("button.cancel"))
-                .doNotAsk(option).show() != Messages.YES) {
-            return;
-          }
-          if (!(taskManager.getUpdateProjectPolicy() == UpdateProjectPolicy.Always)) {
-            return;
-          }
+        if (option.isToBeShown()) {
+          ApplicationManager.getApplication().invokeLater(() -> {
+            if (MessageDialogBuilder
+                  .yesNo("Update project", "You unlocked the new station. Update project to get new missions?")
+                  .yesText("Yes")
+                  .noText(CommonBundle.message("button.cancel"))
+                  .doNotAsk(option).show() != Messages.YES) {
+              return;
+            }
+            if (!(taskManager.getUpdateProjectPolicy() == UpdateProjectPolicy.Always)) {
+              return;
+            }
 
-          CheckIOUpdateProjectAction.createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
-        });
+            CheckIOUpdateProjectAction.createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
+          });
+        }
       }
+    }
+    catch (IOException e) {
+      LOG.info("Tried to check solution with no internet connection. Excaption message: " + e.getLocalizedMessage());
+      CheckIOUtils.makeNoInternetConnectionNotifier(project);
     }
   }
 

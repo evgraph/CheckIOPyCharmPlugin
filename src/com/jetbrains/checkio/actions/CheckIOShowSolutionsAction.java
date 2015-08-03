@@ -24,6 +24,7 @@ import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.jetbrains.jps.service.SharedThreadPool;
 
 import javax.swing.*;
+import java.io.IOException;
 
 
 public class CheckIOShowSolutionsAction extends AnAction {
@@ -59,20 +60,27 @@ public class CheckIOShowSolutionsAction extends AnAction {
       }
     });
     SharedThreadPool.getInstance().executeOnPooledThread(() -> {
-      final CheckIOPublication[] publications = CheckIOConnector.getPublicationsForTask(task);
-      CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
-      CheckIOUtils.createPublicationsFiles(project, task, publications);
-      if (toolWindowFactory != null) {
+      final CheckIOPublication[] publications;
+      try {
+        publications = CheckIOConnector.getPublicationsForTask(task);
+        CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
+        CheckIOUtils.createPublicationsFiles(project, task, publications);
+        if (toolWindowFactory != null) {
 
-        CheckIOToolWindow toolWindow = toolWindowFactory.myCheckIOToolWindow;
-        ApplicationManager.getApplication().invokeLater(() -> {
-          ApplicationManager.getApplication().runWriteAction(() -> {
-            VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+          CheckIOToolWindow toolWindow = toolWindowFactory.myCheckIOToolWindow;
+          ApplicationManager.getApplication().invokeLater(() -> {
+            ApplicationManager.getApplication().runWriteAction(() -> {
+              VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+            });
+            toolWindow.mySolutionsPanel = new CheckIOSolutionsPanel(publications, project, toolWindow);
+            toolWindow.myContentPanel.add(CheckIOToolWindow.SOLUTIONS, toolWindow.mySolutionsPanel);
+            toolWindow.showSolutionsPanel();
           });
-          toolWindow.mySolutionsPanel = new CheckIOSolutionsPanel(publications, project, toolWindow);
-          toolWindow.myContentPanel.add(CheckIOToolWindow.SOLUTIONS, toolWindow.mySolutionsPanel);
-          toolWindow.showSolutionsPanel();
-        });
+        }
+      }
+      catch (IOException e1) {
+        LOG.info("Tried to download publication with no internet connection. Excaption message: " + e1.getLocalizedMessage());
+        CheckIOUtils.makeNoInternetConnectionNotifier(project);
       }
     });
   }

@@ -27,6 +27,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -87,36 +88,51 @@ public class CheckIOConnector {
     return myUser;
   }
 
-  public static void updateTokensInTaskManager(@NotNull final Project project) {
+  public static void updateTokensInTaskManager(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    if (isTokenUpToDate(taskManager.accessToken)) {
-      return;
-    }
-    final String refreshToken = taskManager.refreshToken;
-    final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
-    authorizer.setTokensFromRefreshToken(refreshToken);
-    myAccessToken = authorizer.myAccessToken;
-    myRefreshToken = authorizer.myRefreshToken;
+    boolean isTokenUpToDate;
+    try {
+      isTokenUpToDate = isTokenUpToDate(taskManager.accessToken);
+      if (isTokenUpToDate) {
+        return;
+      }
+      final String refreshToken = taskManager.refreshToken;
+      final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
+      authorizer.setTokensFromRefreshToken(refreshToken);
+      myAccessToken = authorizer.myAccessToken;
+      myRefreshToken = authorizer.myRefreshToken;
 
-    taskManager.accessToken = myAccessToken;
-    taskManager.refreshToken = myRefreshToken;
+      taskManager.accessToken = myAccessToken;
+      taskManager.refreshToken = myRefreshToken;
+    }
+    catch (IOException e) {
+      throw new IOException();
+    }
+
   }
 
 
   @NotNull
-  public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) {
+  public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) throws IOException {
     setCourseAndLessonByName(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String token = taskManager.accessToken;
     assert token != null;
-    final MissionWrapper[] missionWrappers = getMissions(token);
-
-    for (MissionWrapper missionWrapper : missionWrappers) {
-      final Lesson lesson = getLessonOrCreateIfDoesntExist(missionWrapper.stationName);
-      final Task task = getTaskFromMission(missionWrapper);
-      setTaskInfoInTaskManager(project, task, missionWrapper);
-      lesson.addTask(task);
+    final MissionWrapper[] missionWrappers;
+    try {
+      missionWrappers = getMissions(token);
+      for (MissionWrapper missionWrapper : missionWrappers) {
+        final Lesson lesson = getLessonOrCreateIfDoesntExist(missionWrapper.stationName);
+        final Task task = getTaskFromMission(missionWrapper);
+        setTaskInfoInTaskManager(project, task, missionWrapper);
+        lesson.addTask(task);
+      }
     }
+    catch (IOException e) {
+      throw new IOException();
+    }
+
+
     return course;
   }
 
@@ -132,19 +148,23 @@ public class CheckIOConnector {
   }
 
 
-  private static boolean isTokenUpToDate(@NotNull final String token) {
+  private static boolean isTokenUpToDate(@NotNull final String token) throws IOException {
     final HttpGet request = makeMissionsRequest(token);
     final HttpResponse response = requestMissions(request);
 
-    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+    if (response != null && response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
       return false;
     }
     return true;
   }
 
-  public static MissionWrapper[] getMissions(@NotNull final String token) {
+  public static MissionWrapper[] getMissions(@NotNull final String token) throws IOException {
     final HttpGet request = makeMissionsRequest(token);
     final HttpResponse response = requestMissions(request);
+
+    if (response == null) {
+      return new MissionWrapper[]{};
+    }
 
     String missions = "";
     try {
@@ -208,14 +228,15 @@ public class CheckIOConnector {
     return new HttpGet(uri);
   }
 
-  private static HttpResponse requestMissions(@NotNull final HttpGet request) {
-    HttpResponse response = null;
+  @Nullable
+  private static HttpResponse requestMissions(@NotNull final HttpGet request) throws IOException {
+    HttpResponse response;
     try {
       final CloseableHttpClient client = HttpClientBuilder.create().build();
       response = client.execute(request);
     }
     catch (IOException e) {
-      LOG.error(e.getMessage());
+      throw new IOException();
     }
     return response;
   }
@@ -293,14 +314,14 @@ public class CheckIOConnector {
     return request;
   }
 
-  public static HttpResponse executeCheckRequest(@NotNull final HttpPost request) {
+  public static HttpResponse executeCheckRequest(@NotNull final HttpPost request) throws IOException {
     final CloseableHttpClient client = HttpClientBuilder.create().build();
     HttpResponse response = null;
     try {
       response = client.execute(request);
     }
     catch (IOException e) {
-      LOG.error(e.getMessage());
+      throw new IOException();
     }
     return response;
   }
@@ -312,7 +333,7 @@ public class CheckIOConnector {
       requestStringForJson = "[" + entity.substring(0, entity.length() - 1) + "]";
     }
     catch (IOException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
     assert requestStringForJson != null;
 
@@ -338,12 +359,18 @@ public class CheckIOConnector {
   //TODO: change (api needed)
   public static String checkSolutionAndGetTestHtml(@NotNull final Project project,
                                                    @NotNull final Task task,
-                                                   @NotNull final String code) {
-    checkSolution(project, task, code);
+                                                   @NotNull final String code) throws IOException {
+    try {
+      checkSolution(project, task, code);
+    }
+    catch (IOException e) {
+      throw new IOException();
+    }
     return "<p> okkkkkk </p>";
   }
 
-  public static StudyStatus getSolutionStatusAndSetInStudyManager(@NotNull final Project project, @NotNull final Task task) {
+  public static StudyStatus getSolutionStatusAndSetInStudyManager(@NotNull final Project project, @NotNull final Task task)
+    throws IOException {
     setCourseAndLessonByName(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
@@ -351,22 +378,28 @@ public class CheckIOConnector {
     assert token != null;
     int id = taskManager.getTaskId(task);
     StudyStatus status = StudyStatus.Unchecked;
-    final MissionWrapper[] missionWrappers = getMissions(token);
-
-    for (MissionWrapper missionWrapper : missionWrappers) {
-      if (missionWrapper.id == id) {
-        status = taskSolutionStatus.get(missionWrapper.isSolved);
-        studyManager.setStatus(task, status);
-        break;
+    final MissionWrapper[] missionWrappers;
+    try {
+      missionWrappers = getMissions(token);
+      for (MissionWrapper missionWrapper : missionWrappers) {
+        if (missionWrapper.id == id) {
+          status = taskSolutionStatus.get(missionWrapper.isSolved);
+          studyManager.setStatus(task, status);
+          break;
+        }
       }
     }
+    catch (IOException e) {
+      throw new IOException();
+    }
+
     return status;
   }
 
   //TODO: update (new api needed)
   public static void checkSolution(@NotNull final Project project,
                                    @NotNull final Task task,
-                                   @NotNull final String code) {
+                                   @NotNull final String code) throws IOException {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     try {
       HttpPost request = createCheckRequest(project, task, code);
@@ -391,10 +424,14 @@ public class CheckIOConnector {
     catch (IllegalStateException e) {
       LOG.warn(e.getMessage());
     }
+    catch (IOException e) {
+      CheckIOUtils.makeNoInternetConnectionNotifier(project);
+    }
   }
 
   //TODO: change (api needed)
-  public static CheckIOPublication[] getPublicationsForTask(@NotNull final Task task) {
+  public static CheckIOPublication[] getPublicationsForTask(@NotNull final Task task) throws IOException{
+
     final CheckIOUser author = new CheckIOUser();
     author.setUsername("Expert");
     author.setLevel(234);

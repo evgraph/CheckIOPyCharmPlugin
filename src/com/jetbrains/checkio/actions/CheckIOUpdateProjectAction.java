@@ -20,6 +20,7 @@ import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.util.List;
 
 
@@ -65,9 +66,15 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        CheckIOConnector.updateTokensInTaskManager(project);
-        final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
-        createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
+        try {
+          CheckIOConnector.updateTokensInTaskManager(project);
+          final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+          createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
+        }
+        catch (IOException e) {
+          LOG.info("Tried to update project with no internet connection. Excaption message: " + e.getLocalizedMessage());
+          CheckIOUtils.makeNoInternetConnectionNotifier(project);
+        }
       }
     };
   }
