@@ -1,6 +1,8 @@
 package com.jetbrains.checkio;
 
 import com.intellij.ide.projectView.ProjectView;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,6 +44,8 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 public class CheckIOUtils {
@@ -242,5 +246,32 @@ public class CheckIOUtils {
 
   public static boolean isPublicationFile(@NotNull final VirtualFile file) {
     return file.getUserData(CHECKIO_LANGUAGE_LEVEL_KEY) != null;
+  }
+
+  public static boolean checkConnection() {
+    boolean result = false;
+    try {
+      URL urlToPing = new URL ("https://www.google.com");
+      HttpURLConnection connection = (HttpURLConnection)urlToPing.openConnection();
+
+      connection.setRequestMethod("GET");
+      connection.connect();
+
+      int code = connection.getResponseCode();
+      if (code == 200) {
+        result = true;
+      }
+    }
+    catch (IOException e) {
+      result = false;
+    }
+
+    return result;
+  }
+
+  public static void makeNoInternetConnectionNotifier(@NotNull Project project) {
+    final Notification notification = new Notification("No.connection", "Internet connection problem", "No internet connection",
+                                                       NotificationType.ERROR);
+    notification.notify(project);
   }
 }

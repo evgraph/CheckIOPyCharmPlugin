@@ -15,6 +15,7 @@ import com.intellij.platform.DirectoryProjectGenerator;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOProjectComponent;
 import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.edu.courseFormat.Course;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 
@@ -82,20 +84,32 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   }
   @Override
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
+
+    final CheckIOUser user = authorizeUser();
+    if (user == null) {
+      return;
+    }
     setParametersInTaskManager(project);
-    final Course course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
-    StudyTaskManager.getInstance(project).setCourse(course);
-    myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-    new StudyProjectGenerator().flushCourse(course);
-    course.initCourse(false);
-    ApplicationManager.getApplication().invokeLater(
-      () -> ApplicationManager.getApplication().runWriteAction(() -> {
-        final File courseDirectory = new File(myCoursesDir, course.getName());
-        StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
-        course.setCourseDirectory(myCoursesDir.getAbsolutePath());
-        CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
-        openFirstTask(course, project);
-      }));
+    final Course course;
+    try {
+      course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+      StudyTaskManager.getInstance(project).setCourse(course);
+      myCoursesDir = new File(PathManager.getConfigPath(), "courses");
+      new StudyProjectGenerator().flushCourse(course);
+      course.initCourse(false);
+      ApplicationManager.getApplication().invokeLater(
+        () -> ApplicationManager.getApplication().runWriteAction(() -> {
+          final File courseDirectory = new File(myCoursesDir, course.getName());
+          StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
+          course.setCourseDirectory(myCoursesDir.getAbsolutePath());
+          CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
+          openFirstTask(course, project);
+        }));
+    }
+    catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+
   }
 
   public static void openFirstTask(@NotNull final Course course, @NotNull final Project project) {
@@ -114,6 +128,17 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     }
   }
 
+  private static CheckIOUser authorizeUser() {
+    CheckIOUser user = null;
+    try {
+      user = CheckIOConnector.authorizeUser();
+    }
+    catch (Exception e1) {
+      LOG.warn(e1.getMessage());
+    }
+    return user;
+  }
+
 
 
   @Nullable
@@ -125,7 +150,8 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @NotNull
   @Override
   public ValidationResult validate(@NotNull String baseDirPath) {
-    return ValidationResult.OK;
+    boolean isConnected = CheckIOUtils.checkConnection();
+    return isConnected ? ValidationResult.OK : new ValidationResult("No internet connection");
   }
 
   @Nullable
