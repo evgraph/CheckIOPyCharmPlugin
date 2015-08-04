@@ -68,11 +68,11 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
       public void run(@NotNull ProgressIndicator indicator) {
         try {
           CheckIOConnector.updateTokensInTaskManager(project);
-          final Course newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+          final Course newCourse = CheckIOConnector.getMissionsAndUpdateCourse(project);
           createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
         }
         catch (IOException e) {
-          LOG.info("Tried to update project with no internet connection. Excaption message: " + e.getLocalizedMessage());
+          LOG.info("Tried to update project with no internet connection. Exception message: " + e.getLocalizedMessage());
           CheckIOUtils.makeNoInternetConnectionNotifier(project);
         }
       }

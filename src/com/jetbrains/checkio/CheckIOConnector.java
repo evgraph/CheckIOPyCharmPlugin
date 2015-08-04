@@ -112,26 +112,22 @@ public class CheckIOConnector {
   }
 
 
-  @NotNull
-  public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project) throws IOException {
-    setCourseAndLessonByName(project);
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final String token = taskManager.accessToken;
-    assert token != null;
-    final MissionWrapper[] missionWrappers;
-    try {
-      missionWrappers = getMissions(token);
-      for (MissionWrapper missionWrapper : missionWrappers) {
-        final Lesson lesson = getLessonOrCreateIfDoesntExist(missionWrapper.stationName);
-        final Task task = getTaskFromMission(missionWrapper);
-        setTaskInfoInTaskManager(project, task, missionWrapper);
-        lesson.addTask(task);
-      }
-    }
-    catch (IOException e) {
-      throw new IOException();
-    }
+  public static Course getMissionsAndUpdateCourse(@NotNull final Project project) throws IOException {
+    final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
+    final MissionWrapper[] missionWrappers = getMissions(manager.accessToken);
+    return getCourseForProjectAndUpdateCourseInfo(project, missionWrappers);
+  }
 
+  @NotNull
+  public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project,
+                                                              @NotNull final MissionWrapper[] missionWrappers) {
+    setCourseAndLessonByName(project);
+    for (MissionWrapper missionWrapper : missionWrappers) {
+      final Lesson lesson = getLessonOrCreateIfDoesntExist(missionWrapper.stationName);
+      final Task task = getTaskFromMission(missionWrapper);
+      setTaskInfoInTaskManager(project, task, missionWrapper);
+      lesson.addTask(task);
+    }
 
     return course;
   }
@@ -316,7 +312,7 @@ public class CheckIOConnector {
 
   public static HttpResponse executeCheckRequest(@NotNull final HttpPost request) throws IOException {
     final CloseableHttpClient client = HttpClientBuilder.create().build();
-    HttpResponse response = null;
+    HttpResponse response;
     try {
       response = client.execute(request);
     }

@@ -133,7 +133,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     final Course oldCourse = studyTaskManager.getCourse();
     final Course newCourse;
     try {
-      newCourse = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
+      newCourse = CheckIOConnector.getMissionsAndUpdateCourse(project);
       assert oldCourse != null;
 
       final List<Lesson> oldLessons = oldCourse.getLessons();
@@ -162,7 +162,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       }
     }
     catch (IOException e) {
-      LOG.info("Tried to check solution with no internet connection. Excaption message: " + e.getLocalizedMessage());
+      LOG.info("Tried to check solution with no internet connection. Exception message: " + e.getLocalizedMessage());
       CheckIOUtils.makeNoInternetConnectionNotifier(project);
     }
   }
