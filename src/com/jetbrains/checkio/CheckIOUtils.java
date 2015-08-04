@@ -251,7 +251,7 @@ public class CheckIOUtils {
   public static boolean checkConnection() {
     boolean result = false;
     try {
-      URL urlToPing = new URL ("https://www.google.com");
+      URL urlToPing = new URL ("http://www.checkio.org");
       HttpURLConnection connection = (HttpURLConnection)urlToPing.openConnection();
 
       connection.setRequestMethod("GET");
@@ -270,7 +270,7 @@ public class CheckIOUtils {
   }
 
   public static void makeNoInternetConnectionNotifier(@NotNull Project project) {
-    final Notification notification = new Notification("No.connection", "Internet connection problem", "No internet connection",
+    final Notification notification = new Notification("No.connection", "Internet connection problem", "CheckIO is unavailable. Please, check internet connection",
                                                        NotificationType.ERROR);
     notification.notify(project);
   }
