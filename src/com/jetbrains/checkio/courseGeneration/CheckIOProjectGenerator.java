@@ -7,15 +7,16 @@ import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.platform.DirectoryProjectGenerator;
-import com.jetbrains.checkio.CheckIOConnector;
-import com.jetbrains.checkio.CheckIOProjectComponent;
-import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.CheckIOUtils;
+import com.intellij.util.BooleanFunction;
+import com.jetbrains.checkio.*;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.edu.courseFormat.Course;
@@ -26,21 +27,25 @@ import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
-import com.jetbrains.python.newProject.PythonBaseProjectGenerator;
+import com.jetbrains.python.newProject.PythonProjectGenerator;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.service.SharedThreadPool;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 
-public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implements DirectoryProjectGenerator {
+public class CheckIOProjectGenerator extends PythonProjectGenerator implements DirectoryProjectGenerator {
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
   private File myCoursesDir;
-
+  private CheckIOConnector.MissionWrapper[] myMissionWrappers;
+  private CheckIOUser user;
 
   private static void setParametersInTaskManager(@NotNull Project project) {
     if (!checkIfUserOrAccessTokenIsNull()) {
@@ -82,34 +87,24 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   public Object showGenerationSettings(VirtualFile baseDir) throws ProcessCanceledException {
     return null;
   }
+
   @Override
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
-
-    final CheckIOUser user = authorizeUser();
-    if (user == null) {
-      return;
-    }
     setParametersInTaskManager(project);
     final Course course;
-    try {
-      course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project);
-      StudyTaskManager.getInstance(project).setCourse(course);
-      myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-      new StudyProjectGenerator().flushCourse(course);
-      course.initCourse(false);
-      ApplicationManager.getApplication().invokeLater(
-        () -> ApplicationManager.getApplication().runWriteAction(() -> {
-          final File courseDirectory = new File(myCoursesDir, course.getName());
-          StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
-          course.setCourseDirectory(myCoursesDir.getAbsolutePath());
-          CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
-          openFirstTask(course, project);
-        }));
-    }
-    catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-
+    course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
+    StudyTaskManager.getInstance(project).setCourse(course);
+    myCoursesDir = new File(PathManager.getConfigPath(), "courses");
+    new StudyProjectGenerator().flushCourse(course);
+    course.initCourse(false);
+    ApplicationManager.getApplication().invokeLater(
+      () -> ApplicationManager.getApplication().runWriteAction(() -> {
+        final File courseDirectory = new File(myCoursesDir, course.getName());
+        StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
+        course.setCourseDirectory(myCoursesDir.getAbsolutePath());
+        CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
+        openFirstTask(course, project);
+      }));
   }
 
   public static void openFirstTask(@NotNull final Course course, @NotNull final Project project) {
@@ -128,18 +123,57 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
     }
   }
 
-  private static CheckIOUser authorizeUser() {
-    CheckIOUser user = null;
-    try {
-      user = CheckIOConnector.authorizeUser();
+
+  private void authorizeUserAndGetMissions() {
+    user = CheckIOConnector.authorizeUser();
+    final String accessToken = CheckIOUserAuthorizer.getInstance().myAccessToken;
+    if (accessToken != null) {
+      try {
+        myMissionWrappers = CheckIOConnector.getMissions(accessToken);
+      }
+      catch (IOException e) {
+        LOG.info(e.getMessage());
+      }
     }
-    catch (Exception e1) {
-      LOG.warn(e1.getMessage());
-    }
-    return user;
   }
 
+  @Nullable
+  @Override
+  public BooleanFunction<PythonProjectGenerator> beforeProjectGenerated() {
+    final ProgressManager progressManager = ProgressManager.getInstance();
+    final Project project = ProjectUtil.guessCurrentProject(extendBasePanel());
+    try {
+      try {
+        return progressManager
+          .runProcessWithProgressSynchronously((ThrowableComputable<BooleanFunction<PythonProjectGenerator>, IOException>)() -> {
+            final Future<?> future = SharedThreadPool.getInstance().executeOnPooledThread(this::authorizeUserAndGetMissions);
 
+            while (!future.isDone()) {
+              progressManager.getProgressIndicator().checkCanceled();
+              try {
+                TimeUnit.MILLISECONDS.sleep(500);
+              }
+              catch (InterruptedException e) {
+                LOG.info(e.getMessage());
+              }
+            }
+
+            if (user != null && myMissionWrappers != null) {
+              return generator -> true;
+            }
+            return generator -> false;
+          }, "Creating Project", true, project);
+      }
+      catch (IOException e) {
+        LOG.warn(e.getMessage());
+      }
+    }
+    catch (ProcessCanceledException ignore) {
+      return generator -> false;
+    }
+
+    return generator -> false;
+  }
 
   @Nullable
   @Override
@@ -151,7 +185,7 @@ public class CheckIOProjectGenerator extends PythonBaseProjectGenerator implemen
   @Override
   public ValidationResult validate(@NotNull String baseDirPath) {
     boolean isConnected = CheckIOUtils.checkConnection();
-    return isConnected ? ValidationResult.OK : new ValidationResult("No internet connection");
+    return isConnected ? ValidationResult.OK : new ValidationResult("CheckIO is unavailable. Please, check internet connection");
   }
 
   @Nullable
