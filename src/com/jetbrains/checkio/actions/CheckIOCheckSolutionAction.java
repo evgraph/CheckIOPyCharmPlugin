@@ -32,20 +32,12 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 
 public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
   public static final String SHORTCUT = "ctrl pressed PERIOD";
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
-  private static final HashMap<StudyStatus, String> ourStudyStatusTaskCheckMessageHashMap = new HashMap<StudyStatus, String>() {
-    {
-      put(StudyStatus.Solved, "Congratulations!");
-      put(StudyStatus.Failed, "Failed :(");
-      put(StudyStatus.Unchecked, "Task wasn't checked. Please try later.");
-    }
-  };
 
   public CheckIOCheckSolutionAction() {
     super("Check Task (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
@@ -76,9 +68,13 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
       final String taskFileName = CheckIOUtils.getTaskFileNameFromTask(task);
       final String code = task.getDocument(project, taskFileName).getText();
+      final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
       @Override
       public void onCancel() {
         studyManager.setStatus(task, statusBeforeCheck);
+        assert toolWindowFactory != null;
+        toolWindowFactory.getCheckIOToolWindow().showTaskInfoPanel();
+        Thread.currentThread().interrupt();
       }
 
       @Override
@@ -95,29 +91,13 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
         try {
           CheckIOConnector.updateTokensInTaskManager(project);
-          if (indicator.isCanceled()) {
-            ApplicationManager.getApplication().runReadAction(
-              () -> CheckIOUtils.
-                showOperationResultPopUp("Task check cancelled", MessageType.WARNING.getPopupBackground(), project)
-            );
-            return;
-          }
-          final String testHtml = CheckIOConnector.checkSolutionAndGetTestHtml(project, task, code);
+          assert toolWindowFactory != null;
+          toolWindowFactory.getCheckIOToolWindow().checkAndShowResults(task, code);
           final StudyStatus status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
-
-          ApplicationManager.getApplication().invokeLater(
-            () -> CheckIOUtils
-              .showOperationResultPopUp(ourStudyStatusTaskCheckMessageHashMap.get(status), MessageType.INFO.getPopupBackground(),
-                                        project)
-          );
 
           if (status == StudyStatus.Solved) {
             askToUpdateProject(project);
           }
-
-          final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
-          assert toolWindowFactory != null;
-          toolWindowFactory.myCheckIOToolWindow.showTestResults(testHtml);
         }
         catch (IOException e) {
           CheckIOUtils.makeNoInternetConnectionNotifier(project);

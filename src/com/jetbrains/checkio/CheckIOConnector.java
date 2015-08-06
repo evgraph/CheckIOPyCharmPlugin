@@ -18,44 +18,37 @@ import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONArray;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 
 public class CheckIOConnector {
   public static String CHECKIO_API_URL = "http://www.checkio.org/api/";
   private static final String MISSIONS_API = "user-missions/";
   private static final String PARAMETER_ACCESS_TOKEN = "token";
-  private static final String CHECK_URL = "http://www.checkio.org/center/1/ucheck/";
-  private static final String RESTORE_CHECK_URL = "http://www.checkio.org/center/1/restore/";
-  private static final String SOLUTION_WAIT_STATUS = "wait";
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
-  private static final Map<Boolean, StudyStatus> taskSolutionStatus = new HashMap<Boolean, StudyStatus>() {{
+  private static final Map<Boolean, StudyStatus> taskSolutionStatusForProjectCreation = new HashMap<Boolean, StudyStatus>() {{
     put(true, StudyStatus.Solved);
     put(false, StudyStatus.Unchecked);
+  }};
+  private static final Map<Boolean, StudyStatus> taskSolutionStatus = new HashMap<Boolean, StudyStatus>() {{
+    put(true, StudyStatus.Solved);
+    put(false, StudyStatus.Failed);
   }};
   private static final Map<Boolean, CheckIOTaskPublicationStatus> taskPublicationStatus =
     new HashMap<Boolean, CheckIOTaskPublicationStatus>() {{
@@ -204,7 +197,7 @@ public class CheckIOConnector {
                                                @NotNull final MissionWrapper missionWrapper) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    studyManager.setStatus(task, taskSolutionStatus.get(missionWrapper.isSolved));
+    studyManager.setStatus(task, taskSolutionStatusForProjectCreation.get(missionWrapper.isSolved));
     taskManager.setPublicationStatus(task, taskPublicationStatus.get(missionWrapper.isPublished));
     taskManager.setTaskId(task, missionWrapper.id);
     taskManager.myInitialTaskTextMap.put(task.getName(), missionWrapper.code);
@@ -258,85 +251,7 @@ public class CheckIOConnector {
     return contentTypeString + text.body().html();
   }
 
-
-  public static HttpPost createCheckRequest(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final String taskId = taskManager.getTaskId(task).toString();
-    final String runner = getRunner(task, project);
-    if (runner == null) {
-      throw new IllegalStateException();
-    }
-
-    final HttpPost request = new HttpPost(CHECK_URL);
-    final List<BasicNameValuePair> requestParameters = new ArrayList<>();
-    requestParameters.add(new BasicNameValuePair("code", code));
-    requestParameters.add(new BasicNameValuePair("runner", runner));
-    requestParameters.add(new BasicNameValuePair("token", taskManager.accessToken));
-    requestParameters.add(new BasicNameValuePair("task_num", taskId));
-    try {
-      request.setEntity(new UrlEncodedFormEntity(requestParameters));
-    }
-    catch (UnsupportedEncodingException e) {
-      LOG.error(e.getMessage());
-    }
-    return request;
-  }
-
-  public static HttpResponse restore(@NotNull final String connectionId, @NotNull final String accessToken) {
-    final HttpPost request = createRestoreRequest(connectionId, accessToken);
-    final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-    HttpResponse response = null;
-    try {
-      response = httpClient.execute(request);
-    }
-    catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    return response;
-  }
-
-  private static HttpPost createRestoreRequest(@NotNull final String connectionId, @NotNull final String token) {
-    final HttpPost request = new HttpPost(RESTORE_CHECK_URL);
-    final List<BasicNameValuePair> requestParameters = new ArrayList<>();
-    requestParameters.add(new BasicNameValuePair("connection_id", connectionId));
-    requestParameters.add(new BasicNameValuePair("token", token));
-
-    try {
-      request.setEntity(new UrlEncodedFormEntity(requestParameters));
-    }
-    catch (UnsupportedEncodingException e) {
-      LOG.error(e.getMessage());
-    }
-    return request;
-  }
-
-  public static HttpResponse executeCheckRequest(@NotNull final HttpPost request) throws IOException {
-    final CloseableHttpClient client = HttpClientBuilder.create().build();
-    HttpResponse response;
-    try {
-      response = client.execute(request);
-    }
-    catch (IOException e) {
-      throw new IOException();
-    }
-    return response;
-  }
-
-  public static JSONArray makeJSONArrayFromResponse(@NotNull final HttpResponse response) {
-    String requestStringForJson = null;
-    try {
-      String entity = EntityUtils.toString(response.getEntity());
-      requestStringForJson = "[" + entity.substring(0, entity.length() - 1) + "]";
-    }
-    catch (IOException e) {
-      LOG.warn(e.getMessage());
-    }
-    assert requestStringForJson != null;
-
-    return new JSONArray(requestStringForJson);
-  }
-
-  private static String getRunner(@NotNull final Task task, @NotNull final Project project) {
+  public static String getInterpreter(@NotNull final Task task, @NotNull final Project project) {
     final Sdk sdk = StudyUtils.findSdk(task, project);
     String runner = "";
     if (sdk != null) {
@@ -350,19 +265,6 @@ public class CheckIOConnector {
     }
 
     return runner;
-  }
-
-  //TODO: change (api needed)
-  public static String checkSolutionAndGetTestHtml(@NotNull final Project project,
-                                                   @NotNull final Task task,
-                                                   @NotNull final String code) throws IOException {
-    try {
-      checkSolution(project, task, code);
-    }
-    catch (IOException e) {
-      throw new IOException();
-    }
-    return "<p> okkkkkk </p>";
   }
 
   public static StudyStatus getSolutionStatusAndSetInStudyManager(@NotNull final Project project, @NotNull final Task task)
@@ -392,38 +294,6 @@ public class CheckIOConnector {
     return status;
   }
 
-  //TODO: update (new api needed)
-  public static void checkSolution(@NotNull final Project project,
-                                   @NotNull final Task task,
-                                   @NotNull final String code) throws IOException {
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    try {
-      HttpPost request = createCheckRequest(project, task, code);
-      HttpResponse response = executeCheckRequest(request);
-      JSONArray jsonArray = makeJSONArrayFromResponse(response);
-      JSONArray result = (JSONArray)jsonArray.get(jsonArray.length() - 1);
-
-      while (result != null && result.get(0) == SOLUTION_WAIT_STATUS) {
-        int time = result.getInt(2);
-        try {
-          TimeUnit.SECONDS.sleep(time);
-        }
-        catch (InterruptedException e) {
-          LOG.error(e.getMessage());
-        }
-
-        response = restore((String)result.get(1), taskManager.accessToken);
-        jsonArray = makeJSONArrayFromResponse(response);
-        result = (JSONArray)jsonArray.get(jsonArray.length() - 1);
-      }
-    }
-    catch (IllegalStateException e) {
-      LOG.warn(e.getMessage());
-    }
-    catch (IOException e) {
-      CheckIOUtils.makeNoInternetConnectionNotifier(project);
-    }
-  }
 
   //TODO: change (api needed)
   public static CheckIOPublication[] getPublicationsForTask(@NotNull final Task task) throws IOException{

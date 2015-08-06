@@ -6,8 +6,8 @@ import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.sun.istack.internal.NotNull;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -16,6 +16,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -33,6 +34,7 @@ public class CheckIOBrowserWindow extends JFrame {
   private StackPane myPane;
   private WebEngine myEngine;
   private ProgressBar myProgressBar;
+  private ChangeListener<Document> myDocumentChangeListener;
   private int width;
   private int height;
 
@@ -94,10 +96,10 @@ public class CheckIOBrowserWindow extends JFrame {
       myEngine = myWebComponent.getEngine();
       if (showProgress) {
         myProgressBar = makeProgressBarWithListener();
+        myWebComponent.setVisible(false);
         myPane.getChildren().addAll(myWebComponent, myProgressBar);
       }
       else {
-
         myPane.getChildren().add(myWebComponent);
       }
       if (refInNewBrowser) {
@@ -117,10 +119,6 @@ public class CheckIOBrowserWindow extends JFrame {
 
   public void load(@NotNull final String url) {
     Platform.runLater(() -> myEngine.load(url));
-  }
-
-  public void loadContent(@NotNull final String content) {
-    Platform.runLater(() -> myEngine.loadContent(content));
   }
 
   private void initHyperlinkListener() {
@@ -170,7 +168,7 @@ public class CheckIOBrowserWindow extends JFrame {
 
     final JButton openInBrowser = new JButton(AllIcons.Actions.Browser_externalJavaDoc);
     openInBrowser.addActionListener(e -> BrowserUtil.browse(myEngine.getLocation()));
-    openInBrowser.setToolTipText("Clicl to open link in browser");
+    openInBrowser.setToolTipText("Click to open link in browser");
     panel.setMaximumSize(new Dimension(40, myPanel.getHeight()));
     panel.add(backButton);
     panel.add(forwardButton);
@@ -196,12 +194,28 @@ public class CheckIOBrowserWindow extends JFrame {
 
     myEngine.getLoadWorker().stateProperty().addListener(
       (ov, oldState, newState) -> {
+        if (!myEngine.getLocation().contains("www")) {
+
+          return;
+        }
         if (newState == Worker.State.SUCCEEDED) {
+          if (myDocumentChangeListener != null) {
+            removeFormListener(myDocumentChangeListener);
+          }
           myProgressBar.setVisible(false);
           myWebComponent.setVisible(true);
         }
       });
     return progress;
+  }
+
+  public void addFormListener(ChangeListener<Document> listener) {
+    myDocumentChangeListener = listener;
+    myEngine.documentProperty().addListener(listener);
+  }
+
+  public void removeFormListener(ChangeListener<Document> listener) {
+    myEngine.documentProperty().removeListener(listener);
   }
 
   class CheckIOLafManagerListener implements LafManagerListener {

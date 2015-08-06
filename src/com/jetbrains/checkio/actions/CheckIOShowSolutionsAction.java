@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.keymap.KeymapUtil;
@@ -28,7 +29,6 @@ import java.io.IOException;
 
 
 public class CheckIOShowSolutionsAction extends AnAction {
-  public static final String ACTION_ID = "CheckIOShowSolutionsAction";
   private static final Logger LOG = Logger.getInstance(CheckIOShowSolutionsAction.class);
   public static final String SHORTCUT = "ctrl shift pressed H";
   public CheckIOShowSolutionsAction() {
@@ -40,49 +40,55 @@ public class CheckIOShowSolutionsAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     final Project project = e.getProject();
-    if (project == null) {
-      LOG.warn("Project is null");
-      return;
-    }
-    final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
-    if (task == null) {
-      LOG.warn("Task is null");
-      return;
-    }
+    final Task task;
 
-    ApplicationManager.getApplication().invokeLater(() -> {
-      final FileEditorManager manager = FileEditorManager.getInstance(project);
-      final VirtualFile[] openFiles = manager.getOpenFiles();
-      for (VirtualFile file : openFiles) {
-        if (CheckIOUtils.isPublicationFile(file)) {
-          manager.closeFile(file);
-        }
-      }
-    });
-    SharedThreadPool.getInstance().executeOnPooledThread(() -> {
-      final CheckIOPublication[] publications;
-      try {
-        publications = CheckIOConnector.getPublicationsForTask(task);
-        CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
-        CheckIOUtils.createPublicationsFiles(project, task, publications);
-        if (toolWindowFactory != null) {
+    if (project != null && (task = CheckIOUtils.getTaskFromSelectedEditor(project)) != null) {
+      closePreviousPublicationFiles(project);
 
-          CheckIOToolWindow toolWindow = toolWindowFactory.myCheckIOToolWindow;
-          ApplicationManager.getApplication().invokeLater(() -> {
-            ApplicationManager.getApplication().runWriteAction(() -> {
-              VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
-            });
-            toolWindow.mySolutionsPanel = new CheckIOSolutionsPanel(publications, project, toolWindow);
-            toolWindow.myContentPanel.add(CheckIOToolWindow.SOLUTIONS, toolWindow.mySolutionsPanel);
-            toolWindow.showSolutionsPanel();
-          });
+      SharedThreadPool.getInstance().executeOnPooledThread(() -> {
+        try {
+          getPublicationAndShowPublicationsPanel(project, task);
         }
+        catch (IOException e1) {
+          LOG.info("Tried to download publication with no internet connection. Exception message: " + e1.getLocalizedMessage());
+          CheckIOUtils.makeNoInternetConnectionNotifier(project);
+        }
+      });
+    }
+    else {
+      final String message = (project == null ? "Project" : "Task") + " is null";
+      LOG.warn(message);
+    }
+  }
+
+  private static void closePreviousPublicationFiles(Project project) {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+                                                        final FileEditorManager manager = FileEditorManager.getInstance(project);
+                                                        final VirtualFile[] openFiles = manager.getOpenFiles();
+                                                        for (VirtualFile file : openFiles) {
+                                                          if (CheckIOUtils.isPublicationFile(file)) {
+                                                            manager.closeFile(file);
+                                                          }
       }
-      catch (IOException e1) {
-        LOG.info("Tried to download publication with no internet connection. Excaption message: " + e1.getLocalizedMessage());
-        CheckIOUtils.makeNoInternetConnectionNotifier(project);
-      }
-    });
+                                                      },
+                                                      ModalityState.defaultModalityState());
+  }
+
+  private static void getPublicationAndShowPublicationsPanel(Project project, Task task) throws IOException {
+    final CheckIOPublication[] publications = CheckIOConnector.getPublicationsForTask(task);
+    final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
+    CheckIOUtils.createPublicationsFiles(project, task, publications);
+    if (toolWindowFactory != null) {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+        });
+        final CheckIOToolWindow toolWindow = toolWindowFactory.getCheckIOToolWindow();
+        final CheckIOSolutionsPanel solutionsPanel = toolWindow.getSolutionsPanel();
+        solutionsPanel.update(publications, project, toolWindow.createButtonPanel());
+        toolWindow.showSolutionsPanel();
+      });
+    }
   }
 
   @Override
