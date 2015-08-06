@@ -22,8 +22,6 @@ import com.jetbrains.checkio.actions.*;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
-import com.jetbrains.edu.learning.actions.StudyNextStudyTaskAction;
-import com.jetbrains.edu.learning.actions.StudyPreviousStudyTaskAction;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 
 public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProvider, Disposable {
@@ -39,11 +38,22 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private static final String TASK_DESCRIPTION = "Task description";
   public static final String SOLUTIONS = "Solutions";
   private static final String TEST_RESULTS = "Test results";
-  public CheckIOTaskInfoPanel myTaskInfoPanel;
-  public CheckIOSolutionsPanel mySolutionsPanel;
-  public CheckIOTestResultsWindow myTestResultsWindow;
+
+  private CheckIOTaskInfoPanel myTaskInfoPanel;
+
+  public CheckIOSolutionsPanel getSolutionsPanel() {
+    return mySolutionsPanel;
+  }
+
+  private CheckIOSolutionsPanel mySolutionsPanel;
+  private CheckIOTestResultsPanel myTestResultsPanel;
   private JBCardLayout myMyCardLayout;
-  public JPanel myContentPanel;
+  private JPanel myContentPanel;
+
+
+  public void addToContentPanel(@NotNull final String name, @NotNull final JPanel panel) {
+    myContentPanel.add(name, panel);
+  }
 
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
@@ -59,12 +69,14 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     final Task task = studyEditor.getTaskFile().getTask();
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
-    myTestResultsWindow = new CheckIOTestResultsWindow(this);
+    mySolutionsPanel = new CheckIOSolutionsPanel();
+    myTestResultsPanel = new CheckIOTestResultsPanel();
 
     myMyCardLayout = new JBCardLayout();
     myContentPanel = new JPanel(myMyCardLayout);
     myContentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
-    myContentPanel.add(TEST_RESULTS, myTestResultsWindow);
+    myContentPanel.add(SOLUTIONS, mySolutionsPanel);
+    myContentPanel.add(TEST_RESULTS, myTestResultsPanel);
     setContent(myContentPanel);
 
     FileEditorManagerListener listener = new CheckIOFileEditorListener(project);
@@ -79,16 +91,16 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
   }
 
-  public void showTestResults(@NotNull final String testResultsText) {
-    myTestResultsWindow.loadTestResultsFromHtmlString(testResultsText);
+  public void checkAndShowResults(@NotNull final Task task, @NotNull final String code) throws IOException {
+    myTestResultsPanel.testAndShowResults(createButtonPanel(), task, code);
     myMyCardLayout.swipe(myContentPanel, TEST_RESULTS, JBCardLayout.SwipeDirection.AUTO);
   }
 
   private static JPanel createToolbarPanel() {
     final DefaultActionGroup group = new DefaultActionGroup();
     group.add(new CheckIOCheckSolutionAction());
-    group.add(new StudyPreviousStudyTaskAction());
-    group.add(new StudyNextStudyTaskAction());
+    group.add(new CheckIOPreviousTaskAction());
+    group.add(new CheckIONextTaskAction());
     group.add(new CheckIORefreshFileAction());
     group.add(new CheckIOShowHintAction());
     group.add(new CheckIOUpdateProjectAction());
@@ -104,21 +116,23 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   }
 
-  public static JPanel createButtonPanel(@NotNull final CheckIOToolWindow toolWindow) {
+  public JPanel createButtonPanel() {
     final JPanel buttonPanel = new JPanel(new BorderLayout());
     buttonPanel.setPreferredSize(new Dimension(CheckIOUtils.width, 30));
     final JLabel label = new JLabel(AllIcons.Diff.Arrow);
     label.setToolTipText("Back to task text");
+
     buttonPanel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        toolWindow.showTaskInfoPanel();
+        showTaskInfoPanel();
       }
     });
+
     label.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        toolWindow.showTaskInfoPanel();
+        showTaskInfoPanel();
       }
     });
     buttonPanel.add(label, BorderLayout.WEST);

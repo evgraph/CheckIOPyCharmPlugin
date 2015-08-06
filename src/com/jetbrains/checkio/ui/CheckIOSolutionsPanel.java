@@ -40,8 +40,13 @@ public class CheckIOSolutionsPanel extends JPanel {
   private static final Logger LOG = Logger.getInstance(CheckIOSolutionsPanel.class);
   private JPanel contentPanel;
 
-  public CheckIOSolutionsPanel(@NotNull final CheckIOPublication[] publications, @NotNull final Project project,
-                               @NotNull final CheckIOToolWindow toolWindow) {
+  public CheckIOSolutionsPanel() {
+
+  }
+
+  public void update(@NotNull final CheckIOPublication[] publications, @NotNull final Project project,
+                     @NotNull final JPanel buttonPanel) {
+    this.removeAll();
     myProject = project;
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     clearPublications = new ArrayList<>();
@@ -51,7 +56,7 @@ public class CheckIOSolutionsPanel extends JPanel {
     initHashMap();
     setPublicationsByCategory(publications);
     setContentPanel();
-    add(CheckIOToolWindow.createButtonPanel(toolWindow));
+    add(buttonPanel);
     add(contentPanel);
   }
 
