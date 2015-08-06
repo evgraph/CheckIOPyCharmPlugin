@@ -26,7 +26,6 @@ import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
-import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonProjectGenerator;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -95,14 +94,13 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
     course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
     StudyTaskManager.getInstance(project).setCourse(course);
     myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-    new StudyProjectGenerator().flushCourse(course);
-    course.initCourse(false);
     ApplicationManager.getApplication().invokeLater(
       () -> ApplicationManager.getApplication().runWriteAction(() -> {
         final File courseDirectory = new File(myCoursesDir, course.getName());
         StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
         course.setCourseDirectory(myCoursesDir.getAbsolutePath());
         CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
+        course.initCourse(false);
         openFirstTask(course, project);
       }));
   }
