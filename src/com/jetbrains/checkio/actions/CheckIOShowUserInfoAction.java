@@ -11,7 +11,6 @@ import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 
 
 public class CheckIOShowUserInfoAction extends AnAction {
-  private static final String ID = "CheckIOShowUserInfo";
 
   public CheckIOShowUserInfoAction() {
     super("Show user info", "Show user info", AllIcons.General.Information);

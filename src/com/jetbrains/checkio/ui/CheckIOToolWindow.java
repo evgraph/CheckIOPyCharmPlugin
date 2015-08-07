@@ -30,13 +30,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 
 
 public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProvider, Disposable {
   public static final String ID = "Task Info";
   private static final String TASK_DESCRIPTION = "Task description";
-  public static final String SOLUTIONS = "Solutions";
+  private static final String SOLUTIONS = "Solutions";
   private static final String TEST_RESULTS = "Test results";
 
   private CheckIOTaskInfoPanel myTaskInfoPanel;
@@ -50,13 +49,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private JBCardLayout myMyCardLayout;
   private JPanel myContentPanel;
 
-
-  public void addToContentPanel(@NotNull final String name, @NotNull final JPanel panel) {
-    myContentPanel.add(name, panel);
-  }
-
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
+    this.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.MAX_HEIGHT));
 
     final JPanel toolbarPanel = createToolbarPanel();
     setToolbar(toolbarPanel);
@@ -74,6 +69,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     myMyCardLayout = new JBCardLayout();
     myContentPanel = new JPanel(myMyCardLayout);
+    myContentPanel.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.HEIGHT));
     myContentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
     myContentPanel.add(SOLUTIONS, mySolutionsPanel);
     myContentPanel.add(TEST_RESULTS, myTestResultsPanel);
@@ -91,8 +87,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
   }
 
-  public void checkAndShowResults(@NotNull final Task task, @NotNull final String code) throws IOException {
-    myTestResultsPanel.testAndShowResults(createButtonPanel(), task, code);
+  public void checkAndShowResults(@NotNull final Task task, @NotNull final String code) {
+    final JPanel buttonPanel = createButtonPanel();
+    myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
     myMyCardLayout.swipe(myContentPanel, TEST_RESULTS, JBCardLayout.SwipeDirection.AUTO);
   }
 
@@ -118,7 +115,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   public JPanel createButtonPanel() {
     final JPanel buttonPanel = new JPanel(new BorderLayout());
-    buttonPanel.setPreferredSize(new Dimension(CheckIOUtils.width, 30));
+    buttonPanel.setPreferredSize(new Dimension(CheckIOUtils.MAX_WIDTH, 30));
+    buttonPanel.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, 30));
     final JLabel label = new JLabel(AllIcons.Diff.Arrow);
     label.setToolTipText("Back to task text");
 
@@ -142,7 +140,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
 
   class CheckIOFileEditorListener implements FileEditorManagerListener {
-    private Project myProject;
+    private final Project myProject;
 
     public CheckIOFileEditorListener(@NotNull final Project project) {
       myProject = project;

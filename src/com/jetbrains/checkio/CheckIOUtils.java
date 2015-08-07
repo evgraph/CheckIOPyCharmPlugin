@@ -50,11 +50,13 @@ import java.util.List;
 
 public class CheckIOUtils {
   public static final Key<LanguageLevel> CHECKIO_LANGUAGE_LEVEL_KEY = new Key<>("CheckIOLanguageLevel");
-  private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
-  public static final int width = 450;
-  public static final int height = 1000;
+  public static final int WIDTH = 450;
+  public static final int HEIGHT = 1000;
+  public static final int MAX_WIDTH = 1000;
+  public static final int MAX_HEIGHT = 2000;
   public static final String PUBLICATION_FOLDER_NAME = "/.publications/";
   public static final String COURSE_TYPE = "CHECK_IO";
+  private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
   private CheckIOUtils() {
   }
@@ -162,7 +164,7 @@ public class CheckIOUtils {
       final File file = new File(directory, publicationNameWithoutExtension);
       FileUtil.createIfDoesntExist(file);
       try {
-        FileUtil.writeToFile(file, publication.myText);
+        FileUtil.writeToFile(file, publication.getText());
       }
       catch (IOException e) {
         LOG.warn(e.getMessage());
@@ -186,7 +188,7 @@ public class CheckIOUtils {
   }
 
 
-  public static File getPublicationsDirectory(@NotNull final Project project, @NotNull final Task task) {
+  private static File getPublicationsDirectory(@NotNull final Project project, @NotNull final Task task) {
     final String publicationDirectory = project.getBasePath() + PUBLICATION_FOLDER_NAME + task.getName();
     final File publicationDir = new File(publicationDirectory);
     if (!publicationDir.mkdirs()) {

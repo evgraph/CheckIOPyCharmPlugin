@@ -17,12 +17,12 @@ public class CheckIOTaskInfoPanel extends JPanel {
 
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     taskNameLabel = new JLabel(task.getName());
-    myBrowserWindow = new CheckIOBrowserWindow(CheckIOUtils.width, CheckIOUtils.height);
+    myBrowserWindow = new CheckIOBrowserWindow(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT);
     myBrowserWindow.setShowProgress(false);
     myBrowserWindow.setRefInNewBrowser(true);
     myBrowserWindow.load(taskTextPath);
     add(taskNameLabel);
-    add(myBrowserWindow.myPanel);
+    add(myBrowserWindow.getPanel());
   }
 
   public void setTaskText(String taskTextPath) {

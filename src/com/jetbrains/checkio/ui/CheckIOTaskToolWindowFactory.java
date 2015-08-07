@@ -14,10 +14,6 @@ import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
 
 public class CheckIOTaskToolWindowFactory implements ToolWindowFactory, DumbAware {
-  public CheckIOToolWindow getCheckIOToolWindow() {
-    return myCheckIOToolWindow;
-  }
-
   private CheckIOToolWindow myCheckIOToolWindow;
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
@@ -35,4 +31,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory, DumbAwar
   }
 
 
+  public CheckIOToolWindow getCheckIOToolWindow() {
+    return myCheckIOToolWindow;
+  }
 }

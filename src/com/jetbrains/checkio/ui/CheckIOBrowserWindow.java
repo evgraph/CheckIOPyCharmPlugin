@@ -29,14 +29,14 @@ import java.net.URL;
 
 public class CheckIOBrowserWindow extends JFrame {
   private static final String EVENT_TYPE_CLICK = "click";
-  public JFXPanel myPanel;
+  private JFXPanel myPanel;
   private WebView myWebComponent;
   private StackPane myPane;
   private WebEngine myEngine;
   private ProgressBar myProgressBar;
   private ChangeListener<Document> myDocumentChangeListener;
-  private int width;
-  private int height;
+  private final int width;
+  private final int height;
 
   private boolean showProgress = true;
 
@@ -55,12 +55,12 @@ public class CheckIOBrowserWindow extends JFrame {
     this.width = width;
     this.height = height;
     setLayout(new BorderLayout());
-    myPanel = new JFXPanel();
+    setPanel(new JFXPanel());
     LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
     initComponents();
   }
 
-  public void updateLaf(boolean isDarcula) {
+  private void updateLaf(boolean isDarcula) {
     if (isDarcula) {
       updateLafDarcula();
     }
@@ -102,12 +102,12 @@ public class CheckIOBrowserWindow extends JFrame {
         initHyperlinkListener();
       }
       Scene scene = new Scene(myPane, width, height);
-      myPanel.setScene(scene);
-      myPanel.setVisible(true);
+      getPanel().setScene(scene);
+      getPanel().setVisible(true);
       updateLaf(LafManager.getInstance().getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo);
     });
 
-    add(myPanel, BorderLayout.CENTER);
+    add(getPanel(), BorderLayout.CENTER);
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     setSize(width, height);
   }
@@ -170,7 +170,7 @@ public class CheckIOBrowserWindow extends JFrame {
     final JButton openInBrowser = new JButton(AllIcons.Actions.Browser_externalJavaDoc);
     openInBrowser.addActionListener(e -> BrowserUtil.browse(myEngine.getLocation()));
     openInBrowser.setToolTipText("Click to open link in browser");
-    panel.setMaximumSize(new Dimension(40, myPanel.getHeight()));
+    panel.setMaximumSize(new Dimension(40, getPanel().getHeight()));
     panel.add(backButton);
     panel.add(forwardButton);
     panel.add(openInBrowser);
@@ -215,11 +215,19 @@ public class CheckIOBrowserWindow extends JFrame {
     Platform.runLater(() -> myEngine.documentProperty().addListener(listener));
   }
 
-  public void removeFormListener(ChangeListener<Document> listener) {
+  private void removeFormListener(ChangeListener<Document> listener) {
     myEngine.documentProperty().removeListener(listener);
   }
 
-  class CheckIOLafManagerListener implements LafManagerListener {
+  public JFXPanel getPanel() {
+    return myPanel;
+  }
+
+  private void setPanel(JFXPanel panel) {
+    myPanel = panel;
+  }
+
+  private class CheckIOLafManagerListener implements LafManagerListener {
     @Override
     public void lookAndFeelChanged(LafManager manager) {
       updateLaf(manager.getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo);

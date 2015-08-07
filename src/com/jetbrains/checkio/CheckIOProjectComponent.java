@@ -31,7 +31,7 @@ import java.util.Map;
 
 public class CheckIOProjectComponent implements ProjectComponent {
   private final Project myProject;
-  private static Map<String, String> myDeletedShortcuts = new HashMap<>();
+  private static final Map<String, String> myDeletedShortcuts = new HashMap<>();
 
   private CheckIOProjectComponent(Project project) {
     myProject = project;
@@ -52,8 +52,8 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
   public void registerTaskToolWindow(@Nullable final Course course) {
     if (course != null && course.getCourseType().equals(CheckIOUtils.COURSE_TYPE)) {
-      registerToolWindowIfNeeded(CheckIOToolWindow.ID, ToolWindowAnchor.RIGHT);
-      final ToolWindow toolWindow = getToolWindowByID(CheckIOToolWindow.ID);
+      registerToolWindowIfNeeded();
+      final ToolWindow toolWindow = getToolWindowByID();
       if (toolWindow != null) {
         CheckIOUtils.updateTaskToolWindow(myProject);
         toolWindow.show(null);
@@ -61,32 +61,32 @@ public class CheckIOProjectComponent implements ProjectComponent {
     }
   }
 
-  private void registerToolWindowIfNeeded(@NotNull final String id, @NotNull final ToolWindowAnchor anchor) {
+  private void registerToolWindowIfNeeded() {
     final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-    final ToolWindow toolWindow = toolWindowManager.getToolWindow(id);
+    final ToolWindow toolWindow = toolWindowManager.getToolWindow(CheckIOToolWindow.ID);
     if (toolWindow == null) {
-      toolWindowManager.registerToolWindow(id, true, anchor, myProject, true);
+      toolWindowManager.registerToolWindow(CheckIOToolWindow.ID, true, ToolWindowAnchor.RIGHT, myProject, true);
     }
   }
 
-  private ToolWindow getToolWindowByID(@NotNull final String id) {
+  private ToolWindow getToolWindowByID() {
     final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-    return toolWindowManager.getToolWindow(id);
+    return toolWindowManager.getToolWindow(CheckIOToolWindow.ID);
   }
 
   private static void registerShortcuts(@Nullable final Course course) {
     if (course != null && course.getCourseType().equals(CheckIOUtils.COURSE_TYPE)) {
-      addShortcut(CheckIOCheckSolutionAction.SHORTCUT, CheckIOCheckSolutionAction.ACTION_ID, false);
-      addShortcut(CheckIOUpdateProjectAction.SHORTCUT, CheckIOUpdateProjectAction.ACTION_ID, false);
-      addShortcut(CheckIORefreshFileAction.SHORTCUT, CheckIORefreshFileAction.ACTION_ID, false);
-      addShortcut(CheckIOShowHintAction.SHORTCUT, CheckIOShowHintAction.ACTION_ID, false);
+      addShortcut(CheckIOCheckSolutionAction.SHORTCUT, CheckIOCheckSolutionAction.ACTION_ID);
+      addShortcut(CheckIOUpdateProjectAction.SHORTCUT, CheckIOUpdateProjectAction.ACTION_ID);
+      addShortcut(CheckIORefreshFileAction.SHORTCUT, CheckIORefreshFileAction.ACTION_ID);
+      addShortcut(CheckIOShowHintAction.SHORTCUT, CheckIOShowHintAction.ACTION_ID);
     }
   }
 
-  private static void addShortcut(@NotNull final String shortcutString, @NotNull final String actionIdString, boolean isAdditional) {
+  private static void addShortcut(@NotNull final String shortcutString, @NotNull final String actionIdString) {
     Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
     Shortcut[] shortcuts = keymap.getShortcuts(actionIdString);
-    if (shortcuts.length > 0 && !isAdditional) {
+    if (shortcuts.length > 0) {
       return;
     }
     Shortcut studyActionShortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(shortcutString), null);

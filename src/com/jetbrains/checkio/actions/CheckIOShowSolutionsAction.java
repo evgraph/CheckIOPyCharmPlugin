@@ -30,7 +30,7 @@ import java.io.IOException;
 
 public class CheckIOShowSolutionsAction extends AnAction {
   private static final Logger LOG = Logger.getInstance(CheckIOShowSolutionsAction.class);
-  public static final String SHORTCUT = "ctrl shift pressed H";
+  private static final String SHORTCUT = "ctrl shift pressed H";
   public CheckIOShowSolutionsAction() {
     super("Show solutions (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
           "Show solutions",

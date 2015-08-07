@@ -5,6 +5,7 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
@@ -56,7 +57,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   }
 
 
-  public void check(@NotNull final Project project) {
+  private static void check(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(
       () -> CommandProcessor.getInstance().runUndoTransparentAction(() -> ProgressManager.getInstance().run(getCheckTask(project))));
   }
@@ -95,7 +96,9 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         try {
           CheckIOConnector.updateTokensInTaskManager(project);
           assert toolWindowFactory != null;
-          toolWindowFactory.getCheckIOToolWindow().checkAndShowResults(task, code);
+          ApplicationManager.getApplication().invokeAndWait(() -> toolWindowFactory.getCheckIOToolWindow().checkAndShowResults(task, code),
+                                                            ModalityState.defaultModalityState());
+
           final StudyStatus status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
 
           if (status == StudyStatus.Solved) {

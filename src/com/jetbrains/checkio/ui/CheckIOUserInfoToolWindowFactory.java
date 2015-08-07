@@ -98,7 +98,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
   }
 
   private static class MyMouseListener extends MouseAdapter {
-    private CheckIOUser myUser;
+    private final CheckIOUser myUser;
 
     public MyMouseListener(@NotNull final CheckIOUser user) {
       myUser = user;

@@ -87,7 +87,7 @@ public class CheckIOSolutionsPanel extends JPanel {
 
   private void setPublicationsByCategory(@NotNull final CheckIOPublication[] publications) {
     for (CheckIOPublication publication : publications) {
-      myCategoryArrayListHashMap.get(publication.myCategory).add(publication);
+      myCategoryArrayListHashMap.get(publication.getCategory()).add(publication);
     }
   }
 
@@ -119,7 +119,7 @@ public class CheckIOSolutionsPanel extends JPanel {
     final DefaultMutableTreeNode root = new DefaultMutableTreeNode(task.getName());
     final Tree tree = new Tree(root);
     tree.setRootVisible(false);
-    tree.setPreferredSize(new Dimension(CheckIOUtils.height, CheckIOUtils.height));
+    tree.setPreferredSize(new Dimension(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT));
     tree.addTreeSelectionListener(new MyTreeSelectionListener());
 
     for (CheckIOPublicationCategory category : CheckIOPublicationCategory.values()) {
@@ -140,9 +140,9 @@ public class CheckIOSolutionsPanel extends JPanel {
   }
 
   private class PublicationsPanel extends JPanel {
-    private JLabel myViewOnWebLabel;
-    private JLabel myUserNameLabel;
-    private JLabel myUserLevelLabel;
+    private final JLabel myViewOnWebLabel;
+    private final JLabel myUserNameLabel;
+    private final JLabel myUserLevelLabel;
     private CheckIOPublication myPublication;
 
     public PublicationsPanel() {
@@ -164,9 +164,9 @@ public class CheckIOSolutionsPanel extends JPanel {
 
     public void setUserInfo(@NotNull final CheckIOPublication publication) {
       myPublication = publication;
-      myUserNameLabel.setText(UIUtil.toHtml("<b>User: </b>" + "<a href=\"\">" + myPublication.myAuthor.getUsername() + "</a>", 5));
-      myUserLevelLabel.setText(UIUtil.toHtml("<b>Level: </b>" + myPublication.myAuthor.getLevel(), 5));
-      myViewOnWebLabel.setText(UIUtil.toHtml(myPublication.myCategory + " <a href=\"\">solution</a> for " + task.getName()));
+      myUserNameLabel.setText(UIUtil.toHtml("<b>User: </b>" + "<a href=\"\">" + myPublication.getAuthor().getUsername() + "</a>", 5));
+      myUserLevelLabel.setText(UIUtil.toHtml("<b>Level: </b>" + myPublication.getAuthor().getLevel(), 5));
+      myViewOnWebLabel.setText(UIUtil.toHtml(myPublication.getCategory() + " <a href=\"\">solution</a> for " + task.getName()));
     }
 
 
@@ -179,7 +179,7 @@ public class CheckIOSolutionsPanel extends JPanel {
             url = CheckIOUtils.getPublicationLink(myPublication);
           }
           else {
-            url = CheckIOUtils.getUserProfileLink(myPublication.myAuthor);
+            url = CheckIOUtils.getUserProfileLink(myPublication.getAuthor());
           }
         }
       }
@@ -244,7 +244,7 @@ public class CheckIOSolutionsPanel extends JPanel {
       if (leaf) {
         final DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
-        final Icon icon = myIconsForRunners.get(publication.runner);
+        final Icon icon = myIconsForRunners.get(publication.getRunner());
         setIcon(icon);
       }
       else {

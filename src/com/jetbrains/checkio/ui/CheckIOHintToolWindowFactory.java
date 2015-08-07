@@ -27,7 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String ID = "Hints";
-  private LinkedBlockingQueue<JLabel> hintQueue = new LinkedBlockingQueue<>();
+  private final LinkedBlockingQueue<JLabel> hintQueue = new LinkedBlockingQueue<>();
   private static final Logger LOG = Logger.getInstance(CheckIOHintToolWindowFactory.class);
   private Task myTask;
   private Project myProject;
@@ -114,7 +114,7 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
   }
 
   private class HintsMouseListener extends MouseAdapter {
-    private JLabel moreHintsLabel;
+    private final JLabel moreHintsLabel;
 
     public HintsMouseListener(@NotNull final JLabel moreHintsLabel) {
       this.moreHintsLabel = moreHintsLabel;

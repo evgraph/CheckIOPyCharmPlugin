@@ -12,7 +12,7 @@ import javax.swing.*;
 
 
 public abstract class CheckIOTaskAction extends DumbAwareAction {
-  public CheckIOTaskAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
+  protected CheckIOTaskAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
     super(text, description, icon);
   }
 

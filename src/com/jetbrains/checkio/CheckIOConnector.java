@@ -76,8 +76,8 @@ public class CheckIOConnector {
   public static CheckIOUser authorizeUser() {
     final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
     myUser = authorizer.authorizeAndGetUser();
-    myAccessToken = authorizer.myAccessToken;
-    myRefreshToken = authorizer.myRefreshToken;
+    myAccessToken = authorizer.getAccessToken();
+    myRefreshToken = authorizer.getRefreshToken();
     return myUser;
   }
 
@@ -85,18 +85,18 @@ public class CheckIOConnector {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     boolean isTokenUpToDate;
     try {
-      isTokenUpToDate = isTokenUpToDate(taskManager.accessToken);
+      isTokenUpToDate = isTokenUpToDate(taskManager.getAccessToken());
       if (isTokenUpToDate) {
         return;
       }
-      final String refreshToken = taskManager.refreshToken;
+      final String refreshToken = taskManager.getRefreshToken();
       final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
       authorizer.setTokensFromRefreshToken(refreshToken);
-      myAccessToken = authorizer.myAccessToken;
-      myRefreshToken = authorizer.myRefreshToken;
+      myAccessToken = authorizer.getAccessToken();
+      myRefreshToken = authorizer.getRefreshToken();
 
-      taskManager.accessToken = myAccessToken;
-      taskManager.refreshToken = myRefreshToken;
+      taskManager.setAccessToken(myAccessToken);
+      taskManager.setRefreshToken(myRefreshToken);
     }
     catch (IOException e) {
       throw new IOException();
@@ -107,7 +107,7 @@ public class CheckIOConnector {
 
   public static Course getMissionsAndUpdateCourse(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
-    final MissionWrapper[] missionWrappers = getMissions(manager.accessToken);
+    final MissionWrapper[] missionWrappers = getMissions(manager.getAccessToken());
     return getCourseForProjectAndUpdateCourseInfo(project, missionWrappers);
   }
 
@@ -271,7 +271,7 @@ public class CheckIOConnector {
     setCourseAndLessonByName(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    final String token = taskManager.accessToken;
+    final String token = taskManager.getAccessToken();
     assert token != null;
     int id = taskManager.getTaskId(task);
     StudyStatus status = StudyStatus.Unchecked;
@@ -295,7 +295,7 @@ public class CheckIOConnector {
 
 
   //TODO: change (api needed)
-  public static CheckIOPublication[] getPublicationsForTask(@NotNull final Task task) throws IOException{
+  public static CheckIOPublication[] getPublicationsForTask(@NotNull final Task task) {
 
     final CheckIOUser author = new CheckIOUser();
     author.setUsername("Expert");

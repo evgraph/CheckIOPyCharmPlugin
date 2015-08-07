@@ -35,7 +35,7 @@ public class AuthorizerTest extends Assert {
     int port = mockServerRule.getHttpPort();
 
     checkIOUserAuthorizer = CheckIOUserAuthorizer.getInstance();
-    checkIOUserAuthorizer.myServerUrl = "http://localhost:" + port;
+    checkIOUserAuthorizer.setServerUrl("http://localhost:" + port);
   }
 
   @Test
@@ -91,8 +91,8 @@ public class AuthorizerTest extends Assert {
           .withHeader("Content-Type", "application/json")
       );
     checkIOUserAuthorizer.setTokensFirstTime("code");
-    assertEquals(accessToken, checkIOUserAuthorizer.myAccessToken);
-    assertEquals(refreshToken, checkIOUserAuthorizer.myRefreshToken);
+    assertEquals(accessToken, checkIOUserAuthorizer.getAccessToken());
+    assertEquals(refreshToken, checkIOUserAuthorizer.getRefreshToken());
   }
 
   @Test
@@ -143,8 +143,8 @@ public class AuthorizerTest extends Assert {
     catch (IOException e) {
       e.printStackTrace();
     }
-    checkIOUserAuthorizer.myServer.join();
-    assertFalse(checkIOUserAuthorizer.myAccessToken == null);
-    assertFalse(checkIOUserAuthorizer.myRefreshToken == null);
+    checkIOUserAuthorizer.getServer().join();
+    assertFalse(checkIOUserAuthorizer.getAccessToken() == null);
+    assertFalse(checkIOUserAuthorizer.getRefreshToken() == null);
   }
 }

@@ -5,7 +5,6 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -26,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 
 public class CheckIOInterpreterInspection extends PyInspection {
-  private static final Logger LOG = Logger.getInstance(CheckIOInterpreterInspection.class);
 
   @Nls
   @NotNull

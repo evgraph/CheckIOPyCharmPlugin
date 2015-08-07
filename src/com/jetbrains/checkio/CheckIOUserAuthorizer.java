@@ -66,10 +66,10 @@ public class CheckIOUserAuthorizer {
   private static final int ourPort = 36655;
   private static final String REDIRECT_URI = "http://localhost:" + ourPort;
   private static volatile CheckIOUserAuthorizer ourAuthorizer;
-  public Server myServer;
-  public String myServerUrl = "http://www.checkio.org";
-  public String myAccessToken;
-  public String myRefreshToken;
+  private Server myServer;
+  private String myServerUrl = "http://www.checkio.org";
+  private String myAccessToken;
+  private String myRefreshToken;
 
   private CheckIOUserAuthorizer() {
     loadProperties();
@@ -88,18 +88,18 @@ public class CheckIOUserAuthorizer {
     return authorizer;
   }
   public CheckIOUser authorizeAndGetUser() {
-    if (myServer == null || !myServer.isRunning()) {
+    if (getServer() == null || !getServer().isRunning()) {
       startServer();
     }
     openAuthorizationPage();
     try {
-      myServer.join();
+      getServer().join();
     }
     catch (InterruptedException e) {
       LOG.error(e.getMessage());
     }
 
-    return getUser(myAccessToken);
+    return getUser(getAccessToken());
   }
 
   public void setTokensFromRefreshToken(@NotNull final String refreshToken) {
@@ -115,9 +115,9 @@ public class CheckIOUserAuthorizer {
   public void startServer() {
     myServer = new Server(ourPort);
     MyContextHandler contextHandler = new MyContextHandler();
-    myServer.setHandler(contextHandler);
+    getServer().setHandler(contextHandler);
     try {
-      myServer.start();
+      getServer().start();
     }
     catch (Exception e) {
       LOG.error(e.getMessage());
@@ -129,7 +129,7 @@ public class CheckIOUserAuthorizer {
     BrowserUtil.browse(url);
   }
 
-  public CheckIOUser getUser(@NotNull final String accessToken) {
+  public CheckIOUser  getUser(@NotNull final String accessToken) {
     final HttpUriRequest request = makeUserInfoRequest(accessToken);
     final HttpResponse response = requestUserInfo(request);
     final HttpEntity entity = response.getEntity();
@@ -265,6 +265,22 @@ public class CheckIOUserAuthorizer {
       myAccessToken = jsonObject.getString(PARAMETER_ACCESS_TOKEN);
       myRefreshToken = jsonObject.getString(PARAMETER_REFRESH_TOKEN);
     }
+  }
+
+  public Server getServer() {
+    return myServer;
+  }
+
+  public void setServerUrl(String serverUrl) {
+    myServerUrl = serverUrl;
+  }
+
+  public String getAccessToken() {
+    return myAccessToken;
+  }
+
+  public String getRefreshToken() {
+    return myRefreshToken;
   }
 
   private class MyContextHandler extends AbstractHandler {

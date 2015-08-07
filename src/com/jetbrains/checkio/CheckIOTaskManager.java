@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("WeakerAccess")
 @State(
   name = "CheckIOTaskManager",
   storages = {
@@ -31,9 +32,9 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public String accessToken;
   public String refreshToken;
 
-  private UpdateProjectPolicy myUpdateProjectPolicy;
+  public UpdateProjectPolicy myUpdateProjectPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
-  private CheckIOUser myUser;
+  public CheckIOUser myUser;
   public Map<Task, CheckIOTaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
   //TODO: update (api needed)
   public Map<String, ArrayList<String>> myTaskHints = new HashMap<>();
@@ -43,7 +44,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
       myUpdateProjectPolicy = UpdateProjectPolicy.Ask;
     }
   }
-
 
   public UpdateProjectPolicy getUpdateProjectPolicy() {
     return myUpdateProjectPolicy;
@@ -57,7 +57,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     final Module module = ModuleManager.getInstance(project).getModules()[0];
     return ModuleServiceManager.getService(module, CheckIOTaskManager.class);
   }
-
 
   public CheckIOUser getUser() {
     return myUser;
@@ -94,5 +93,21 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   @Override
   public void loadState(CheckIOTaskManager state) {
     XmlSerializerUtil.copyBean(state, this);
+  }
+
+  public String getAccessToken() {
+    return accessToken;
+  }
+
+  public void setAccessToken(String accessToken) {
+    this.accessToken = accessToken;
+  }
+
+  public String getRefreshToken() {
+    return refreshToken;
+  }
+
+  public void setRefreshToken(String refreshToken) {
+    this.refreshToken = refreshToken;
   }
 }
