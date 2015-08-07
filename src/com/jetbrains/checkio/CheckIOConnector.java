@@ -181,15 +181,11 @@ public class CheckIOConnector {
   private static Task getTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
     final Task task = createTaskFromMission(missionWrapper);
     final String name = CheckIOUtils.getTaskFileNameFromTask(task);
-    task.addTaskFile(name, 0);
-    final TaskFile taskFile = task.getTaskFile(name);
-    if (taskFile != null) {
-      taskFile.name = task.getName();
-      taskFile.text = missionWrapper.code;
-    }
-    else {
-      LOG.warn("Task file for task " + task.getName() + "is null");
-    }
+    TaskFile taskFile = new TaskFile();
+    taskFile.name = name;
+    taskFile.text = missionWrapper.code;
+    taskFile.setIndex(0);
+    task.addTaskFile(taskFile);
     return task;
   }
 
