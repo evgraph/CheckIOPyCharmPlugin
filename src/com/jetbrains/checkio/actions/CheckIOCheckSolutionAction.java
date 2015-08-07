@@ -85,7 +85,10 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         if (task == null || code.isEmpty()) {
-          CheckIOUtils.showOperationResultPopUp("Couldn't find task or task is empty", MessageType.WARNING.getPopupBackground(), project);
+          ApplicationManager.getApplication().invokeLater(
+            () ->  CheckIOUtils.showOperationResultPopUp("Couldn't find task or task is empty",
+                                                         MessageType.WARNING.getPopupBackground(), project));
+
           return;
         }
 
