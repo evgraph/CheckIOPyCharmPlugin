@@ -54,10 +54,6 @@ public class CheckIOBrowserWindow extends JFrame {
   public CheckIOBrowserWindow(int width, int height) {
     this.width = width;
     this.height = height;
-    init();
-  }
-
-  private void init() {
     setLayout(new BorderLayout());
     myPanel = new JFXPanel();
     LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
@@ -91,8 +87,8 @@ public class CheckIOBrowserWindow extends JFrame {
 
   private void initComponents() {
     Platform.runLater(() -> {
-      myWebComponent = new WebView();
       myPane = new StackPane();
+      myWebComponent = new WebView();
       myEngine = myWebComponent.getEngine();
       if (showProgress) {
         myProgressBar = makeProgressBarWithListener();
@@ -118,7 +114,12 @@ public class CheckIOBrowserWindow extends JFrame {
 
 
   public void load(@NotNull final String url) {
-    Platform.runLater(() -> myEngine.load(url));
+    Platform.runLater(() -> {
+      if (showProgress) {
+        myWebComponent.setVisible(false);
+      }
+      myEngine.load(url);
+    });
   }
 
   private void initHyperlinkListener() {
@@ -211,7 +212,7 @@ public class CheckIOBrowserWindow extends JFrame {
 
   public void addFormListener(ChangeListener<Document> listener) {
     myDocumentChangeListener = listener;
-    myEngine.documentProperty().addListener(listener);
+    Platform.runLater(() -> myEngine.documentProperty().addListener(listener));
   }
 
   public void removeFormListener(ChangeListener<Document> listener) {
