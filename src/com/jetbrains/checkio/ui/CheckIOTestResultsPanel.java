@@ -25,12 +25,11 @@ public class CheckIOTestResultsPanel extends JPanel {
 
   public CheckIOTestResultsPanel() {
     myBrowserWindow = new CheckIOBrowserWindow(CheckIOUtils.width, CheckIOUtils.height);
+    myBrowserWindow.setShowProgress(true);
   }
 
   public void testAndShowResults(@NotNull final JPanel buttonPanel, @NotNull final Task task, @NotNull final String code) {
     removeAll();
-
-    myBrowserWindow.setShowProgress(true);
     final Project project = ProjectUtil.guessCurrentProject(this);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String token = taskManager.accessToken;
@@ -47,10 +46,10 @@ public class CheckIOTestResultsPanel extends JPanel {
     myBrowserWindow.load(url);
   }
 
-  private ChangeListener<Document> createDocumentListener(@NotNull String token,
-                                                          @NotNull String taskId,
-                                                          @NotNull String interpreter,
-                                                          @NotNull String code) {
+  private static ChangeListener<Document> createDocumentListener(@NotNull String token,
+                                                                 @NotNull String taskId,
+                                                                 @NotNull String interpreter,
+                                                                 @NotNull String code) {
     return (observable, oldDocument, newDocument) -> {
       if (newDocument != null) {
         if (newDocument.getElementsByTagName("form").getLength() > 0) {
