@@ -26,6 +26,7 @@ import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
+import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.python.newProject.PythonProjectGenerator;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -53,8 +54,8 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
       final String accessToken = CheckIOConnector.getMyAccessToken();
       final String refreshToken = CheckIOConnector.getMyRefreshToken();
       taskManager.setUser(user);
-      taskManager.accessToken = accessToken;
-      taskManager.refreshToken = refreshToken;
+      taskManager.setAccessToken(accessToken);
+      taskManager.setRefreshToken(refreshToken);
     }
   }
 
@@ -93,19 +94,20 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
     final Course course;
     course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
     StudyTaskManager.getInstance(project).setCourse(course);
-    myCoursesDir = new File(PathManager.getConfigPath(), "courses");
+    myCoursesDir = new File(PathManager.getConfigPath(), "courss");
     ApplicationManager.getApplication().invokeLater(
       () -> ApplicationManager.getApplication().runWriteAction(() -> {
+        new StudyProjectGenerator().flushCourse(course);
+        course.initCourse(false);
         final File courseDirectory = new File(myCoursesDir, course.getName());
         StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
-        course.setCourseDirectory(myCoursesDir.getAbsolutePath());
+        course.setCourseDirectory(courseDirectory.getAbsolutePath());
         CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
-        course.initCourse(false);
         openFirstTask(course, project);
       }));
   }
 
-  public static void openFirstTask(@NotNull final Course course, @NotNull final Project project) {
+  private static void openFirstTask(@NotNull final Course course, @NotNull final Project project) {
     LocalFileSystem.getInstance().refresh(false);
     final Lesson firstLesson = StudyUtils.getFirst(course.getLessons());
     final Task firstTask = StudyUtils.getFirst(firstLesson.getTaskList());
@@ -124,7 +126,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
 
   private void authorizeUserAndGetMissions() {
     user = CheckIOConnector.authorizeUser();
-    final String accessToken = CheckIOUserAuthorizer.getInstance().myAccessToken;
+    final String accessToken = CheckIOUserAuthorizer.getInstance().getAccessToken();
     if (accessToken != null) {
       try {
         myMissionWrappers = CheckIOConnector.getMissions(accessToken);
