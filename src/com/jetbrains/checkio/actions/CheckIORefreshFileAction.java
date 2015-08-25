@@ -4,7 +4,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -17,6 +16,7 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.DocumentUtil;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.EduNames;
 import com.jetbrains.edu.courseFormat.Course;
@@ -40,8 +40,9 @@ public class CheckIORefreshFileAction extends CheckIOTaskAction {
   @Override
   public void actionPerformed(AnActionEvent event) {
     final Project project = event.getProject();
+    final Editor fileEditor;
     if (project != null) {
-      final Editor fileEditor = FileEditorManager.getInstance(project).getSelectedTextEditor();
+      fileEditor = FileEditorManager.getInstance(project).getSelectedTextEditor();
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       if (task == null || fileEditor == null) {
         CheckIOUtils
@@ -71,12 +72,13 @@ public class CheckIORefreshFileAction extends CheckIOTaskAction {
       }
 
       final DocumentImpl document = (DocumentImpl)fileEditor.getDocument();
-      ApplicationManager.getApplication().runWriteAction(() -> {
+      DocumentUtil.writeInRunUndoTransparentAction(() -> {
         document.setText(patternDocument.getCharsSequence());
         CheckIOUtils.showOperationResultPopUp("Task refreshed", MessageType.INFO.getPopupBackground(), project);
         ProjectView.getInstance(project).refresh();
       });
     }
-
   }
 }
+
+
