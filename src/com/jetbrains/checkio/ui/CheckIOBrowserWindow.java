@@ -37,18 +37,16 @@ public class CheckIOBrowserWindow extends JFrame {
   private ChangeListener<Document> myDocumentChangeListener;
   private final int width;
   private final int height;
-
+  private boolean refInNewBrowser;
   private boolean showProgress = true;
-
-  public void setRefInNewBrowser(boolean refInNewBrowser) {
-    this.refInNewBrowser = refInNewBrowser;
-  }
-
-  private boolean refInNewBrowser = false;
 
 
   public void setShowProgress(boolean showProgress) {
     this.showProgress = showProgress;
+  }
+
+  public void setRefInNewBrowser(boolean refInNewBrowser) {
+    this.refInNewBrowser = refInNewBrowser;
   }
 
   public CheckIOBrowserWindow(int width, int height) {
@@ -102,12 +100,12 @@ public class CheckIOBrowserWindow extends JFrame {
         initHyperlinkListener();
       }
       Scene scene = new Scene(myPane, width, height);
-      getPanel().setScene(scene);
-      getPanel().setVisible(true);
+      myPanel.setScene(scene);
+      myPanel.setVisible(true);
       updateLaf(LafManager.getInstance().getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo);
     });
 
-    add(getPanel(), BorderLayout.CENTER);
+    add(myPanel, BorderLayout.CENTER);
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     setSize(width, height);
   }
