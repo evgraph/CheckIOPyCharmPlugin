@@ -17,12 +17,14 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.ui.OptionsDialog;
-import com.jetbrains.checkio.CheckIOConnector;
-import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.CheckIOUtils;
-import com.jetbrains.checkio.UpdateProjectPolicy;
+import com.jetbrains.checkio.*;
+import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
+import com.jetbrains.checkio.ui.CheckIOToolWindow;
+import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
@@ -69,7 +71,8 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
       final String taskFileName = CheckIOUtils.getTaskFileNameFromTask(task);
       final String code = task.getDocument(project, taskFileName).getText();
-      final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
+      final CheckIOTaskToolWindowFactory toolWindowFactory =
+        (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
       @Override
       public void onCancel() {
         studyManager.setStatus(task, statusBeforeCheck);
@@ -102,6 +105,18 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
           final StudyStatus status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
 
           if (status == StudyStatus.Solved) {
+            final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+            final CheckIOUser newUser = CheckIOUserAuthorizer.getInstance().getUser(taskManager.getAccessToken());
+            final CheckIOUser oldUser = CheckIOTaskManager.getInstance(project).getUser();
+            if (newUser.getLevel() != oldUser.getLevel()) {
+              taskManager.setUser(newUser);
+              final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOUserInfoToolWindowFactory.ID);
+              if (toolWindow != null) {
+                ApplicationManager.getApplication()
+                  .invokeAndWait(() -> new CheckIOUserInfoToolWindowFactory().createToolWindowContent(project, toolWindow),
+                                 ModalityState.defaultModalityState());
+              }
+            }
             askToUpdateProject(project);
           }
         }

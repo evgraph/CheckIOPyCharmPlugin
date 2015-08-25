@@ -27,6 +27,7 @@ import java.util.List;
 
 public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
   public static final String ID = "User Info";
+  private JLabel myUserLevelLabel = new JLabel();
 
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow window) {
@@ -42,10 +43,10 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
       contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
       final JLabel userNameLabel = new JLabel(UIUtil.toHtml("<b>User: </b>" + "<a href=\"\">" + user.getUsername() + "</a>", 5));
       userNameLabel.addMouseListener(new MyMouseListener(user));
-      final JLabel userLevelLabel = new JLabel(UIUtil.toHtml("<b>Level: </b>" + user.getLevel(), 5));
+      setLevelLabel(user.getLevel());
       contentPanel.add(userNameLabel);
       contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-      contentPanel.add(userLevelLabel);
+      contentPanel.add(myUserLevelLabel);
       contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
       int taskNum = 0;
       int taskSolved = 0;
@@ -72,9 +73,14 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
       contentPanel.add(studyProgressBar);
       addStatistics(tasksLeft, contentPanel);
       ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+      window.getContentManager().removeAllContents(false);
       Content content = contentFactory.createContent(contentPanel, "", true);
       window.getContentManager().addContent(content);
     }
+  }
+
+  public void setLevelLabel(int level) {
+    myUserLevelLabel.setText(UIUtil.toHtml("<b>Level: </b>" + level, 5));
   }
 
   private static int getSolvedTasks(@NotNull final Lesson lesson, @NotNull final StudyTaskManager taskManager) {
