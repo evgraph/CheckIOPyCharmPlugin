@@ -76,7 +76,8 @@ public class CheckIOShowSolutionsAction extends AnAction {
 
   private static void getPublicationAndShowPublicationsPanel(Project project, Task task) throws IOException {
     final CheckIOPublication[] publications = CheckIOConnector.getPublicationsForTask(task);
-    final CheckIOTaskToolWindowFactory toolWindowFactory = CheckIOUtils.getCheckIOToolWindowFactory();
+    final CheckIOTaskToolWindowFactory toolWindowFactory =
+      (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
     CheckIOUtils.createPublicationsFiles(project, task, publications);
     if (toolWindowFactory != null) {
       ApplicationManager.getApplication().invokeLater(() -> {

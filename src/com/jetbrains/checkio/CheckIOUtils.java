@@ -22,6 +22,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindowEP;
+import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -62,11 +63,11 @@ public class CheckIOUtils {
   }
 
   @Nullable
-  public static CheckIOTaskToolWindowFactory getCheckIOToolWindowFactory() {
+  public static ToolWindowFactory getToolWindowFactoryById(@NotNull final String id) {
     final ToolWindowEP[] toolWindowEPs = Extensions.getExtensions(ToolWindowEP.EP_NAME);
     for (ToolWindowEP toolWindowEP : toolWindowEPs) {
-      if (toolWindowEP.id.equals(CheckIOToolWindow.ID)) {
-        return (CheckIOTaskToolWindowFactory)toolWindowEP.getToolWindowFactory();
+      if (toolWindowEP.id.equals(id)) {
+        return toolWindowEP.getToolWindowFactory();
       }
     }
     return null;
@@ -200,7 +201,7 @@ public class CheckIOUtils {
   public static void updateTaskToolWindow(@NotNull final Project project) {
     ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID).
       getContentManager().removeAllContents(false);
-    final CheckIOTaskToolWindowFactory factory = getCheckIOToolWindowFactory();
+    final CheckIOTaskToolWindowFactory factory = (CheckIOTaskToolWindowFactory) getToolWindowFactoryById(CheckIOToolWindow.ID);
     if (factory != null) {
       factory.createToolWindowContent(project, ToolWindowManager.getInstance(project).
         getToolWindow(CheckIOToolWindow.ID));
