@@ -58,6 +58,7 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
     final JPanel contentPanel = new JPanel(new GridBagLayout());
     final JScrollPane hintsPanel = getHintsPanel(hints);
     contentPanel.setMinimumSize(new Dimension(0, 0));
+    contentPanel.setPreferredSize(hintsPanel.getPreferredSize());
     final JPanel label = getMoreHintsLabel();
     GridBagConstraints constraints = new GridBagConstraints();
     constraints.gridwidth = GridBagConstraints.RELATIVE;

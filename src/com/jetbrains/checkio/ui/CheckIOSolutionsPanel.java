@@ -2,7 +2,7 @@ package com.jetbrains.checkio.ui;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.LafManager;
-import com.intellij.ide.ui.laf.IntelliJLookAndFeelInfo;
+import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -65,7 +65,7 @@ public class CheckIOSolutionsPanel extends JPanel {
     final JPanel solutionsPanel = createSolutionsPanel();
     publicationInfoPanel = new PublicationsPanel();
 
-    if (LafManager.getInstance().getCurrentLookAndFeel() instanceof IntelliJLookAndFeelInfo) {
+    if (!(LafManager.getInstance().getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo)) {
       publicationInfoPanel.setBackground(UIUtil.getTreeBackground());
       solutionsPanel.setBackground(UIUtil.getTreeBackground());
       contentPanel.setBackground(UIUtil.getTreeBackground());
@@ -119,7 +119,7 @@ public class CheckIOSolutionsPanel extends JPanel {
     final DefaultMutableTreeNode root = new DefaultMutableTreeNode(task.getName());
     final Tree tree = new Tree(root);
     tree.setRootVisible(false);
-    tree.setPreferredSize(new Dimension(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT));
+    tree.setPreferredSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.HEIGHT));
     tree.addTreeSelectionListener(new MyTreeSelectionListener());
 
     for (CheckIOPublicationCategory category : CheckIOPublicationCategory.values()) {

@@ -31,14 +31,12 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
 
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow window) {
-    final JPanel contentPanel = new JPanel();
-    contentPanel.setMaximumSize(new Dimension(100, 300));
-
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
     final CheckIOTaskManager checkIOTaskManager = CheckIOTaskManager.getInstance(project);
     final Course course = studyTaskManager.getCourse();
     final CheckIOUser user = checkIOTaskManager.getUser();
     if (course != null && user != null) {
+      final JPanel contentPanel = new JPanel();
       contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.PAGE_AXIS));
       contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
       final JLabel userNameLabel = new JLabel(UIUtil.toHtml("<b>User: </b>" + "<a href=\"\">" + user.getUsername() + "</a>", 5));
@@ -72,6 +70,8 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
       StudyProgressBar studyProgressBar = new StudyProgressBar(percent / 100, 40, 10);
       contentPanel.add(studyProgressBar);
       addStatistics(tasksLeft, contentPanel);
+
+      contentPanel.setSize(contentPanel.getMinimumSize());
       ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
       window.getContentManager().removeAllContents(false);
       Content content = contentFactory.createContent(contentPanel, "", true);
