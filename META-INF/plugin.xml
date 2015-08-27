@@ -34,8 +34,6 @@
                 conditionClass="com.jetbrains.edu.learning.ui.StudyCondition"/>
     <toolWindow id="User Info" anchor="left" factoryClass="com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory"
                 conditionClass="com.jetbrains.edu.learning.ui.StudyCondition"/>
-    <toolWindow id="Hints" anchor="bottom" factoryClass="com.jetbrains.checkio.ui.CheckIOHintToolWindowFactory"
-                conditionClass="com.jetbrains.edu.learning.ui.StudyCondition"/>
     <applicationConfigurable instance="com.jetbrains.checkio.ui.CheckIOSettings"/>
 
     <!--<projectService serviceInterface="com.jetbrains.edu.learning.StudyTaskManager" serviceImplementation="com.jetbrains.edu.learning.StudyTaskManager" />-->

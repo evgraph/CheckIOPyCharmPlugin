@@ -5,10 +5,9 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.jetbrains.checkio.ui.CheckIOHintToolWindowFactory;
+import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
+import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import icons.InteractiveLearningIcons;
 
 import javax.swing.*;
@@ -31,22 +30,14 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
       return;
     }
 
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOHintToolWindowFactory.ID);
-    if (toolWindow != null) {
-      if (toolWindow.isVisible()) {
-        toolWindow.hide(null);
-      }
-      else {
-        toolWindow.show(null);
-      }
+    final CheckIOTaskToolWindowFactory toolWindowFactory =
+      (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
+    assert toolWindowFactory != null;
+    final CheckIOToolWindow toolWindow = toolWindowFactory.getCheckIOToolWindow();
+    if (toolWindow.isHintsVisible()) {
+      toolWindow.hideHintPanel();
       return;
     }
-
-    ToolWindowManager.getInstance(event.getProject())
-      .registerToolWindow(CheckIOHintToolWindowFactory.ID, true, ToolWindowAnchor.RIGHT, false);
-    toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOHintToolWindowFactory.ID);
-    new CheckIOHintToolWindowFactory().createToolWindowContent(project, toolWindow);
-    toolWindow.setSplitMode(true, null);
-    toolWindow.show(null);
+    toolWindow.showHintPanel(project);
   }
 }

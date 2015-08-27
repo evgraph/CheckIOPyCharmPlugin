@@ -48,10 +48,13 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private CheckIOTestResultsPanel myTestResultsPanel;
   private JBCardLayout myMyCardLayout;
   private JPanel myContentPanel;
+  private JSplitPane mySplitPane;
 
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
     this.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.MAX_HEIGHT));
+
+    mySplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
     final JPanel toolbarPanel = createToolbarPanel();
     setToolbar(toolbarPanel);
@@ -73,10 +76,17 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myContentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
     myContentPanel.add(SOLUTIONS, mySolutionsPanel);
     myContentPanel.add(TEST_RESULTS, myTestResultsPanel);
-    setContent(myContentPanel);
+
+    mySplitPane.setTopComponent(myContentPanel);
+
+    setContent(mySplitPane);
 
     FileEditorManagerListener listener = new CheckIOFileEditorListener(project);
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
+  }
+
+  public boolean isHintsVisible() {
+    return !(mySplitPane.getBottomComponent() == null);
   }
 
   public void showSolutionsPanel() {
@@ -91,6 +101,18 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     final JPanel buttonPanel = createButtonPanel();
     myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
     myMyCardLayout.swipe(myContentPanel, TEST_RESULTS, JBCardLayout.SwipeDirection.AUTO);
+  }
+
+  public void showHintPanel(@NotNull final Project project) {
+    final JPanel panel = new CheckIOHintPanel(project);
+    panel.setMaximumSize(panel.getPreferredSize());
+    panel.setSize(panel.getPreferredSize());
+    myContentPanel.setMinimumSize(new Dimension(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT - (int)panel.getPreferredSize().getHeight()));
+    mySplitPane.setBottomComponent(panel);
+  }
+
+  public void hideHintPanel() {
+    mySplitPane.remove(2);
   }
 
   private static JPanel createToolbarPanel() {
@@ -156,8 +178,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-      toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
+      if (isHintsVisible()) {
+        hideHintPanel();
+      }
 
       final Editor selectedEditor = source.getSelectedTextEditor();
       if (selectedEditor == null) {
@@ -179,8 +202,10 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
         if (isStudyFile) {
           boolean shouldSwipeToTaskDescription = !isPublicationFileOfSelectedTaskFile(oldFile, task);
           setTaskInfoPanelAndSwipeIfNeeded(task, shouldSwipeToTaskDescription);
-          final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-          toolWindowManager.unregisterToolWindow(CheckIOHintToolWindowFactory.ID);
+
+          if (isHintsVisible()) {
+            hideHintPanel();
+          }
           return;
         }
         hideTaskToolWindow();

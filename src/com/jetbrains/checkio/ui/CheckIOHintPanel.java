@@ -1,17 +1,11 @@
 package com.jetbrains.checkio.ui;
 
-
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.courseFormat.Task;
@@ -25,16 +19,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAware {
+public class CheckIOHintPanel extends JPanel {
   public static final String ID = "Hints";
+  private static final Logger LOG = Logger.getInstance(CheckIOHintPanel.class);
   private final LinkedBlockingQueue<JLabel> hintQueue = new LinkedBlockingQueue<>();
-  private static final Logger LOG = Logger.getInstance(CheckIOHintToolWindowFactory.class);
   private Task myTask;
   private Project myProject;
   private ScrollablePanel myHintPanel;
 
-  @Override
-  public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow window) {
+  public CheckIOHintPanel(@NotNull Project project) {
     myTask = CheckIOUtils.getTaskFromSelectedEditor(project);
     myProject = project;
 
@@ -45,6 +38,12 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
     }
     //TODO: change (api needed)
     //final ArrayList<String> hints = taskManager.myTaskHints.get(myTask.getName());
+
+    createHintPanel();
+    showNewHint();
+  }
+
+  public void createHintPanel() {
     final List<String> hints = Arrays.asList("Try to run the code and see which test fails", "The problem is likely an empty dictionary.",
                                              "Try to add special case processing.",
                                              "Look carefully when your code checks keys and values in the \"for ... in ...\" loop.",
@@ -55,10 +54,10 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
                                              "Look carefully when your code checks keys and values in the \"for ... in ...\" loop.",
                                              "You can replace a value if it equals {}");
 
-    final JPanel contentPanel = new JPanel(new GridBagLayout());
+    setLayout(new GridBagLayout());
     final JScrollPane hintsPanel = getHintsPanel(hints);
-    contentPanel.setMinimumSize(new Dimension(0, 0));
-    contentPanel.setPreferredSize(hintsPanel.getPreferredSize());
+    setMinimumSize(new Dimension(0, 0));
+    setPreferredSize(hintsPanel.getPreferredSize());
     final JPanel label = getMoreHintsLabel();
     GridBagConstraints constraints = new GridBagConstraints();
     constraints.gridwidth = GridBagConstraints.RELATIVE;
@@ -69,18 +68,13 @@ public class CheckIOHintToolWindowFactory implements ToolWindowFactory, DumbAwar
     constraints.insets = new Insets(0, 0, 1, 0);
     constraints.fill = GridBagConstraints.BOTH;
     constraints.ipady = 250;
-    contentPanel.add(hintsPanel, constraints);
+    add(hintsPanel, constraints);
 
     constraints.weighty = 0;
     constraints.gridy = 1;
     constraints.ipady = 0;
     constraints.fill = GridBagConstraints.BOTH;
-    contentPanel.add(label, constraints);
-    showNewHint();
-
-    ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-    Content content = contentFactory.createContent(contentPanel, "", true);
-    window.getContentManager().addContent(content);
+    add(label, constraints);
   }
 
   private JPanel getMoreHintsLabel() {
