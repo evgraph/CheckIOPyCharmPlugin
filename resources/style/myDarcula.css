@@ -12,7 +12,10 @@ body {
     color: #dddddd
 }
 
-
+.progress-bar > .track {
+  -fx-text-box-border: #bbbbbb;
+  -fx-control-inner-background: #bbbbbb;
+}
 
 p img {
     background-color: #bbbbbb;
