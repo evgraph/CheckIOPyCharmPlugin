@@ -79,6 +79,8 @@ public class CheckIOBrowserWindow extends JFrame {
       myEngine
         .setUserStyleSheetLocation("file:///" + engineStyleUrl.getPath());
       myPane.getStylesheets().add("file:///" + scrollBarStyleUrl.getPath());
+      myPane.setStyle("-fx-background-color: #3c3f41");
+      myPanel.getScene().getStylesheets().add("file:///" + engineStyleUrl.getPath());
       myEngine.reload();
     });
   }
@@ -193,8 +195,7 @@ public class CheckIOBrowserWindow extends JFrame {
 
     myEngine.getLoadWorker().stateProperty().addListener(
       (ov, oldState, newState) -> {
-        if (!myEngine.getLocation().contains("www")) {
-
+        if (!myEngine.getLocation().contains("http")) {
           return;
         }
         if (newState == Worker.State.SUCCEEDED) {
