@@ -8,6 +8,8 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.DumbModePermission;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
@@ -43,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CheckIOProjectGenerator extends PythonProjectGenerator implements DirectoryProjectGenerator {
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
-  private File myCoursesDir;
+  private static final File myCoursesDir = new File(PathManager.getConfigPath(), "courses");
   private CheckIOConnector.MissionWrapper[] myMissionWrappers;
   private CheckIOUser user;
 
@@ -94,14 +96,13 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
     final Course course;
     course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
     StudyTaskManager.getInstance(project).setCourse(course);
-    myCoursesDir = new File(PathManager.getConfigPath(), "courss");
-    ApplicationManager.getApplication().invokeLater(
-      () -> ApplicationManager.getApplication().runWriteAction(() -> {
+    DumbService.allowStartingDumbModeInside(DumbModePermission.MAY_START_BACKGROUND, () ->
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        final File courseDirectory = new File(myCoursesDir, course.getName());
+        course.setCourseDirectory(courseDirectory.getAbsolutePath());
         new StudyProjectGenerator().flushCourse(course);
         course.initCourse(false);
-        final File courseDirectory = new File(myCoursesDir, course.getName());
         StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
-        course.setCourseDirectory(courseDirectory.getAbsolutePath());
         CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
         openFirstTask(course, project);
       }));
