@@ -35,14 +35,17 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class CheckIOPublicationsPanel extends JPanel {
-  private PublicationsPanel publicationInfoPanel;
-  private JScrollPane mySolutionsPanel;
-  private Project myProject;
+  private HashMap<String, CheckIOPublication[]> myCategoryArrayListHashMap;
+  private PublicationInfoPanel publicationInfoPanel;
+  private JScrollPane mySolutionTreePanel;
+  private JPanel myButtonPanel;
+  private final Project myProject;
   private Tree tree;
   private Task task;
-  private HashMap<String, CheckIOPublication[]> myCategoryArrayListHashMap;
   private static final Logger LOG = Logger.getInstance(CheckIOPublicationsPanel.class);
 
   public CheckIOPublicationsPanel(@NotNull final Project project) {
@@ -50,69 +53,47 @@ public class CheckIOPublicationsPanel extends JPanel {
   }
 
   public void update(@NotNull final HashMap<String, CheckIOPublication[]> publicationByCategory,
-                     @NotNull final JPanel buttonPanel) {
+                     @NotNull final JPanel buttonPanel) throws IllegalStateException {
     this.removeAll();
-    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+    setLayout(new BorderLayout());
 
     myCategoryArrayListHashMap = publicationByCategory;
-    final JPanel contentPanel = createContentPanel();
+    myButtonPanel = buttonPanel;
+    publicationInfoPanel = new PublicationInfoPanel();
+    mySolutionTreePanel = createSolutionTreePanel();
+
+    add(combineButtonAndPublicationInfoPanels(), BorderLayout.PAGE_START);
+    add(mySolutionTreePanel, BorderLayout.CENTER);
+    add(createSeeMoreSolutionsLabel(), BorderLayout.PAGE_END);
+
     openFirstSolution();
-    add(buttonPanel);
-    add(contentPanel);
+    updateLafIfNeeded(mySolutionTreePanel);
   }
 
-  private JPanel createContentPanel() {
-    final JPanel contentPanel = new JPanel(new BorderLayout());
-    publicationInfoPanel = new PublicationsPanel();
-    mySolutionsPanel = createSolutionsPanel();
-    updateLafIfNeeded(contentPanel);
-    contentPanel.add(publicationInfoPanel, BorderLayout.PAGE_START);
-    contentPanel.add(mySolutionsPanel, BorderLayout.WEST);
-    contentPanel.add(createSeeMoreSolutionsLabel(), BorderLayout.PAGE_END);
-    return contentPanel;
+  private JPanel combineButtonAndPublicationInfoPanels() {
+    final JPanel panel = new JPanel(new BorderLayout());
+    panel.add(myButtonPanel, BorderLayout.PAGE_START);
+    panel.add(publicationInfoPanel, BorderLayout.CENTER);
+    return panel;
   }
 
-  private void updateLafIfNeeded(@NotNull final JPanel contentPanel) {
-    if (!(LafManager.getInstance().getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo)) {
-      publicationInfoPanel.setBackground(UIUtil.getTreeBackground());
-      mySolutionsPanel.setBackground(UIUtil.getTreeBackground());
-      contentPanel.setBackground(UIUtil.getTreeBackground());
-    }
-  }
-
-  private JScrollPane createSolutionsPanel() {
+  private JScrollPane createSolutionTreePanel() throws IllegalStateException {
     tree = createSolutionsTree();
     TreeUtil.expandAll(tree);
 
-    return new JBScrollPane(tree);
+    final JBScrollPane pane = new JBScrollPane(tree);
+    pane.setBorder(null);
+    return pane;
   }
 
-  private HyperlinkLabel createSeeMoreSolutionsLabel() {
-    final HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
-    hyperlinkLabel.setHyperlinkText("See more solutions on web");
-    hyperlinkLabel.setHyperlinkTarget(CheckIOConnector.getSeePublicationsOnWebLink(task.getName()));
-    return hyperlinkLabel;
-  }
-
-
-  private void openFirstSolution() {
-    TreePath parent = new TreePath(tree.getModel().getRoot());
-    final TreeNode node = (TreeNode)parent.getLastPathComponent();
-    final TreeNode categoryNode = node.getChildAt(0);
-    final TreeNode child = categoryNode.getChildAt(0);
-    tree.addSelectionPath(TreeUtil.getPathFromRoot(child));
-  }
-
-  private Tree createSolutionsTree() {
+  private Tree createSolutionsTree() throws IllegalStateException {
     task = CheckIOUtils.getTaskFromSelectedEditor(myProject);
     if (task == null) {
-      LOG.warn("Request solutions for null task");
-      return new Tree();
+      throw new IllegalStateException("Request solutions for null task");
     }
     final DefaultMutableTreeNode root = new DefaultMutableTreeNode(task.getName());
     final Tree tree = new Tree(root);
     tree.setRootVisible(false);
-    tree.setPreferredSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.HEIGHT));
     tree.addTreeSelectionListener(new MyTreeSelectionListener());
 
     for (String category : myCategoryArrayListHashMap.keySet()) {
@@ -132,13 +113,38 @@ public class CheckIOPublicationsPanel extends JPanel {
     return tree;
   }
 
-  private class PublicationsPanel extends JPanel {
+  private HyperlinkLabel createSeeMoreSolutionsLabel() {
+    final HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
+    hyperlinkLabel.setHyperlinkText("See more solutions on web");
+    hyperlinkLabel.setHyperlinkTarget(CheckIOConnector.getSeePublicationsOnWebLink(task.getName()));
+    return hyperlinkLabel;
+  }
+
+
+  private void openFirstSolution() {
+    TreePath parent = new TreePath(tree.getModel().getRoot());
+    final TreeNode node = (TreeNode)parent.getLastPathComponent();
+    final TreeNode categoryNode = node.getChildAt(0);
+    final TreeNode child = categoryNode.getChildAt(0);
+    tree.addSelectionPath(TreeUtil.getPathFromRoot(child));
+  }
+
+  private void updateLafIfNeeded(@NotNull final JScrollPane contentPanel) {
+    if (!(LafManager.getInstance().getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo)) {
+      publicationInfoPanel.setBackground(UIUtil.getTreeBackground());
+      mySolutionTreePanel.setBackground(UIUtil.getTreeBackground());
+      contentPanel.setBackground(UIUtil.getTreeBackground());
+    }
+  }
+
+
+  private class PublicationInfoPanel extends JPanel {
     private final JLabel myViewOnWebLabel;
     private final JLabel myUserNameLabel;
     private final JLabel myUserLevelLabel;
     private CheckIOPublication myPublication;
 
-    public PublicationsPanel() {
+    public PublicationInfoPanel() {
       final BoxLayout layout = new BoxLayout(this, BoxLayout.PAGE_AXIS);
       setBorder(BorderFactory.createEtchedBorder());
       setLayout(layout);
@@ -164,9 +170,8 @@ public class CheckIOPublicationsPanel extends JPanel {
       myViewOnWebLabel.setText(UIUtil.toHtml(myPublication.getCategory() + " <a href=\"\">solution</a> for " + task.getName()));
     }
 
-
     private class MyMouseListener extends MouseAdapter {
-      private ListenerKind kind;
+      private final ListenerKind kind;
 
       public MyMouseListener(ListenerKind kind) {
         this.kind = kind;
@@ -211,11 +216,6 @@ public class CheckIOPublicationsPanel extends JPanel {
       return new com.intellij.openapi.progress.Task.Backgroundable(myProject, "Loading solution", false) {
 
         @Override
-        public void onCancel() {
-          Thread.currentThread().interrupt();
-        }
-
-        @Override
         public void run(@NotNull ProgressIndicator indicator) {
           final TreePath treePath = e.getPath();
           final TreeNode selectedNode = (TreeNode)treePath.getLastPathComponent();
@@ -224,14 +224,29 @@ public class CheckIOPublicationsPanel extends JPanel {
           }
           DefaultMutableTreeNode[] nodes = tree.getSelectedNodes(DefaultMutableTreeNode.class, null);
           DefaultMutableTreeNode node = nodes[0];
+
           final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
-
-
           final String token = CheckIOTaskManager.getInstance(myProject).accessToken;
+          final Future<?> future =
+            ApplicationManager.getApplication().executeOnPooledThread(() -> getPublicationInfoAndOpenFile(publication, token));
+
+          while (!future.isDone()) {
+            indicator.checkCanceled();
+            try {
+              TimeUnit.MILLISECONDS.sleep(500);
+            }
+            catch (InterruptedException e) {
+              LOG.info(e.getMessage());
+            }
+          }
+        }
+
+        private void getPublicationInfoAndOpenFile(CheckIOPublication publication, String token) {
           try {
             CheckIOConnector.setPublicationCodeAndCategoryFromRequest(token, publication);
             final File
-              publicationFile = CheckIOUtils.createPublicationFile(myProject, CheckIOPublicationsPanel.this.task.getName(), publication);
+              publicationFile = CheckIOUtils
+              .createPublicationFile(myProject, CheckIOPublicationsPanel.this.task.getName(), publication);
             final VirtualFile virtualPublicationFile = VfsUtil.findFileByIoFile(publicationFile, true);
             if (virtualPublicationFile != null) {
               ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(
