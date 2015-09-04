@@ -42,7 +42,7 @@ public class AuthorizerTest extends Assert {
   public void testGetUser() {
     final CheckIOUser expected = new CheckIOUser();
     expected.setUsername("user");
-    expected.setUid(1);
+    expected.setId(1);
     expected.setLevel(1);
     mockServerClient
       .when(

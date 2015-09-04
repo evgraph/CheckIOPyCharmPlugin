@@ -66,7 +66,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
     final Task task = studyEditor.getTaskFile().getTask();
 
-    myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
+    myTaskInfoPanel = new CheckIOTaskInfoPanel(task);
     mySolutionsPanel = new CheckIOPublicationsPanel(project);
     myTestResultsPanel = new CheckIOTestResultsPanel();
 
@@ -235,10 +235,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
-      final String taskTextUrl = CheckIOUtils.getTaskTextUrl(myProject, task);
       final String taskName = task.getName();
       if (myTaskInfoPanel != null) {
-        myTaskInfoPanel.setTaskText(taskTextUrl);
+        myTaskInfoPanel.setTaskText(task);
         myTaskInfoPanel.setTaskNameLabelText(taskName);
         showTaskToolWindow();
       }

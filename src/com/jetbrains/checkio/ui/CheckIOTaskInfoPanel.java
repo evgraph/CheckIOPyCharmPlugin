@@ -1,6 +1,5 @@
 package com.jetbrains.checkio.ui;
 
-import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
@@ -12,21 +11,19 @@ public class CheckIOTaskInfoPanel extends JPanel {
   private final CheckIOBrowserWindow myBrowserWindow;
 
 
-  public CheckIOTaskInfoPanel(@NotNull final Project project, @NotNull final Task task) {
-    final String taskTextPath = CheckIOUtils.getTaskTextUrl(project, task);
-
+  public CheckIOTaskInfoPanel(@NotNull final Task task) {
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     taskNameLabel = new JLabel(task.getName());
     myBrowserWindow = new CheckIOBrowserWindow(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT);
     myBrowserWindow.setShowProgress(false);
     myBrowserWindow.setRefInNewBrowser(true);
-    myBrowserWindow.load(taskTextPath);
+    myBrowserWindow.loadContent(task.getText());
     add(taskNameLabel);
     add(myBrowserWindow.getPanel());
   }
 
-  public void setTaskText(String taskTextPath) {
-    myBrowserWindow.load(taskTextPath);
+  public void setTaskText(@NotNull final Task task) {
+    myBrowserWindow.loadContent(task.getText());
   }
 
   public void setTaskNameLabelText(String taskName) {

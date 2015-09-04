@@ -113,15 +113,6 @@ public class CheckIOUtils {
     return task.getName() + ".py";
   }
 
-  public static String getTaskTextUrl(@NotNull final Project project, @Nullable final Task task) {
-    if (task == null) {
-      return "";
-    }
-    final VirtualFile virtualFile = task.getTaskDir(project);
-    assert virtualFile != null;
-    return "file://" + virtualFile.getCanonicalPath() + "/task.html";
-  }
-
   public static void createNewLessonsDirsAndFlush(@NotNull final Course oldCourse,
                                                   @NotNull final Course newCourse,
                                                   @NotNull final Project project) {

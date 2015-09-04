@@ -32,6 +32,7 @@ public class CheckIOBrowserWindow extends JFrame {
   private JFXPanel myPanel;
   private WebView myWebComponent;
   private StackPane myPane;
+
   private WebEngine myEngine;
   private ProgressBar myProgressBar;
   private ChangeListener<Document> myDocumentChangeListener;
@@ -39,7 +40,6 @@ public class CheckIOBrowserWindow extends JFrame {
   private final int height;
   private boolean refInNewBrowser;
   private boolean showProgress = true;
-
 
   public void setShowProgress(boolean showProgress) {
     this.showProgress = showProgress;
@@ -117,6 +117,15 @@ public class CheckIOBrowserWindow extends JFrame {
         myWebComponent.setVisible(false);
       }
       myEngine.load(url);
+    });
+  }
+
+  public void loadContent(@NotNull final String content) {
+    Platform.runLater(() -> {
+      if (showProgress) {
+        myWebComponent.setVisible(false);
+      }
+      myEngine.loadContent(content);
     });
   }
 
