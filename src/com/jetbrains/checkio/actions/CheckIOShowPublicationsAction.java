@@ -6,13 +6,13 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -29,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 
 public class CheckIOShowPublicationsAction extends AnAction {
@@ -49,13 +51,12 @@ public class CheckIOShowPublicationsAction extends AnAction {
 
     if (myProject != null && (myTask = CheckIOUtils.getTaskFromSelectedEditor(myProject)) != null) {
       closePreviousPublicationFiles();
-      ApplicationManager.getApplication().invokeLater(() ->
-                                                        CommandProcessor.getInstance().runUndoTransparentAction(
-                                                          () -> ProgressManager.getInstance().run(getShowSolutionsTask()))
-      );
+      ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getShowSolutionsTask()));
     }
     else {
       LOG.warn((myProject == null ? "Project" : "Task") + " is null");
+      CheckIOUtils.showOperationResultPopUp("Internal problems. Please, try to reopen project", MessageType.WARNING.getPopupBackground(),
+                                            myProject);
     }
   }
 
@@ -75,6 +76,62 @@ public class CheckIOShowPublicationsAction extends AnAction {
     );
   }
 
+  private com.intellij.openapi.progress.Task.Backgroundable getShowSolutionsTask() {
+    return new com.intellij.openapi.progress.Task.Backgroundable(myProject, "Downloading solutions list", true) {
+      private HashMap<String, CheckIOPublication[]> myPublications;
+      private CheckIOTaskToolWindowFactory myToolWindowFactory;
+
+      @Override
+      public void onCancel() {
+        if (myToolWindowFactory != null) {
+          myToolWindowFactory.getCheckIOToolWindow().showTaskInfoPanel();
+        }
+      }
+
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        final Future<?> future = ApplicationManager.getApplication().executeOnPooledThread(this::getAndShowPublications);
+        while (!future.isDone()) {
+          indicator.checkCanceled();
+          try {
+            TimeUnit.MILLISECONDS.sleep(500);
+          }
+          catch (InterruptedException e) {
+            LOG.info(e.getMessage());
+          }
+        }
+      }
+
+      private void getAndShowPublications() {
+        myToolWindowFactory = (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
+        try {
+          if (myToolWindowFactory != null) {
+            CheckIOConnector.updateTokensInTaskManager(CheckIOShowPublicationsAction.this.myProject);
+            myPublications = CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(myTask);
+            ApplicationManager.getApplication().invokeLater(() -> showPublicationsInToolWindowByCategory(myPublications));
+          }
+        }
+        catch (IOException e) {
+          LOG.warn(e.getMessage());
+          CheckIOUtils.makeNoInternetConnectionNotifier(
+            CheckIOShowPublicationsAction.this.myProject);
+        }
+        catch (IllegalStateException e) {
+          LOG.warn(e.getMessage());
+          CheckIOUtils.showOperationResultPopUp("Couldn't load solutions for no task", MessageType.ERROR.getPopupBackground(),
+                                                myProject);
+        }
+      }
+
+      private void showPublicationsInToolWindowByCategory(@NotNull final HashMap<String, CheckIOPublication[]> publications) {
+        final CheckIOPublicationsPanel solutionsPanel = myToolWindowFactory.getCheckIOToolWindow().getSolutionsPanel();
+        solutionsPanel.update(publications, myToolWindowFactory.getCheckIOToolWindow().createButtonPanel());
+        myToolWindowFactory.getCheckIOToolWindow().showSolutionsPanel();
+      }
+    };
+  }
+
+
   @Override
   public void update(AnActionEvent e) {
     final Presentation presentation = e.getPresentation();
@@ -88,45 +145,5 @@ public class CheckIOShowPublicationsAction extends AnAction {
       }
     }
     presentation.setEnabled(false);
-  }
-
-  private com.intellij.openapi.progress.Task.Backgroundable getShowSolutionsTask() {
-    return new com.intellij.openapi.progress.Task.Backgroundable(myProject, "Downloading solutions list", true) {
-      private CheckIOTaskToolWindowFactory myToolWindowFactory =
-        (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
-      ;
-
-      @Override
-      public void onCancel() {
-        Thread.currentThread().interrupt();
-        if (myToolWindowFactory != null) {
-          myToolWindowFactory.getCheckIOToolWindow().showTaskInfoPanel();
-        }
-      }
-
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        try {
-          CheckIOConnector.updateTokensInTaskManager(CheckIOShowPublicationsAction.this.myProject);
-          indicator.checkCanceled();
-          final HashMap<String, CheckIOPublication[]> publications =
-            CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(myTask);
-          indicator.checkCanceled();
-
-
-          if (myToolWindowFactory != null) {
-            ApplicationManager.getApplication().invokeLater(() -> {
-              final CheckIOPublicationsPanel solutionsPanel = myToolWindowFactory.getCheckIOToolWindow().getSolutionsPanel();
-              solutionsPanel.update(publications, myToolWindowFactory.getCheckIOToolWindow().createButtonPanel());
-              myToolWindowFactory.getCheckIOToolWindow().showSolutionsPanel();
-            });
-          }
-        }
-        catch (IOException e) {
-          LOG.warn(e.getMessage());
-          CheckIOUtils.makeNoInternetConnectionNotifier(CheckIOShowPublicationsAction.this.myProject);
-        }
-      }
-    };
   }
 }
