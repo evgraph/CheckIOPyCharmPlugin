@@ -8,6 +8,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -29,6 +30,7 @@ import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
@@ -69,8 +71,6 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
       final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
-      final String taskFileName = CheckIOUtils.getTaskFileNameFromTask(task);
-      final String code = task.getDocument(project, taskFileName).getText();
       final CheckIOTaskToolWindowFactory toolWindowFactory =
         (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
       @Override
@@ -88,7 +88,9 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        if (task == null || code.isEmpty()) {
+        final Editor editor = StudyUtils.getSelectedEditor(myProject);
+        final String code;
+        if (editor == null || task == null || (code = editor.getDocument().getText()).isEmpty()) {
           ApplicationManager.getApplication().invokeLater(
             () ->  CheckIOUtils.showOperationResultPopUp("Couldn't find task or task is empty",
                                                          MessageType.WARNING.getPopupBackground(), project));
