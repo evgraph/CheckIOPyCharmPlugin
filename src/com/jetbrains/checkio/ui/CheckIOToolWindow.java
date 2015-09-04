@@ -40,11 +40,11 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   private CheckIOTaskInfoPanel myTaskInfoPanel;
 
-  public CheckIOSolutionsPanel getSolutionsPanel() {
+  public CheckIOPublicationsPanel getSolutionsPanel() {
     return mySolutionsPanel;
   }
 
-  private CheckIOSolutionsPanel mySolutionsPanel;
+  private CheckIOPublicationsPanel mySolutionsPanel;
   private CheckIOTestResultsPanel myTestResultsPanel;
   private JBCardLayout myMyCardLayout;
   private JPanel myContentPanel;
@@ -67,7 +67,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     final Task task = studyEditor.getTaskFile().getTask();
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(project, task);
-    mySolutionsPanel = new CheckIOSolutionsPanel();
+    mySolutionsPanel = new CheckIOPublicationsPanel(project);
     myTestResultsPanel = new CheckIOTestResultsPanel();
 
     myMyCardLayout = new JBCardLayout();
@@ -123,7 +123,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     group.add(new CheckIORefreshFileAction());
     group.add(new CheckIOShowHintAction());
     group.add(new CheckIOUpdateProjectAction());
-    group.add(new CheckIOShowSolutionsAction());
+    group.add(new CheckIOShowPublicationsAction());
     group.add(new CheckIOShowUserInfoAction());
 
     final ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("CheckIO", group, true);

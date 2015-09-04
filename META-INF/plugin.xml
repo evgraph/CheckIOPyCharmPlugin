@@ -74,7 +74,7 @@
     <action id="CheckIOCheckSolutionAction" class="com.jetbrains.checkio.actions.CheckIOCheckSolutionAction" text="Check mission"/>
     <action class="com.jetbrains.checkio.actions.CheckIORefreshFileAction" id="CheckIORefreshTaskAction"/>
     <action class="com.jetbrains.checkio.actions.CheckIOShowHintAction" id="CheckIOShowHintAction"/>
-    <action id="CheckIOShowSolutionsAction" class="com.jetbrains.checkio.actions.CheckIOShowSolutionsAction" text="ShowSolutionsAction"
+    <action id="CheckIOShowSolutionsAction" class="com.jetbrains.checkio.actions.CheckIOShowPublicationsAction" text="ShowSolutionsAction"
             description="Show solutions">
       <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt P"/>
     </action>

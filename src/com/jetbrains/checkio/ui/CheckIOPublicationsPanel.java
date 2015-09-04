@@ -4,17 +4,24 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.TreeUIHelper;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.jetbrains.checkio.CheckIOConnector;
+import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
-import com.jetbrains.checkio.courseFormat.CheckIOPublicationCategory;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,82 +32,68 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
-public class CheckIOSolutionsPanel extends JPanel {
-  private Project myProject;
-  private HashMap<CheckIOPublicationCategory, ArrayList<CheckIOPublication>> myCategoryArrayListHashMap;
-  private ArrayList<CheckIOPublication> clearPublications;
-  private ArrayList<CheckIOPublication> speedyPublications;
-  private ArrayList<CheckIOPublication> creativePublications;
+public class CheckIOPublicationsPanel extends JPanel {
   private PublicationsPanel publicationInfoPanel;
+  private JScrollPane mySolutionsPanel;
+  private Project myProject;
   private Tree tree;
   private Task task;
-  private static final Logger LOG = Logger.getInstance(CheckIOSolutionsPanel.class);
-  private JPanel contentPanel;
+  private HashMap<String, CheckIOPublication[]> myCategoryArrayListHashMap;
+  private static final Logger LOG = Logger.getInstance(CheckIOPublicationsPanel.class);
 
-  public CheckIOSolutionsPanel() {
-
+  public CheckIOPublicationsPanel(@NotNull final Project project) {
+    myProject = project;
   }
 
-  public void update(@NotNull final CheckIOPublication[] publications, @NotNull final Project project,
+  public void update(@NotNull final HashMap<String, CheckIOPublication[]> publicationByCategory,
                      @NotNull final JPanel buttonPanel) {
     this.removeAll();
-    myProject = project;
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-    clearPublications = new ArrayList<>();
-    speedyPublications = new ArrayList<>();
-    creativePublications = new ArrayList<>();
 
-    initHashMap();
-    setPublicationsByCategory(publications);
-    setContentPanel();
+    myCategoryArrayListHashMap = publicationByCategory;
+    final JPanel contentPanel = createContentPanel();
+    openFirstSolution();
     add(buttonPanel);
     add(contentPanel);
   }
 
-  private void setContentPanel() {
-    contentPanel = new JPanel(new BorderLayout());
-    final JPanel solutionsPanel = createSolutionsPanel();
+  private JPanel createContentPanel() {
+    final JPanel contentPanel = new JPanel(new BorderLayout());
     publicationInfoPanel = new PublicationsPanel();
+    mySolutionsPanel = createSolutionsPanel();
+    updateLafIfNeeded(contentPanel);
+    contentPanel.add(publicationInfoPanel, BorderLayout.PAGE_START);
+    contentPanel.add(mySolutionsPanel, BorderLayout.WEST);
+    contentPanel.add(createSeeMoreSolutionsLabel(), BorderLayout.PAGE_END);
+    return contentPanel;
+  }
 
+  private void updateLafIfNeeded(@NotNull final JPanel contentPanel) {
     if (!(LafManager.getInstance().getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo)) {
       publicationInfoPanel.setBackground(UIUtil.getTreeBackground());
-      solutionsPanel.setBackground(UIUtil.getTreeBackground());
+      mySolutionsPanel.setBackground(UIUtil.getTreeBackground());
       contentPanel.setBackground(UIUtil.getTreeBackground());
     }
-
-    contentPanel.add(publicationInfoPanel, BorderLayout.PAGE_START);
-    contentPanel.add(solutionsPanel, BorderLayout.WEST);
   }
 
-  private void initHashMap() {
-    myCategoryArrayListHashMap = new HashMap<CheckIOPublicationCategory, ArrayList<CheckIOPublication>>() {
-      {
-        put(CheckIOPublicationCategory.Clear, clearPublications);
-        put(CheckIOPublicationCategory.Creative, creativePublications);
-        put(CheckIOPublicationCategory.Speedy, speedyPublications);
-      }
-    };
-  }
-
-  private void setPublicationsByCategory(@NotNull final CheckIOPublication[] publications) {
-    for (CheckIOPublication publication : publications) {
-      myCategoryArrayListHashMap.get(publication.getCategory()).add(publication);
-    }
-  }
-
-  private JPanel createSolutionsPanel() {
-    JPanel solutionsPanel = new JPanel(new BorderLayout());
+  private JScrollPane createSolutionsPanel() {
     tree = createSolutionsTree();
     TreeUtil.expandAll(tree);
-    openFirstSolution();
 
-    solutionsPanel.add(Box.createRigidArea(new Dimension(0, 10)), BorderLayout.PAGE_START);
-    solutionsPanel.add(tree, BorderLayout.WEST);
-    return solutionsPanel;
+    return new JBScrollPane(tree);
   }
+
+  private HyperlinkLabel createSeeMoreSolutionsLabel() {
+    final HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
+    hyperlinkLabel.setHyperlinkText("See more solutions on web");
+    hyperlinkLabel.setHyperlinkTarget(CheckIOConnector.getSeePublicationsOnWebLink(task.getName()));
+    return hyperlinkLabel;
+  }
+
 
   private void openFirstSolution() {
     TreePath parent = new TreePath(tree.getModel().getRoot());
@@ -122,10 +115,10 @@ public class CheckIOSolutionsPanel extends JPanel {
     tree.setPreferredSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.HEIGHT));
     tree.addTreeSelectionListener(new MyTreeSelectionListener());
 
-    for (CheckIOPublicationCategory category : CheckIOPublicationCategory.values()) {
-      final DefaultMutableTreeNode top = new DefaultMutableTreeNode(category.toString() + " solutions");
+    for (String category : myCategoryArrayListHashMap.keySet()) {
+      final DefaultMutableTreeNode top = new DefaultMutableTreeNode(category + " solutions");
       root.add(top);
-      final ArrayList<CheckIOPublication> publications = myCategoryArrayListHashMap.get(category);
+      final CheckIOPublication[] publications = myCategoryArrayListHashMap.get(category);
 
       for (CheckIOPublication publication : publications) {
         DefaultMutableTreeNode treeNode = (new DefaultMutableTreeNode(publication, false));
@@ -160,6 +153,8 @@ public class CheckIOSolutionsPanel extends JPanel {
       add(Box.createRigidArea(new Dimension(0, 20)));
       myUserNameLabel.addMouseListener(new MyMouseListener(ListenerKind.User));
       myViewOnWebLabel.addMouseListener(new MyMouseListener(ListenerKind.Publication));
+      myUserNameLabel.setToolTipText("Click to see user profile on web");
+      myViewOnWebLabel.setToolTipText("Click to see solution on web");
     }
 
     public void setUserInfo(@NotNull final CheckIOPublication publication) {
@@ -171,25 +166,32 @@ public class CheckIOSolutionsPanel extends JPanel {
 
 
     private class MyMouseListener extends MouseAdapter {
-      private String url = "";
+      private ListenerKind kind;
 
       public MyMouseListener(ListenerKind kind) {
+        this.kind = kind;
+      }
+
+      private String getUrl() {
+        String url = "";
         if (myPublication != null) {
           if (kind == ListenerKind.Publication) {
-            url = CheckIOUtils.getPublicationLink(myPublication);
+            final String token = CheckIOTaskManager.getInstance(myProject).accessToken;
+            url = myPublication.getPublicationLink(token, task.getName());
           }
           else {
             url = CheckIOUtils.getUserProfileLink(myPublication.getAuthor());
           }
         }
+        return url;
       }
 
       @Override
       public void mouseClicked(MouseEvent e) {
+        final String url = getUrl();
         BrowserUtil.browse(url);
       }
     }
-
   }
 
   enum ListenerKind {
@@ -200,23 +202,52 @@ public class CheckIOSolutionsPanel extends JPanel {
   private class MyTreeSelectionListener implements TreeSelectionListener {
     @Override
     public void valueChanged(TreeSelectionEvent e) {
-      final TreePath treePath = e.getPath();
-      final TreeNode selectedNode = (TreeNode)treePath.getLastPathComponent();
-      if (!selectedNode.isLeaf()) {
-        return;
-      }
-      final String publicationName = treePath.getLastPathComponent().toString();
-      final String publicationFileName = publicationName + ".py";
-      final VirtualFile publicationFile = CheckIOUtils.getPublicationFile(myProject, publicationFileName, task);
-      if (publicationFile != null) {
-        DefaultMutableTreeNode[] nodes = tree.getSelectedNodes(DefaultMutableTreeNode.class, null);
-        DefaultMutableTreeNode node = nodes[0];
-        CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
-        ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(
-          () -> publicationInfoPanel.setUserInfo(publication)));
-        publicationFile.putUserDataIfAbsent(CheckIOUtils.CHECKIO_LANGUAGE_LEVEL_KEY, publication.getLanguageLevel());
-        FileEditorManager.getInstance(myProject).openFile(publicationFile, true);
-      }
+      final com.intellij.openapi.progress.Task.Backgroundable task = getLoadingSolutionTask(e);
+      ProgressManager.getInstance().run(task);
+    }
+
+    @NotNull
+    private com.intellij.openapi.progress.Task.Backgroundable getLoadingSolutionTask(final TreeSelectionEvent e) {
+      return new com.intellij.openapi.progress.Task.Backgroundable(myProject, "Loading solution", false) {
+
+        @Override
+        public void onCancel() {
+          Thread.currentThread().interrupt();
+        }
+
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          final TreePath treePath = e.getPath();
+          final TreeNode selectedNode = (TreeNode)treePath.getLastPathComponent();
+          if (!selectedNode.isLeaf()) {
+            return;
+          }
+          DefaultMutableTreeNode[] nodes = tree.getSelectedNodes(DefaultMutableTreeNode.class, null);
+          DefaultMutableTreeNode node = nodes[0];
+          final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
+
+
+          final String token = CheckIOTaskManager.getInstance(myProject).accessToken;
+          try {
+            CheckIOConnector.setPublicationCodeAndCategoryFromRequest(token, publication);
+            final File
+              publicationFile = CheckIOUtils.createPublicationFile(myProject, CheckIOPublicationsPanel.this.task.getName(), publication);
+            final VirtualFile virtualPublicationFile = VfsUtil.findFileByIoFile(publicationFile, true);
+            if (virtualPublicationFile != null) {
+              ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(
+                () -> {
+                  publicationInfoPanel.setUserInfo(publication);
+                  virtualPublicationFile.putUserDataIfAbsent(CheckIOUtils.CHECKIO_LANGUAGE_LEVEL_KEY, publication.getLanguageLevel());
+                  FileEditorManager.getInstance(myProject).openFile(virtualPublicationFile, true);
+                }), ModalityState.defaultModalityState());
+            }
+          }
+          catch (IOException e1) {
+            LOG.warn(e1.getMessage());
+            CheckIOUtils.makeNoInternetConnectionNotifier(myProject);
+          }
+        }
+      };
     }
   }
 
@@ -244,7 +275,7 @@ public class CheckIOSolutionsPanel extends JPanel {
       if (leaf) {
         final DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
-        final Icon icon = myIconsForRunners.get(publication.getRunner());
+        final Icon icon = myIconsForRunners.get(publication.getInterpreter());
         setIcon(icon);
       }
       else {

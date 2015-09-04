@@ -6,7 +6,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
-import com.jetbrains.checkio.courseFormat.CheckIOPublicationCategory;
 import com.jetbrains.checkio.courseFormat.CheckIOTaskPublicationStatus;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
@@ -18,6 +17,7 @@ import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -33,12 +33,15 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class CheckIOConnector {
   public static String CHECKIO_API_URL = "http://www.checkio.org/api/";
+  private static final String SOLUTION_CATEGORIES_URL = "http://www.checkio.org/api/publications-categories/";
+  private static final String PUBLICATION_URL = "http://www.checkio.org/api/publications/";
   private static final String MISSIONS_API = "user-missions/";
   private static final String PARAMETER_ACCESS_TOKEN = "token";
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
@@ -55,6 +58,8 @@ public class CheckIOConnector {
       put(true, CheckIOTaskPublicationStatus.Published);
       put(false, CheckIOTaskPublicationStatus.Unpublished);
   }};
+
+
   private static String myAccessToken;
   private static String myRefreshToken;
   private static CheckIOUser myUser;
@@ -99,6 +104,7 @@ public class CheckIOConnector {
       taskManager.setRefreshToken(myRefreshToken);
     }
     catch (IOException e) {
+      LOG.warn(e.getMessage());
       throw new IOException();
     }
 
@@ -161,6 +167,7 @@ public class CheckIOConnector {
     }
     catch (IOException e) {
       LOG.error(e.getMessage());
+      throw new IOException();
     }
     assert missions != null;
     final Gson gson = new GsonBuilder().create();
@@ -199,8 +206,8 @@ public class CheckIOConnector {
   }
 
 
-  private static HttpGet makeMissionsRequest(@NotNull final String token) {
-    URI uri = null;
+  private static HttpGet makeMissionsRequest(@NotNull final String token) throws IOException {
+    URI uri;
     try {
       uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
         .addParameter(PARAMETER_ACCESS_TOKEN, token)
@@ -208,6 +215,7 @@ public class CheckIOConnector {
     }
     catch (URISyntaxException e) {
       LOG.error(e.getMessage());
+      throw new IOException();
     }
     return new HttpGet(uri);
   }
@@ -220,6 +228,7 @@ public class CheckIOConnector {
       response = client.execute(request);
     }
     catch (IOException e) {
+      LOG.warn(e.getMessage());
       throw new IOException();
     }
     return response;
@@ -283,34 +292,128 @@ public class CheckIOConnector {
       }
     }
     catch (IOException e) {
+      LOG.warn(e.getMessage());
       throw new IOException();
     }
 
     return status;
   }
 
+  public static HashMap<String, CheckIOPublication[]> getPublicationsForTaskAndCreatePublicationFiles(@NotNull final Task task)
+    throws IOException {
+    final HashMap<String, CheckIOPublication[]> myCategoryArrayListHashMap = new HashMap<>();
+    final String taskName = task.getName();
+    final HttpGet publicationCategoriesRequest = makeAvailablePublicationCategoriesRequest(taskName);
+    LOG.warn("start executing AvailablePublicationCategoriesReques");
+    final PublicationCategoryWrapper publicationCategoryWrappers = getAvailablePublicationsCategories(publicationCategoriesRequest);
+    LOG.warn("finish executing AvailablePublicationCategoriesReques");
+    final PublicationCategoryWrapper.PublicationCategory[] categories = publicationCategoryWrappers.objects;
 
-  //TODO: change (api needed)
-  public static CheckIOPublication[] getPublicationsForTask(@NotNull final Task task) {
+    for (PublicationCategoryWrapper.PublicationCategory categoryWrapper : categories) {
+      LOG.warn("start executing makePublicationByCategoryRequest");
+      final HttpGet publicationByCategoryRequest = makePublicationByCategoryRequest(taskName, categoryWrapper.slug);
+      LOG.warn("finish executing makePublicationByCategoryRequest");
+      LOG.warn("start executing getPublicationByCategory");
+      final CheckIOPublication[] publications = getPublicationByCategory(publicationByCategoryRequest);
+      LOG.warn("finish executing getPublicationByCategory");
+      final CheckIOPublication[] publicationsSubset = subsetPublications(publications, 10);
+      myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
+    }
+    return myCategoryArrayListHashMap;
+  }
 
-    final CheckIOUser author = new CheckIOUser();
-    author.setUsername("Expert");
-    author.setLevel(234);
-    final CheckIOUser author1 = new CheckIOUser();
-    author1.setUsername("Expert1");
-    author1.setLevel(234);
-    final CheckIOUser author2 = new CheckIOUser();
-    author2.setUsername("Expert2");
-    author2.setLevel(234);
+  private static CheckIOPublication[] subsetPublications(CheckIOPublication[] publications, int n) {
+    return Arrays.copyOfRange(publications, 0, n);
+  }
 
-    final String text = "print(\"Hello world!\")";
-    final String text1 = "print(\"Hello world!!!\")";
-    final String text2 = "print(\"Hello world!!!!\")";
-    final String sdk27 = "python-27";
-    final String sdk3 = "python-3";
-    return new CheckIOPublication[]{new CheckIOPublication(author, text, CheckIOPublicationCategory.Creative, sdk27),
-      new CheckIOPublication(author1, text1, CheckIOPublicationCategory.Clear, sdk3),
-      new CheckIOPublication(author2, text2, CheckIOPublicationCategory.Speedy, sdk27)};
+  private static PublicationCategoryWrapper getAvailablePublicationsCategories(@NotNull final HttpGet request) throws IOException {
+    final CloseableHttpClient client = HttpClientBuilder.create().build();
+    final CloseableHttpResponse httpResponse = client.execute(request);
+    final String entity = EntityUtils.toString(httpResponse.getEntity());
+
+    return new GsonBuilder().create().fromJson(entity, PublicationCategoryWrapper.class);
+  }
+
+  public static HttpGet makeAvailablePublicationCategoriesRequest(@NotNull final String taskName) throws IOException {
+    URI uri;
+    try {
+      uri = new URIBuilder(SOLUTION_CATEGORIES_URL)
+        .addParameter("task", taskName)
+        .build();
+    }
+    catch (URISyntaxException e) {
+      LOG.warn("Incorrect solution categories url. " + e.getMessage());
+      throw new IOException(e.getMessage());
+    }
+
+    return new HttpGet(uri);
+  }
+
+  private static CheckIOPublication[] getPublicationByCategory(@NotNull final HttpGet request) throws IOException {
+    LOG.warn("start building client in getPublicationByCategory");
+    final CloseableHttpClient client = HttpClientBuilder.create().build();
+    LOG.warn("finish building client in getPublicationByCategory");
+    final CloseableHttpResponse response;
+    PublicationsByCategoryWrapper publicationByCategoryWrapper;
+    try {
+      LOG.warn("start executing request in getPublicationByCategory");
+      response = client.execute(request);
+      LOG.warn("finish executing request in getPublicationByCategory");
+      final String entity = EntityUtils.toString(response.getEntity());
+      publicationByCategoryWrapper = new GsonBuilder().create().fromJson(entity, PublicationsByCategoryWrapper.class);
+    }
+    catch (IOException e) {
+      LOG.warn(e.getMessage());
+      throw new IOException(e.getMessage());
+    }
+
+    return publicationByCategoryWrapper.objects;
+  }
+
+  private static HttpGet makePublicationByCategoryRequest(@NotNull final String taskName, @NotNull final String categoryName)
+    throws IOException {
+    URI uri;
+    try {
+      uri = new URIBuilder(PUBLICATION_URL)
+        .addParameter("task", taskName)
+        .addParameter("category", categoryName)
+        .addParameter("page", "1")
+        .build();
+    }
+    catch (URISyntaxException e) {
+      LOG.warn("Incorrect uri for solution by category request. " + e.getMessage());
+      throw new IOException(e.getMessage());
+    }
+
+    return new HttpGet(uri);
+  }
+
+  public static void setPublicationCodeAndCategoryFromRequest(@NotNull final String token, @NotNull final CheckIOPublication publication)
+    throws IOException {
+    try {
+      URI uri = new URIBuilder(PUBLICATION_URL + publication.getId() + "/")
+        .addParameter("token", token)
+        .build();
+      final HttpGet request = new HttpGet(uri);
+      final CloseableHttpClient client = HttpClientBuilder.create().build();
+      LOG.info("start execute setPublicationCodeAndCategoryFromRequest");
+      final CloseableHttpResponse httpResponse = client.execute(request);
+      LOG.info("finish execute setPublicationCodeAndCategoryFromRequest");
+      final String entity = EntityUtils.toString(httpResponse.getEntity());
+      final PublicationWrapper publicationWrapper = new GsonBuilder().create().fromJson(entity, PublicationWrapper.class);
+      final String code = publicationWrapper.code == null ? "" : publicationWrapper.code;
+      final String category = publicationWrapper.category == null ? "" : publicationWrapper.category;
+      publication.setCode(code);
+      publication.setCategory(category);
+    }
+    catch (URISyntaxException | IOException e) {
+      LOG.warn(e.getMessage());
+      throw new IOException();
+    }
+  }
+
+  public static String getSeePublicationsOnWebLink(@NotNull final String taskName) {
+    return "http://www.checkio.org/mission/" + taskName + "/publications/";
   }
 
   public static class MissionWrapper {
@@ -322,5 +425,24 @@ public class CheckIOConnector {
     public String description;
     public String slug;
     public String stationName;
+  }
+
+  private static class PublicationCategoryWrapper {
+    static class PublicationCategory {
+      int id;
+      int PublicationCount;
+      String slug;
+    }
+
+    PublicationCategory[] objects;
+  }
+
+  private static class PublicationsByCategoryWrapper {
+    CheckIOPublication[] objects;
+  }
+
+  static class PublicationWrapper {
+    private String code;
+    private String category;
   }
 }

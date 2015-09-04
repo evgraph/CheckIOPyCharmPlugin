@@ -156,41 +156,22 @@ public class CheckIOUtils {
     VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
   }
 
-  public static void createPublicationsFiles(@NotNull Project project,
-                                             @NotNull final Task task,
-                                             @NotNull final CheckIOPublication[] publications) {
-    final File directory = getPublicationsDirectory(project, task);
-    for (CheckIOPublication publication : publications) {
+  public static File createPublicationFile(@NotNull final Project project, @NotNull final String taskName, @NotNull CheckIOPublication publication) {
+    final File directory = getPublicationsDirectory(project, taskName);
       final String publicationNameWithoutExtension = publication.getPublicationFileNameWithExtension();
       final File file = new File(directory, publicationNameWithoutExtension);
       FileUtil.createIfDoesntExist(file);
       try {
-        FileUtil.writeToFile(file, publication.getText());
+        FileUtil.writeToFile(file, publication.getCode());
       }
       catch (IOException e) {
         LOG.warn(e.getMessage());
       }
-    }
-
+    return file;
   }
 
-  public static VirtualFile getPublicationFile(@NotNull final Project project,
-                                               @NotNull final String publicationNameWithExtension,
-                                               @NotNull Task task) {
-    final VirtualFile baseDirectory = project.getBaseDir();
-    final VirtualFile publicationsDirectory = baseDirectory.findChild(".publications");
-    if (publicationsDirectory != null) {
-      final VirtualFile publicationDirectoryForTask = publicationsDirectory.findChild(task.getName());
-      if (publicationDirectoryForTask != null) {
-        return publicationDirectoryForTask.findChild(publicationNameWithExtension);
-      }
-    }
-    return null;
-  }
-
-
-  private static File getPublicationsDirectory(@NotNull final Project project, @NotNull final Task task) {
-    final String publicationDirectory = project.getBasePath() + PUBLICATION_FOLDER_NAME + task.getName();
+  private static File getPublicationsDirectory(@NotNull final Project project, @NotNull final String taskName) {
+    final String publicationDirectory = project.getBasePath() + PUBLICATION_FOLDER_NAME + taskName;
     final File publicationDir = new File(publicationDirectory);
     if (!publicationDir.mkdirs()) {
       LOG.info(publicationDir + "already exists");

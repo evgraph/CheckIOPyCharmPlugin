@@ -1,37 +1,39 @@
 package com.jetbrains.checkio.courseFormat;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.jetbrains.python.psi.LanguageLevel;
+import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 
 public class CheckIOPublication {
-  private static final String PUBLICATION_PREFIX = "solutionBy";
-  private CheckIOUser myAuthor;
-  private String myText;
-  private CheckIOPublicationCategory myCategory;
-  private String runner;
+  private static final String PUBLICATION_URL = "http://www.checkio.org/oauth/authorize-token/";
+  private int id;
+  private CheckIOUser user;
+  private String code = "";
+  private String category;
+  private String interpreter;
+  private String slug;
+  private String name;
+  int commentsCount;
+  int viewsCount;
+  int place;
   private static final HashMap<String, LanguageLevel> LANGUAGE_LEVEL_MAP = new HashMap<String, LanguageLevel>() {{
     put("python-27", LanguageLevel.PYTHON27);
     put("python-3", LanguageLevel.PYTHON30);
   }};
 
-  public CheckIOPublication(@NotNull final CheckIOUser author,
-                            @NotNull final String text,
-                            @NotNull final CheckIOPublicationCategory category,
-                            @NotNull final String sdk) {
-    setAuthor(author);
-    setText(text);
-    setCategory(category);
-    setRunner(sdk);
-  }
+  private static final Logger LOG = Logger.getInstance(CheckIOPublication.class);
 
-  private static String getPublicationPrefix() {
-    return PUBLICATION_PREFIX;
+  public int getId() {
+    return id;
   }
 
   public String getPublicationName() {
-    return getPublicationPrefix() + getAuthor().getUsername();
+    return getAuthor().getUsername();
   }
 
   public String getPublicationFileNameWithExtension() {
@@ -39,7 +41,7 @@ public class CheckIOPublication {
   }
 
   public LanguageLevel getLanguageLevel() {
-    return LANGUAGE_LEVEL_MAP.get(getRunner());
+    return LANGUAGE_LEVEL_MAP.get(getInterpreter());
   }
 
   @Override
@@ -48,34 +50,46 @@ public class CheckIOPublication {
   }
 
   public CheckIOUser getAuthor() {
-    return myAuthor;
+    return user;
   }
 
-  public void setAuthor(CheckIOUser author) {
-    myAuthor = author;
+  public String getCode() {
+    return code;
   }
 
-  public String getText() {
-    return myText;
+  public void setCode(String text) {
+    code = text;
   }
 
-  public void setText(String text) {
-    myText = text;
+  public String getCategory() {
+    return category;
   }
 
-  public CheckIOPublicationCategory getCategory() {
-    return myCategory;
+  public void setCategory(String category) {
+    this.category = category;
   }
 
-  public void setCategory(CheckIOPublicationCategory category) {
-    myCategory = category;
+  public String getInterpreter() {
+    return interpreter;
   }
 
-  public String getRunner() {
-    return runner;
+  public String getPublicationLink(@NotNull final String token, @NotNull final String taskName) {
+    String publicationLink = "";
+    try {
+      final URI uri = new URIBuilder(PUBLICATION_URL)
+        .addParameter("token", token)
+        .addParameter("interpreter", interpreter)
+        .addParameter("next", "")
+        .build();
+      publicationLink = uri.toString() + createPublicationParameter(taskName);
+    }
+    catch (URISyntaxException e) {
+      LOG.warn(e.getMessage());
+    }
+    return publicationLink;
   }
 
-  public void setRunner(String runner) {
-    this.runner = runner;
+  private String createPublicationParameter(@NotNull final String taskName) {
+    return String.join("/", new String[]{"", "mission", taskName, "publications", user.getUsername(), interpreter, name});
   }
 }
