@@ -9,7 +9,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
 import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
@@ -71,7 +70,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
       contentPanel.add(studyProgressBar);
       addStatistics(tasksLeft, contentPanel);
 
-      contentPanel.setSize(contentPanel.getMinimumSize());
+      contentPanel.setMaximumSize(contentPanel.getMinimumSize());
       ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
       window.getContentManager().removeAllContents(false);
       Content content = contentFactory.createContent(contentPanel, "", true);
@@ -112,7 +111,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-      BrowserUtil.browse(CheckIOUtils.getUserProfileLink(myUser));
+      BrowserUtil.browse(myUser.getUserProfileLink());
     }
   }
 }
