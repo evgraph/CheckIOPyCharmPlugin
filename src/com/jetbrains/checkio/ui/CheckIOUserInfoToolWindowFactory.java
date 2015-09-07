@@ -9,6 +9,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
 import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
@@ -111,7 +112,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-      BrowserUtil.browse(myUser.getUserProfileLink());
+      BrowserUtil.browse(CheckIOUtils.getUserProfileLink(myUser));
     }
   }
 }
