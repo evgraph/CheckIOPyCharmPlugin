@@ -81,7 +81,7 @@ public class CheckIOPublication {
         .addParameter("interpreter", interpreter)
         .addParameter("next", "")
         .build();
-      publicationLink = uri.toString() + createPublicationParameter(taskName);
+      publicationLink = uri.toString() + createPublicationLinkParameter(taskName);
     }
     catch (URISyntaxException e) {
       LOG.warn(e.getMessage());
@@ -89,7 +89,7 @@ public class CheckIOPublication {
     return publicationLink;
   }
 
-  private String createPublicationParameter(@NotNull final String taskName) {
-    return String.join("/", new String[]{"", "mission", taskName, "publications", user.getUsername(), interpreter, name});
+  private String createPublicationLinkParameter(@NotNull final String taskName) {
+    return String.join("/", new String[]{"", "mission", taskName, "publications", user.getUsername(), interpreter, slug, ""});
   }
 }
