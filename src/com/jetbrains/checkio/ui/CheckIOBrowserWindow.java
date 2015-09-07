@@ -64,8 +64,8 @@ public class CheckIOBrowserWindow extends JFrame {
     }
     else {
       Platform.runLater(() -> {
-        final URL scrollBarStyleUrl = getClass().getResource("/style/scrollBar.css");
-        myPane.getStylesheets().add("file:///" + scrollBarStyleUrl.getPath());
+        final URL scrollBarStyleUrl = getClass().getResource("/style/javaFXBrowserScrollBar.css");
+        myPane.getStylesheets().add(scrollBarStyleUrl.toExternalForm());
         myEngine.setUserStyleSheetLocation(null);
         myEngine.reload();
       });
@@ -74,14 +74,12 @@ public class CheckIOBrowserWindow extends JFrame {
 
   private void updateLafDarcula() {
     Platform.runLater(() -> {
-      final URL engineStyleUrl = getClass().getResource("/style/myDarcula.css");
-      final URL scrollBarStyleUrl = getClass().getResource("/style/scrollBarDarcula.css");
-      myEngine
-        .setUserStyleSheetLocation("file:///" + engineStyleUrl.getPath());
-      myPane.getStylesheets().add("file:///" + scrollBarStyleUrl.getPath());
+      final URL engineStyleUrl = getClass().getResource("/style/javaFXBrowserDarcula.css");
+      final URL scrollBarStyleUrl = getClass().getResource("/style/javaFXBrowserDarculaScrollBar.css");
+      myEngine.setUserStyleSheetLocation(engineStyleUrl.toExternalForm());
+      myPane.getStylesheets().add(scrollBarStyleUrl.toExternalForm());
       myPane.setStyle("-fx-background-color: #3c3f41");
-      myPanel.getScene().getStylesheets().add("file:///" + engineStyleUrl.getPath());
-      myEngine.reload();
+      myPanel.getScene().getStylesheets().add(engineStyleUrl.toExternalForm());
     });
   }
 
