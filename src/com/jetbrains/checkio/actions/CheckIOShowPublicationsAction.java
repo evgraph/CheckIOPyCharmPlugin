@@ -29,8 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 
 public class CheckIOShowPublicationsAction extends AnAction {
@@ -90,25 +88,24 @@ public class CheckIOShowPublicationsAction extends AnAction {
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        final Future<?> future = ApplicationManager.getApplication().executeOnPooledThread(this::getAndShowPublications);
-        while (!future.isDone()) {
-          indicator.checkCanceled();
-          try {
-            TimeUnit.MILLISECONDS.sleep(500);
-          }
-          catch (InterruptedException e) {
-            LOG.info(e.getMessage());
-          }
-        }
-      }
-
-      private void getAndShowPublications() {
         myToolWindowFactory = (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
         try {
           if (myToolWindowFactory != null) {
             CheckIOConnector.updateTokensInTaskManager(CheckIOShowPublicationsAction.this.myProject);
+            indicator.checkCanceled();
             myPublications = CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(myTask);
-            ApplicationManager.getApplication().invokeLater(() -> showPublicationsInToolWindowByCategory(myPublications));
+            indicator.checkCanceled();
+            ApplicationManager.getApplication().invokeLater(() -> {
+              try {
+                showPublicationsInToolWindowByCategory(myPublications);
+                indicator.checkCanceled();
+              }
+              catch (IllegalStateException e) {
+                LOG.warn(e.getMessage());
+                CheckIOUtils.showOperationResultPopUp("Couldn't load solutions for no task", MessageType.ERROR.getPopupBackground(),
+                                                      myProject);
+              }
+            });
           }
         }
         catch (IOException e) {
@@ -116,14 +113,10 @@ public class CheckIOShowPublicationsAction extends AnAction {
           CheckIOUtils.makeNoInternetConnectionNotifier(
             CheckIOShowPublicationsAction.this.myProject);
         }
-        catch (IllegalStateException e) {
-          LOG.warn(e.getMessage());
-          CheckIOUtils.showOperationResultPopUp("Couldn't load solutions for no task", MessageType.ERROR.getPopupBackground(),
-                                                myProject);
-        }
       }
 
-      private void showPublicationsInToolWindowByCategory(@NotNull final HashMap<String, CheckIOPublication[]> publications) {
+      private void showPublicationsInToolWindowByCategory(@NotNull final HashMap<String, CheckIOPublication[]> publications)
+        throws IllegalStateException {
         final CheckIOPublicationsPanel solutionsPanel = myToolWindowFactory.getCheckIOToolWindow().getSolutionsPanel();
         solutionsPanel.update(publications, myToolWindowFactory.getCheckIOToolWindow().createButtonPanel());
         myToolWindowFactory.getCheckIOToolWindow().showSolutionsPanel();

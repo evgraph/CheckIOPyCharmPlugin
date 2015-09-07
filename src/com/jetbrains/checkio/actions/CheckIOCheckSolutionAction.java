@@ -49,18 +49,6 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
           "Check current mission", InteractiveLearningIcons.Resolve);
   }
 
-  @Override
-  public void actionPerformed(AnActionEvent e) {
-    Project project = e.getProject();
-    if (project != null) {
-      check(project);
-    }
-    else {
-      LOG.warn("Project is null");
-    }
-  }
-
-
   private static void check(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeLater(
       () -> CommandProcessor.getInstance().runUndoTransparentAction(() -> ProgressManager.getInstance().run(getCheckTask(project))));
@@ -100,10 +88,11 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
         try {
           CheckIOConnector.updateTokensInTaskManager(project);
+          indicator.checkCanceled();
           assert toolWindowFactory != null;
           ApplicationManager.getApplication().invokeAndWait(() -> toolWindowFactory.getCheckIOToolWindow().checkAndShowResults(task, code),
                                                             ModalityState.defaultModalityState());
-
+          indicator.checkCanceled();
           final StudyStatus status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
 
           if (status == StudyStatus.Solved) {
@@ -128,7 +117,6 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       }
     };
   }
-
 
   private static void askToUpdateProject(@NotNull final Project project) {
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
@@ -170,7 +158,6 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     }
   }
 
-
   private static OptionsDialog.DoNotAskOption createDoNotAskOption(@NotNull final CheckIOTaskManager taskManager) {
     return new DialogWrapper.DoNotAskOption() {
       @Override
@@ -199,5 +186,16 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         return "Do not ask me again";
       }
     };
+  }
+
+  @Override
+  public void actionPerformed(AnActionEvent e) {
+    Project project = e.getProject();
+    if (project != null) {
+      check(project);
+    }
+    else {
+      LOG.warn("Project is null");
+    }
   }
 }
