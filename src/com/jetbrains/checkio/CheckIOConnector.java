@@ -15,6 +15,7 @@ import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
+import com.jetbrains.python.PythonLanguage;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,7 +40,17 @@ import java.util.Map;
 
 
 public class CheckIOConnector {
+  //public for tests
   public static String CHECKIO_API_URL = "http://www.checkio.org/api/";
+
+  private static final String TASK_PARAMETER_NAME = "task";
+  private static final String CATEGORY_PARAMETER_NAME = "category";
+  private static final String PAGE_PARAMETER_NAME = "page";
+  private static final String MISSION_URL = "http://www.checkio.org/mission/";
+  private static final String PUBLICATION_SUFFIX = "/publications/";
+  private static final String TOKEN_PARAMETER_NAME = "token";
+  private static final String DEFAULT_PUBLICATION_PAGE_NUMBER = "1";
+  private static final String COURSE_NAME = "CheckIO";
   private static final String SOLUTION_CATEGORIES_URL = "http://www.checkio.org/api/publications-categories/";
   private static final String PUBLICATION_URL = "http://www.checkio.org/api/publications/";
   private static final String MISSIONS_API = "user-missions/";
@@ -66,6 +77,14 @@ public class CheckIOConnector {
   private static HashMap<String, Lesson> lessonsByName;
   private static Course course;
 
+  public static CheckIOUser authorizeUser() {
+    final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
+    myUser = authorizer.authorizeAndGetUser();
+    myAccessToken = authorizer.getAccessToken();
+    myRefreshToken = authorizer.getRefreshToken();
+    return myUser;
+  }
+
   public static CheckIOUser getMyUser() {
     return myUser;
   }
@@ -76,14 +95,6 @@ public class CheckIOConnector {
 
   public static String getMyRefreshToken() {
     return myRefreshToken;
-  }
-
-  public static CheckIOUser authorizeUser() {
-    final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
-    myUser = authorizer.authorizeAndGetUser();
-    myAccessToken = authorizer.getAccessToken();
-    myRefreshToken = authorizer.getRefreshToken();
-    return myUser;
   }
 
   public static void updateTokensInTaskManager(@NotNull final Project project) throws IOException {
@@ -136,10 +147,10 @@ public class CheckIOConnector {
     course = StudyTaskManager.getInstance(project).getCourse();
     lessonsByName = new HashMap<>();
     course = new Course();
-    course.setLanguage("Python");
-    course.setName("CheckIO");
+    course.setLanguage(PythonLanguage.getInstance().getID());
+    course.setName(COURSE_NAME);
     course.setCourseType(CheckIOUtils.COURSE_TYPE);
-    course.setDescription("CheckIO project");
+    course.setDescription(COURSE_NAME + "project");
   }
 
 
@@ -147,31 +158,35 @@ public class CheckIOConnector {
     final HttpGet request = makeMissionsRequest(token);
     final HttpResponse response = requestMissions(request);
 
-    if (response != null && response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-      return false;
+    if (response != null) {
+      final boolean hasUnauthorizedStatusCode = response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED;
+      return !hasUnauthorizedStatusCode;
     }
-    return true;
+    else {
+      throw new IOException("Null response for mission request");
+    }
   }
 
   public static MissionWrapper[] getMissions(@NotNull final String token) throws IOException {
     final HttpGet request = makeMissionsRequest(token);
     final HttpResponse response = requestMissions(request);
 
-    if (response == null) {
-      return new MissionWrapper[]{};
+    if (response != null) {
+      String missions;
+      try {
+        missions = EntityUtils.toString(response.getEntity());
+      }
+      catch (IOException e) {
+        LOG.error(e.getMessage());
+        throw new IOException();
+      }
+      assert missions != null;
+      final Gson gson = new GsonBuilder().create();
+      return gson.fromJson(missions, MissionWrapper[].class);
     }
-
-    String missions = "";
-    try {
-      missions = EntityUtils.toString(response.getEntity());
+    else {
+      throw new IOException("Null response for mission request");
     }
-    catch (IOException e) {
-      LOG.error(e.getMessage());
-      throw new IOException();
-    }
-    assert missions != null;
-    final Gson gson = new GsonBuilder().create();
-    return gson.fromJson(missions, MissionWrapper[].class);
   }
 
   private static Lesson getLessonOrCreateIfDoesntExist(final String lessonName) {
@@ -241,7 +256,7 @@ public class CheckIOConnector {
   }
 
   private static String removeTryItBlockFromAndSetMetaInfo(String taskHtml) {
-    String contentTypeString = "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" /> \n";
+    final String contentTypeString = "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" /> \n";
 
     Document text = Jsoup.parse(taskHtml);
     for (Element element : text.select("p.for_info_only")) {
@@ -332,7 +347,7 @@ public class CheckIOConnector {
     URI uri;
     try {
       uri = new URIBuilder(SOLUTION_CATEGORIES_URL)
-        .addParameter("task", taskName)
+        .addParameter(TASK_PARAMETER_NAME, taskName)
         .build();
     }
     catch (URISyntaxException e) {
@@ -365,9 +380,9 @@ public class CheckIOConnector {
     URI uri;
     try {
       uri = new URIBuilder(PUBLICATION_URL)
-        .addParameter("task", taskName)
-        .addParameter("category", categoryName)
-        .addParameter("page", "1")
+        .addParameter(TASK_PARAMETER_NAME, taskName)
+        .addParameter(CATEGORY_PARAMETER_NAME, categoryName)
+        .addParameter(PAGE_PARAMETER_NAME, DEFAULT_PUBLICATION_PAGE_NUMBER)
         .build();
     }
     catch (URISyntaxException e) {
@@ -382,7 +397,7 @@ public class CheckIOConnector {
     throws IOException {
     try {
       URI uri = new URIBuilder(PUBLICATION_URL + publication.getId() + "/")
-        .addParameter("token", token)
+        .addParameter(TOKEN_PARAMETER_NAME, token)
         .build();
       final HttpGet request = new HttpGet(uri);
       final CloseableHttpClient client = HttpClientBuilder.create().build();
@@ -401,7 +416,7 @@ public class CheckIOConnector {
   }
 
   public static String getSeePublicationsOnWebLink(@NotNull final String taskName) {
-    return "http://www.checkio.org/mission/" + taskName + "/publications/";
+    return MISSION_URL + taskName + PUBLICATION_SUFFIX;
   }
 
   public static class MissionWrapper {
