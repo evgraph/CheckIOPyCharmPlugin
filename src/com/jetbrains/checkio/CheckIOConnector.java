@@ -304,18 +304,12 @@ public class CheckIOConnector {
     final HashMap<String, CheckIOPublication[]> myCategoryArrayListHashMap = new HashMap<>();
     final String taskName = task.getName();
     final HttpGet publicationCategoriesRequest = makeAvailablePublicationCategoriesRequest(taskName);
-    LOG.warn("start executing AvailablePublicationCategoriesReques");
     final PublicationCategoryWrapper publicationCategoryWrappers = getAvailablePublicationsCategories(publicationCategoriesRequest);
-    LOG.warn("finish executing AvailablePublicationCategoriesReques");
     final PublicationCategoryWrapper.PublicationCategory[] categories = publicationCategoryWrappers.objects;
 
     for (PublicationCategoryWrapper.PublicationCategory categoryWrapper : categories) {
-      LOG.warn("start executing makePublicationByCategoryRequest");
       final HttpGet publicationByCategoryRequest = makePublicationByCategoryRequest(taskName, categoryWrapper.slug);
-      LOG.warn("finish executing makePublicationByCategoryRequest");
-      LOG.warn("start executing getPublicationByCategory");
       final CheckIOPublication[] publications = getPublicationByCategory(publicationByCategoryRequest);
-      LOG.warn("finish executing getPublicationByCategory");
       final CheckIOPublication[] publicationsSubset = subsetPublications(publications, 10);
       myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
     }
@@ -350,15 +344,11 @@ public class CheckIOConnector {
   }
 
   private static CheckIOPublication[] getPublicationByCategory(@NotNull final HttpGet request) throws IOException {
-    LOG.warn("start building client in getPublicationByCategory");
     final CloseableHttpClient client = HttpClientBuilder.create().build();
-    LOG.warn("finish building client in getPublicationByCategory");
     final CloseableHttpResponse response;
     PublicationsByCategoryWrapper publicationByCategoryWrapper;
     try {
-      LOG.warn("start executing request in getPublicationByCategory");
       response = client.execute(request);
-      LOG.warn("finish executing request in getPublicationByCategory");
       final String entity = EntityUtils.toString(response.getEntity());
       publicationByCategoryWrapper = new GsonBuilder().create().fromJson(entity, PublicationsByCategoryWrapper.class);
     }
@@ -396,9 +386,7 @@ public class CheckIOConnector {
         .build();
       final HttpGet request = new HttpGet(uri);
       final CloseableHttpClient client = HttpClientBuilder.create().build();
-      LOG.info("start execute setPublicationCodeAndCategoryFromRequest");
       final CloseableHttpResponse httpResponse = client.execute(request);
-      LOG.info("finish execute setPublicationCodeAndCategoryFromRequest");
       final String entity = EntityUtils.toString(httpResponse.getEntity());
       final PublicationWrapper publicationWrapper = new GsonBuilder().create().fromJson(entity, PublicationWrapper.class);
       final String code = publicationWrapper.code == null ? "" : publicationWrapper.code;
