@@ -68,6 +68,7 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
       public void run(@NotNull ProgressIndicator indicator) {
         try {
           CheckIOConnector.updateTokensInTaskManager(project);
+          indicator.checkCanceled();
           final Course newCourse = CheckIOConnector.getMissionsAndUpdateCourse(project);
           createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
         }
@@ -105,9 +106,7 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
         });
     }
     else {
-      ApplicationManager.getApplication().invokeLater(
-        () -> CheckIOUtils.showOperationResultPopUp("Project successfully updated", MessageType.INFO.getPopupBackground(), project)
-      );
+      CheckIOUtils.showOperationResultPopUp("Project successfully updated", MessageType.INFO.getPopupBackground(), project);
 
     }
   }

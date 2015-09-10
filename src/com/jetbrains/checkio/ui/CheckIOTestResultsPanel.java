@@ -1,12 +1,16 @@
 package com.jetbrains.checkio.ui;
 
-import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.NullUtils;
+import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.actions.CheckIoPublishSolutionAction;
 import com.jetbrains.edu.courseFormat.Task;
 import javafx.beans.value.ChangeListener;
 import org.jetbrains.annotations.NotNull;
@@ -50,20 +54,28 @@ public class CheckIOTestResultsPanel extends JPanel {
     myBrowserWindow.addFormListener(documentListener);
     myBrowserWindow.load(url);
 
+    final JPanel buttonsPanel = combineButtonPanels(backButtonPanel, createPublishSolutionButton(task));
+
     setLayout(new BorderLayout());
-    add(backButtonPanel, BorderLayout.PAGE_START);
+    add(buttonsPanel, BorderLayout.PAGE_START);
     add(myBrowserWindow.getPanel());
   }
 
+  private static JPanel combineButtonPanels(@NotNull final JPanel backButtonPanel, @NotNull final JPanel publishButtonPanel) {
+    final JPanel panel = new JPanel(new BorderLayout());
+    panel.add(backButtonPanel, BorderLayout.PAGE_START);
+    panel.add(publishButtonPanel, BorderLayout.CENTER);
+    return panel;
+  }
 
-  private static JButton createPublishSolutionButton(@NotNull final Project project, @NotNull final Task task) {
-    final JButton publishButton = new JButton("Publish solution on web");
-    publishButton.addActionListener(e -> {
-      final String addPublicationLink = CheckIOUtils.getAddPublicationLink(project, task);
-      BrowserUtil.browse(addPublicationLink);
-    });
 
-    return publishButton;
+  private static JPanel createPublishSolutionButton(@NotNull final Task task) {
+    final CheckIoPublishSolutionAction publishSolutionAction = new CheckIoPublishSolutionAction(task);
+    final DefaultActionGroup group = new DefaultActionGroup();
+    group.add(publishSolutionAction);
+
+    final ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("CheckIO", group, true);
+    return JBUI.Panels.simplePanel(actionToolBar.getComponent());
   }
 
   private static ChangeListener<Document> createDocumentListener(@NotNull String token,

@@ -10,7 +10,6 @@ import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import com.jetbrains.checkio.courseFormat.CheckIOTaskPublicationStatus;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
@@ -35,9 +34,10 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public UpdateProjectPolicy myUpdateProjectPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   public CheckIOUser myUser;
-  public Map<Task, CheckIOTaskPublicationStatus> myPublicationStatusMap = new HashMap<>();
+  public Map<Task, Boolean> myPublicationStatusMap = new HashMap<>();
   //TODO: update (api needed)
   public Map<String, ArrayList<String>> myTaskHints = new HashMap<>();
+  ;
 
   private CheckIOTaskManager() {
     if (myUpdateProjectPolicy == null) {
@@ -77,11 +77,11 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     return myTaskIds.get(task.getName());
   }
 
-  public void setPublicationStatus(Task task, CheckIOTaskPublicationStatus publicationStatus) {
+  public void setPublicationStatus(Task task, boolean isPublished) {
     if (myPublicationStatusMap == null) {
       myPublicationStatusMap = new HashMap<>();
     }
-    myPublicationStatusMap.put(task, publicationStatus);
+    myPublicationStatusMap.put(task, isPublished);
   }
 
   @Nullable
@@ -110,4 +110,10 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public void setRefreshToken(String refreshToken) {
     this.refreshToken = refreshToken;
   }
+
+  public boolean isPublished(@NotNull final Task task) {
+    return myPublicationStatusMap.get(task);
+  }
+
+
 }

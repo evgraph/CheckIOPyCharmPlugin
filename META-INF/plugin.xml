@@ -84,5 +84,7 @@
             description="Go to previous task"/>
     <action id="CheckIONextTaskAction" class="com.jetbrains.checkio.actions.CheckIONextTaskAction" text="CheckIONextTaskAction"
             description="Go to next task"/>
+    <action id="CheckIoPublishSolutionAction" class="com.jetbrains.checkio.actions.CheckIoPublishSolutionAction"
+            text="CheckIoPublishSolutionAction"/>
   </actions>
 </idea-plugin>

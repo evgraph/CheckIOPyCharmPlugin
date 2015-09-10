@@ -4,16 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
-import com.jetbrains.checkio.courseFormat.CheckIOTaskPublicationStatus;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import com.jetbrains.python.PythonLanguage;
 import org.apache.commons.httpclient.HttpStatus;
@@ -46,8 +43,6 @@ public class CheckIOConnector {
   private static final String TASK_PARAMETER_NAME = "task";
   private static final String CATEGORY_PARAMETER_NAME = "category";
   private static final String PAGE_PARAMETER_NAME = "page";
-  private static final String MISSION_URL = "http://www.checkio.org/mission/";
-  private static final String PUBLICATION_SUFFIX = "/publications/";
   private static final String TOKEN_PARAMETER_NAME = "token";
   private static final String DEFAULT_PUBLICATION_PAGE_NUMBER = "1";
   private static final String COURSE_NAME = "CheckIO";
@@ -63,11 +58,6 @@ public class CheckIOConnector {
   private static final Map<Boolean, StudyStatus> taskSolutionStatus = new HashMap<Boolean, StudyStatus>() {{
     put(true, StudyStatus.Solved);
     put(false, StudyStatus.Failed);
-  }};
-  private static final Map<Boolean, CheckIOTaskPublicationStatus> taskPublicationStatus =
-    new HashMap<Boolean, CheckIOTaskPublicationStatus>() {{
-      put(true, CheckIOTaskPublicationStatus.Published);
-      put(false, CheckIOTaskPublicationStatus.Unpublished);
   }};
 
 
@@ -216,7 +206,7 @@ public class CheckIOConnector {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
     studyManager.setStatus(task, taskSolutionStatusForProjectCreation.get(missionWrapper.isSolved));
-    taskManager.setPublicationStatus(task, taskPublicationStatus.get(missionWrapper.isPublished));
+    taskManager.setPublicationStatus(task, missionWrapper.isPublished);
     taskManager.setTaskId(task, missionWrapper.id);
   }
 
@@ -270,25 +260,9 @@ public class CheckIOConnector {
     return contentTypeString + text.body().html();
   }
 
-  public static String getInterpreter(@NotNull final Task task, @NotNull final Project project) {
-    final Sdk sdk = StudyUtils.findSdk(task, project);
-    String runner = "";
-    if (sdk != null) {
-      String sdkName = sdk.getName();
-      if (sdkName.substring(7, sdkName.length()).startsWith("2")) {
-        runner = "python-27";
-      }
-      else {
-        runner = "python-3";
-      }
-    }
-
-    return runner;
-  }
-
+  //TODO: check was code updated to determine if task was checked. Code saving fix from checkio needed
   public static StudyStatus getSolutionStatusAndSetInStudyManager(@NotNull final Project project, @NotNull final Task task)
     throws IOException {
-    setCourseAndLessonByName(project);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
     final String token = taskManager.getAccessToken();
@@ -413,10 +387,6 @@ public class CheckIOConnector {
       LOG.warn(e.getMessage());
       throw new IOException();
     }
-  }
-
-  public static String getSeePublicationsOnWebLink(@NotNull final String taskName) {
-    return MISSION_URL + taskName + PUBLICATION_SUFFIX;
   }
 
   public static class MissionWrapper {
