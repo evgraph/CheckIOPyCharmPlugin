@@ -45,6 +45,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   }
 
   private CheckIOPublicationsPanel mySolutionsPanel;
+
+
   private CheckIOTestResultsPanel myTestResultsPanel;
   private JBCardLayout myMyCardLayout;
   private JPanel myContentPanel;
@@ -68,7 +70,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(task);
     mySolutionsPanel = new CheckIOPublicationsPanel(project);
-    myTestResultsPanel = new CheckIOTestResultsPanel();
+    myTestResultsPanel = new CheckIOTestResultsPanel(project);
 
     myMyCardLayout = new JBCardLayout();
     myContentPanel = new JPanel(myMyCardLayout);
@@ -85,6 +87,10 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
   }
 
+  public CheckIOTestResultsPanel getTestResultsPanel() {
+    return myTestResultsPanel;
+  }
+  
   public boolean isHintsVisible() {
     return !(mySplitPane.getBottomComponent() == null);
   }
@@ -99,8 +105,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   public void checkAndShowResults(@NotNull final Task task, @NotNull final String code) {
     final JPanel buttonPanel = createButtonPanel();
-    myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
     myMyCardLayout.swipe(myContentPanel, TEST_RESULTS, JBCardLayout.SwipeDirection.AUTO);
+    myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
   }
 
   public void showHintPanel(@NotNull final Project project) {
@@ -139,8 +145,11 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     final JPanel buttonPanel = new JPanel(new BorderLayout());
     buttonPanel.setPreferredSize(new Dimension(CheckIOUtils.MAX_WIDTH, 30));
     buttonPanel.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, 30));
+    buttonPanel.setMinimumSize(new Dimension(CheckIOUtils.WIDTH, 30));
+
     final JLabel label = new JLabel(AllIcons.Diff.Arrow);
     label.setToolTipText("Back to task text");
+    buttonPanel.add(label, BorderLayout.WEST);
 
     buttonPanel.addMouseListener(new MouseAdapter() {
       @Override
@@ -155,11 +164,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
         showTaskInfoPanel();
       }
     });
-    buttonPanel.add(label, BorderLayout.WEST);
     return buttonPanel;
   }
-
-
 
   class CheckIOFileEditorListener implements FileEditorManagerListener {
     private final Project myProject;

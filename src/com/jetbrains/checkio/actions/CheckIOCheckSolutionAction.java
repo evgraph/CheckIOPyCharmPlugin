@@ -18,12 +18,14 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.NullUtils;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.checkio.*;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
+import com.jetbrains.checkio.ui.CheckIOTestResultsPanel;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
@@ -38,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
@@ -59,14 +62,15 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
       final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
-      final CheckIOTaskToolWindowFactory toolWindowFactory =
-        (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
+      CheckIOTaskToolWindowFactory toolWindowFactory;
+      private CheckIOToolWindow ourToolWindow;
+
       @Override
       public void onCancel() {
         studyManager.setStatus(task, statusBeforeCheck);
-        assert toolWindowFactory != null;
-        toolWindowFactory.getCheckIOToolWindow().showTaskInfoPanel();
-        Thread.currentThread().interrupt();
+        if (toolWindowFactory != null) {
+          toolWindowFactory.getCheckIOToolWindow().showTaskInfoPanel();
+        }
       }
 
       @Override
@@ -76,47 +80,71 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
+        toolWindowFactory = (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
         final Editor editor = StudyUtils.getSelectedEditor(myProject);
         final String code;
-        if (editor == null || task == null || (code = editor.getDocument().getText()).isEmpty()) {
-          ApplicationManager.getApplication().invokeLater(
-            () ->  CheckIOUtils.showOperationResultPopUp("Couldn't find task or task is empty",
-                                                         MessageType.WARNING.getPopupBackground(), project));
 
+        if (NullUtils.notNull(task, editor, toolWindowFactory) || (code = editor.getDocument().getText()).isEmpty()) {
+          CheckIOUtils.showOperationResultPopUp("Couldn't find task or task is empty", MessageType.WARNING.getPopupBackground(), project);
           return;
         }
 
         try {
+          ourToolWindow = toolWindowFactory.getCheckIOToolWindow();
           CheckIOConnector.updateTokensInTaskManager(project);
           indicator.checkCanceled();
-          assert toolWindowFactory != null;
-          ApplicationManager.getApplication().invokeAndWait(() -> toolWindowFactory.getCheckIOToolWindow().checkAndShowResults(task, code),
-                                                            ModalityState.defaultModalityState());
-          indicator.checkCanceled();
-          final StudyStatus status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
-
-          if (status == StudyStatus.Solved) {
-            final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-            final CheckIOUser newUser = CheckIOUserAuthorizer.getInstance().getUser(taskManager.getAccessToken());
-            final CheckIOUser oldUser = CheckIOTaskManager.getInstance(project).getUser();
-            if (newUser.getLevel() != oldUser.getLevel()) {
-              taskManager.setUser(newUser);
-              final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOUserInfoToolWindowFactory.ID);
-              if (toolWindow != null) {
-                ApplicationManager.getApplication()
-                  .invokeAndWait(() -> new CheckIOUserInfoToolWindowFactory().createToolWindowContent(project, toolWindow),
-                                 ModalityState.defaultModalityState());
-              }
-            }
-            askToUpdateProject(project);
-          }
+          ApplicationManager.getApplication().invokeLater(
+            () -> {
+              ourToolWindow.checkAndShowResults(task, code);
+              setNewTaskStatusAndCheckAchievementsIfTaskSolved();
+            });
         }
         catch (IOException e) {
           CheckIOUtils.makeNoInternetConnectionNotifier(project);
         }
       }
+
+      private void setNewTaskStatusAndCheckAchievementsIfTaskSolved() {
+        final CheckIOTestResultsPanel testResultsPanel = ourToolWindow.getTestResultsPanel();
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          StudyStatus status = statusBeforeCheck;
+          while (testResultsPanel.isShowing() && statusBeforeCheck == status) {
+            try {
+              status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
+              TimeUnit.SECONDS.sleep(1);
+            }
+            catch (IOException e) {
+              CheckIOUtils.makeNoInternetConnectionNotifier(project);
+            }
+            catch (InterruptedException e) {
+              LOG.warn(e.getMessage());
+            }
+          }
+
+          checkAchievements(status);
+        });
+      }
+
+      private void checkAchievements(StudyStatus status) {
+        if (status == StudyStatus.Solved) {
+          final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+          final CheckIOUser newUser = CheckIOUserAuthorizer.getInstance().getUser(taskManager.getAccessToken());
+          final CheckIOUser oldUser = CheckIOTaskManager.getInstance(project).getUser();
+          if (newUser.getLevel() != oldUser.getLevel()) {
+            taskManager.setUser(newUser);
+            final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOUserInfoToolWindowFactory.ID);
+            if (toolWindow != null) {
+              ApplicationManager.getApplication()
+                .invokeAndWait(() -> new CheckIOUserInfoToolWindowFactory().createToolWindowContent(project, toolWindow),
+                               ModalityState.defaultModalityState());
+            }
+          }
+          askToUpdateProject(project);
+        }
+      }
     };
   }
+
 
   private static void askToUpdateProject(@NotNull final Project project) {
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);

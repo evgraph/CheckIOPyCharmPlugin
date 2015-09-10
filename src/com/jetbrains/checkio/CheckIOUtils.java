@@ -39,6 +39,7 @@ import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import com.jetbrains.python.psi.LanguageLevel;
+import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
@@ -57,6 +60,11 @@ public class CheckIOUtils {
   public static final int MAX_HEIGHT = 2000;
   public static final String PUBLICATION_FOLDER_NAME = "/.publications/";
   public static final String COURSE_TYPE = "CHECK_IO";
+  private final static String MISSION_PARAMETER_NAME = "mission";
+  private final static String PUBLICATION_PARAMETER_NAME = "publications";
+  private static final String MISSION_URL = "http://www.checkio.org/mission/";
+  private static final String PUBLICATION_SUFFIX = "/publications/";
+  private final static String ADD_PARAMETER_NAME = "add";
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
   private CheckIOUtils() {
@@ -103,10 +111,13 @@ public class CheckIOUtils {
   public static void showOperationResultPopUp(final String text,
                                               Color color,
                                               @NotNull final Project project) {
-    BalloonBuilder balloonBuilder =
-      JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(text, null, color, null);
-    final Balloon balloon = balloonBuilder.createBalloon();
-    StudyUtils.showCheckPopUp(project, balloon);
+
+    ApplicationManager.getApplication().invokeLater(() -> {
+      BalloonBuilder balloonBuilder =
+        JBPopupFactory.getInstance().createHtmlTextBalloonBuilder(text, null, color, null);
+      final Balloon balloon = balloonBuilder.createBalloon();
+      StudyUtils.showCheckPopUp(project, balloon);
+    });
   }
 
   public static String getTaskFileNameFromTask(@NotNull final Task task) {
@@ -194,11 +205,6 @@ public class CheckIOUtils {
   }
 
   //TODO: update (api needed)
-  public static String getPublicationLink(@NotNull final CheckIOPublication publication) {
-    return "";
-  }
-
-  //TODO: update (api needed)
   public static String getForumLink(@NotNull Task task, @NotNull final Project project) {
     final Sdk sdk= StudyUtils.findSdk(task, project);
     int taskId = CheckIOTaskManager.getInstance(project).getTaskId(task);
@@ -212,6 +218,50 @@ public class CheckIOUtils {
              " &q=tag%3Afor_advisers,hint.bryukh";
     }
     return  link;
+  }
+
+  public static String getSeePublicationsOnWebLink(@NotNull final String taskName) {
+    return MISSION_URL + taskName + PUBLICATION_SUFFIX;
+  }
+
+  public static String getInterpreter(@NotNull final Task task, @NotNull final Project project) {
+    final Sdk sdk = StudyUtils.findSdk(task, project);
+    String runner = "";
+    if (sdk != null) {
+      String sdkName = sdk.getName();
+      if (sdkName.substring(7, sdkName.length()).startsWith("2")) {
+        runner = "python-27";
+      }
+      else {
+        runner = "python-3";
+      }
+    }
+
+    return runner;
+  }
+
+
+  public static String getAddPublicationLink(@NotNull final Project project, @NotNull final Task task) {
+    String publicationLink = "";
+
+    final CheckIOTaskManager checkIOTaskManager = CheckIOTaskManager.getInstance(project);
+    final String token = checkIOTaskManager.getAccessToken();
+    try {
+      final URI uri = new URIBuilder(CheckIOPublication.PUBLICATION_URL)
+        .addParameter("token", token)
+        .addParameter("interpreter", getInterpreter(task, project))
+        .addParameter("next", "")
+        .build();
+      publicationLink = uri.toString() + createAddPublicationLinkParameter(task.getName());
+    }
+    catch (URISyntaxException e) {
+      LOG.warn(e.getMessage());
+    }
+    return publicationLink;
+  }
+
+  private static String createAddPublicationLinkParameter(@NotNull final String taskName) {
+    return String.join("/", new String[]{"", MISSION_PARAMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, ADD_PARAMETER_NAME, ""});
   }
 
   //TODO: update (api needed)
