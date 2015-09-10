@@ -10,6 +10,7 @@ import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,8 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public Map<Task, Boolean> myPublicationStatusMap = new HashMap<>();
   //TODO: update (api needed)
   public Map<String, ArrayList<String>> myTaskHints = new HashMap<>();
-  ;
+  private Task myLastSolvedTask;
+  private HashMap<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
 
   private CheckIOTaskManager() {
     if (myUpdateProjectPolicy == null) {
@@ -115,5 +117,16 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     return myPublicationStatusMap.get(task);
   }
 
+  public void setPublicationsForLastSolvedTask(@NotNull final Task task,
+                                               @NotNull final HashMap<String, CheckIOPublication[]> publications) {
+    myLastSolvedTask = task;
+    myPublicationsForLastSolvedTask = publications;
+  }
 
+  public HashMap<String, CheckIOPublication[]> getPublicationsForLastSolvedTask(@NotNull final Task task) {
+    if (myLastSolvedTask == task) {
+      return myPublicationsForLastSolvedTask;
+    }
+    return null;
+  }
 }

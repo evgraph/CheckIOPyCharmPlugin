@@ -15,6 +15,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.jetbrains.checkio.CheckIOConnector;
+import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOIcons;
@@ -93,7 +94,7 @@ public class CheckIOShowPublicationsAction extends AnAction {
           if (myToolWindowFactory != null) {
             CheckIOConnector.updateTokensInTaskManager(CheckIOShowPublicationsAction.this.myProject);
             indicator.checkCanceled();
-            myPublications = CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(myTask);
+            myPublications = tryToGetPublicationsFromCache(myTask);
             indicator.checkCanceled();
             ApplicationManager.getApplication().invokeLater(() -> {
               try {
@@ -124,6 +125,15 @@ public class CheckIOShowPublicationsAction extends AnAction {
     };
   }
 
+
+  private HashMap<String, CheckIOPublication[]> tryToGetPublicationsFromCache(@NotNull final Task task) throws IOException {
+    final HashMap<String, CheckIOPublication[]> publicationsForLastSolvedTask =
+      CheckIOTaskManager.getInstance(myProject).getPublicationsForLastSolvedTask(task);
+    if (publicationsForLastSolvedTask == null) {
+      return CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(myTask);
+    }
+    return publicationsForLastSolvedTask;
+  }
 
   @Override
   public void update(AnActionEvent e) {

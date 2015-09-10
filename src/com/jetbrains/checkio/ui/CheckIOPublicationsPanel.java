@@ -52,12 +52,12 @@ public class CheckIOPublicationsPanel extends JPanel {
     myProject = project;
   }
 
-  public void update(@NotNull final HashMap<String, CheckIOPublication[]> publicationByCategory,
+  public void update(@NotNull final HashMap<String, CheckIOPublication[]> publicationsByCategory,
                      @NotNull final JPanel buttonPanel) throws IllegalStateException {
     this.removeAll();
     setLayout(new BorderLayout());
 
-    myCategoryArrayListHashMap = publicationByCategory;
+    myCategoryArrayListHashMap = publicationsByCategory;
     myButtonPanel = buttonPanel;
     publicationInfoPanel = new PublicationInfoPanel();
     mySolutionTreePanel = createSolutionTreePanel();
@@ -69,6 +69,7 @@ public class CheckIOPublicationsPanel extends JPanel {
     openFirstSolution();
     updateLafIfNeeded(mySolutionTreePanel);
   }
+
 
   private JPanel combineButtonAndPublicationInfoPanels() {
     final JPanel panel = new JPanel(new BorderLayout());
@@ -116,7 +117,7 @@ public class CheckIOPublicationsPanel extends JPanel {
   private HyperlinkLabel createSeeMoreSolutionsLabel() {
     final HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
     hyperlinkLabel.setHyperlinkText("See more solutions on web");
-    hyperlinkLabel.setHyperlinkTarget(CheckIOConnector.getSeePublicationsOnWebLink(task.getName()));
+    hyperlinkLabel.setHyperlinkTarget(CheckIOUtils.getSeePublicationsOnWebLink(task.getName()));
     return hyperlinkLabel;
   }
 
