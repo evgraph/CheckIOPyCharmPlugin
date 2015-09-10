@@ -10,23 +10,23 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 
 public class CheckIOPublication {
-  private static final String PUBLICATION_URL = "http://www.checkio.org/oauth/authorize-token/";
-  private int id;
-  private CheckIOUser user;
-  private String code = "";
-  private String category;
-  private String interpreter;
-  private String slug;
-  private String name;
-  int commentsCount;
-  int viewsCount;
-  int place;
+  public static final String PUBLICATION_URL = "http://www.checkio.org/oauth/authorize-token/";
+  private final static String MISSION_PAREMETER_NAME = "mission";
+  private final static String PUBLICATION_PARAMETER_NAME = "publications";
+  private final static String ADD_PARAMETER_NAME = "add";
+  private static final Logger LOG = Logger.getInstance(CheckIOPublication.class);
   private static final HashMap<String, LanguageLevel> LANGUAGE_LEVEL_MAP = new HashMap<String, LanguageLevel>() {{
     put("python-27", LanguageLevel.PYTHON27);
     put("python-3", LanguageLevel.PYTHON30);
   }};
 
-  private static final Logger LOG = Logger.getInstance(CheckIOPublication.class);
+  private String interpreter;
+  private CheckIOUser user;
+  private String category;
+  private String code = "";
+  private String slug;
+  private String name;
+  private int id;
 
   public int getId() {
     return id;
@@ -90,6 +90,7 @@ public class CheckIOPublication {
   }
 
   private String createPublicationLinkParameter(@NotNull final String taskName) {
-    return String.join("/", new String[]{"", "mission", taskName, "publications", user.getUsername(), interpreter, slug, ""});
+    return String.join("/", new String[]{"", MISSION_PAREMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, user.getUsername(),
+      interpreter, slug, ""});
   }
 }
