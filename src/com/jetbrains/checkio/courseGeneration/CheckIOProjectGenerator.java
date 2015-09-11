@@ -125,15 +125,22 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
 
 
   private void authorizeUserAndGetMissions() {
-    user = CheckIOConnector.authorizeUser();
-    final String accessToken = CheckIOUserAuthorizer.getInstance().getAccessToken();
-    if (accessToken != null) {
-      try {
-        myMissionWrappers = CheckIOConnector.getMissions(accessToken);
+    try {
+      LOG.info("Starting authorization");
+      user = CheckIOConnector.authorizeUser();
+      final String accessToken = CheckIOUserAuthorizer.getInstance().getAccessToken();
+      if (accessToken != null) {
+        try {
+          LOG.info("Getting missions");
+          myMissionWrappers = CheckIOConnector.getMissions(accessToken);
+        }
+        catch (IOException e) {
+          LOG.warn(e.getMessage());
+        }
       }
-      catch (IOException e) {
-        LOG.warn(e.getMessage());
-      }
+    }
+    catch (Throwable throwable) {
+      LOG.warn(throwable.getMessage(), throwable);
     }
   }
 

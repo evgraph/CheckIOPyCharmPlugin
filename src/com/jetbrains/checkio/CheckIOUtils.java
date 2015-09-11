@@ -287,7 +287,7 @@ public class CheckIOUtils {
         result = true;
       }
     }
-    catch (IOException e) {
+    catch (IOException | RuntimeException e) {
       result = false;
     }
 

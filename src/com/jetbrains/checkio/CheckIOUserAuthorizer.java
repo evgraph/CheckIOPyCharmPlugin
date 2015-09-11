@@ -90,8 +90,10 @@ public class CheckIOUserAuthorizer {
   public CheckIOUser authorizeAndGetUser() {
     if (getServer() == null || !getServer().isRunning()) {
       startServer();
+      LOG.info("Server started");
     }
     openAuthorizationPage();
+    LOG.info("Authorization page opened");
     try {
       getServer().join();
     }
@@ -126,7 +128,9 @@ public class CheckIOUserAuthorizer {
 
   private void openAuthorizationPage() {
     final URI url = makeAuthorizationPageURI();
+    LOG.info("Auth url created");
     BrowserUtil.browse(url);
+    LOG.info("Url browsed");
   }
 
   public CheckIOUser  getUser(@NotNull final String accessToken) {
@@ -147,7 +151,7 @@ public class CheckIOUserAuthorizer {
   private void loadProperties() {
     InputStream is = this.getClass().getResourceAsStream("/properties/oauthData.properties");
     if (is == null) {
-      LOG.error("Properties file not found.");
+      LOG.warn("Properties file not found.");
     }
     try {
       ourProperties.load(is);
@@ -287,6 +291,7 @@ public class CheckIOUserAuthorizer {
     @Override
     public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
       throws IOException, ServletException {
+      LOG.info("Handling auth response");
       final String code = httpServletRequest.getParameter(PARAMETER_CODE);
       final OutputStream os = httpServletResponse.getOutputStream();
       os.write(SUCCESS_AUTHORIZATION_MESSAGE.getBytes(Charset.defaultCharset()));
@@ -303,7 +308,9 @@ public class CheckIOUserAuthorizer {
         @Override
         public void run() {
           try {
+            LOG.info("Stopping server");
             getServer().stop();
+            LOG.info("Server stopped");
           }
           catch (Exception e) {
             LOG.warn(e.getMessage());

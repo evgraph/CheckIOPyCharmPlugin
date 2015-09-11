@@ -159,6 +159,7 @@ public class CheckIOConnector {
 
   public static MissionWrapper[] getMissions(@NotNull final String token) throws IOException {
     final HttpGet request = makeMissionsRequest(token);
+    LOG.info("Requesting missions");
     final HttpResponse response = requestMissions(request);
 
     if (response != null) {
