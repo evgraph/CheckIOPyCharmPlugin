@@ -63,7 +63,6 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
 
 
   private static boolean checkIfUserOrAccessTokenIsNull() {
-
     if (CheckIOConnector.getMyUser() == null) {
       LOG.warn("User object is null");
       return true;
@@ -133,7 +132,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
         myMissionWrappers = CheckIOConnector.getMissions(accessToken);
       }
       catch (IOException e) {
-        LOG.info(e.getMessage());
+        LOG.warn(e.getMessage());
       }
     }
   }
@@ -155,7 +154,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
                 TimeUnit.MILLISECONDS.sleep(500);
               }
               catch (InterruptedException e) {
-                LOG.info(e.getMessage());
+                LOG.warn(e.getMessage());
               }
             }
 

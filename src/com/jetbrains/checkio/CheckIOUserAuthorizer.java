@@ -96,7 +96,7 @@ public class CheckIOUserAuthorizer {
       getServer().join();
     }
     catch (InterruptedException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
 
     return getUser(getAccessToken());
@@ -120,7 +120,7 @@ public class CheckIOUserAuthorizer {
       getServer().start();
     }
     catch (Exception e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
   }
 
@@ -153,7 +153,7 @@ public class CheckIOUserAuthorizer {
       ourProperties.load(is);
     }
     catch (IOException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
   }
 
@@ -167,7 +167,7 @@ public class CheckIOUserAuthorizer {
         .build();
     }
     catch (URISyntaxException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
     return url;
   }
@@ -180,7 +180,7 @@ public class CheckIOUserAuthorizer {
         .build();
     }
     catch (URISyntaxException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
     return new HttpGet(uri);
   }
@@ -192,7 +192,7 @@ public class CheckIOUserAuthorizer {
       response = client.execute(request);
     }
     catch (IOException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
     return response;
   }
@@ -212,7 +212,7 @@ public class CheckIOUserAuthorizer {
       request.setEntity(new UrlEncodedFormEntity(requestParameters));
     }
     catch (UnsupportedEncodingException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
     return request;
   }
@@ -233,7 +233,7 @@ public class CheckIOUserAuthorizer {
       request.setEntity(new UrlEncodedFormEntity(requestParameters));
     }
     catch (UnsupportedEncodingException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
     return request;
   }
@@ -245,7 +245,7 @@ public class CheckIOUserAuthorizer {
       response = client.execute(request);
     }
     catch (IOException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e.getMessage());
     }
     return response;
   }
@@ -259,7 +259,7 @@ public class CheckIOUserAuthorizer {
         jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
       }
       catch (IOException e) {
-        LOG.error(e.getMessage());
+        LOG.warn(e.getMessage());
       }
 
       myAccessToken = jsonObject.getString(PARAMETER_ACCESS_TOKEN);
