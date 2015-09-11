@@ -35,11 +35,11 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public UpdateProjectPolicy myUpdateProjectPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   public CheckIOUser myUser;
-  public Map<Task, Boolean> myPublicationStatusMap = new HashMap<>();
+  public HashMap<String, Boolean> myPublicationStatusMap = new HashMap<>();
   //TODO: update (api needed)
   public Map<String, ArrayList<String>> myTaskHints = new HashMap<>();
-  private Task myLastSolvedTask;
-  private HashMap<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
+  public Task myLastSolvedTask;
+  public HashMap<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
 
   private CheckIOTaskManager() {
     if (myUpdateProjectPolicy == null) {
@@ -83,7 +83,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     if (myPublicationStatusMap == null) {
       myPublicationStatusMap = new HashMap<>();
     }
-    myPublicationStatusMap.put(task, isPublished);
+    myPublicationStatusMap.put(task.getName(), isPublished);
   }
 
   @Nullable
@@ -114,7 +114,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   }
 
   public boolean isPublished(@NotNull final Task task) {
-    return myPublicationStatusMap.get(task);
+    return myPublicationStatusMap.get(task.getName());
   }
 
   public void setPublicationsForLastSolvedTask(@NotNull final Task task,
