@@ -35,8 +35,6 @@ import java.util.HashMap;
 public class CheckIOShowPublicationsAction extends AnAction {
   private static final Logger LOG = Logger.getInstance(CheckIOShowPublicationsAction.class);
   private static final String SHORTCUT = "ctrl shift pressed H";
-  private Project myProject;
-  private Task myTask;
 
   public CheckIOShowPublicationsAction() {
     super("Show solutions (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
@@ -46,24 +44,30 @@ public class CheckIOShowPublicationsAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    myProject = e.getProject();
-
-    if (myProject != null && (myTask = CheckIOUtils.getTaskFromSelectedEditor(myProject)) != null) {
-      closePreviousPublicationFiles();
-      ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getShowSolutionsTask()));
+    final Project project = e.getProject();
+    final Task task;
+    if (project != null) {
+      task = CheckIOUtils.getTaskFromSelectedEditor(project);
+      if (task != null) {
+        closePreviousPublicationFiles(project);
+        ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getShowSolutionsTask(project, task)));
+      }
+      else {
+        LOG.warn("Task is null");
+        CheckIOUtils.showOperationResultPopUp("Internal problems. Couldn't find task", MessageType.WARNING.getPopupBackground(),
+                                              project);
+      }
     }
     else {
-      LOG.warn((myProject == null ? "Project" : "Task") + " is null");
-      CheckIOUtils.showOperationResultPopUp("Internal problems. Please, try to reopen project", MessageType.WARNING.getPopupBackground(),
-                                            myProject);
+      LOG.warn("Project is null");
     }
   }
 
-  private void closePreviousPublicationFiles() {
+  private static void closePreviousPublicationFiles(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeAndWait(
       () ->
       {
-        final FileEditorManager manager = FileEditorManager.getInstance(myProject);
+        final FileEditorManager manager = FileEditorManager.getInstance(project);
         final VirtualFile[] openFiles = manager.getOpenFiles();
         for (VirtualFile file : openFiles) {
           if (CheckIOUtils.isPublicationFile(file)) {
@@ -75,8 +79,9 @@ public class CheckIOShowPublicationsAction extends AnAction {
     );
   }
 
-  private com.intellij.openapi.progress.Task.Backgroundable getShowSolutionsTask() {
-    return new com.intellij.openapi.progress.Task.Backgroundable(myProject, "Downloading solutions list", true) {
+  private static com.intellij.openapi.progress.Task.Backgroundable getShowSolutionsTask(@NotNull final Project project,
+                                                                                        @NotNull final Task task) {
+    return new com.intellij.openapi.progress.Task.Backgroundable(project, "Downloading solutions list", true) {
       private HashMap<String, CheckIOPublication[]> myPublications;
       private CheckIOTaskToolWindowFactory myToolWindowFactory;
 
@@ -92,9 +97,9 @@ public class CheckIOShowPublicationsAction extends AnAction {
         myToolWindowFactory = (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
         try {
           if (myToolWindowFactory != null) {
-            CheckIOConnector.updateTokensInTaskManager(CheckIOShowPublicationsAction.this.myProject);
+            CheckIOConnector.updateTokensInTaskManager(project);
             indicator.checkCanceled();
-            myPublications = tryToGetPublicationsFromCache(myTask);
+            myPublications = tryToGetPublicationsFromCache(project, task);
             indicator.checkCanceled();
             ApplicationManager.getApplication().invokeLater(() -> {
               try {
@@ -104,15 +109,14 @@ public class CheckIOShowPublicationsAction extends AnAction {
               catch (IllegalStateException e) {
                 LOG.warn(e.getMessage());
                 CheckIOUtils.showOperationResultPopUp("Couldn't load solutions for no task", MessageType.ERROR.getPopupBackground(),
-                                                      myProject);
+                                                      project);
               }
             });
           }
         }
         catch (IOException e) {
           LOG.warn(e.getMessage());
-          CheckIOUtils.makeNoInternetConnectionNotifier(
-            CheckIOShowPublicationsAction.this.myProject);
+          CheckIOUtils.makeNoInternetConnectionNotifier(project);
         }
       }
 
@@ -126,11 +130,12 @@ public class CheckIOShowPublicationsAction extends AnAction {
   }
 
 
-  private HashMap<String, CheckIOPublication[]> tryToGetPublicationsFromCache(@NotNull final Task task) throws IOException {
+  private static HashMap<String, CheckIOPublication[]> tryToGetPublicationsFromCache(@NotNull final Project project,
+                                                                                     @NotNull final Task task) throws IOException {
     final HashMap<String, CheckIOPublication[]> publicationsForLastSolvedTask =
-      CheckIOTaskManager.getInstance(myProject).getPublicationsForLastSolvedTask(task);
+      CheckIOTaskManager.getInstance(project).getPublicationsForLastSolvedTask(task);
     if (publicationsForLastSolvedTask == null) {
-      return CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(myTask);
+      return CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(task);
     }
     return publicationsForLastSolvedTask;
   }
