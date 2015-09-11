@@ -59,7 +59,6 @@ public class CheckIOConnector {
     put(false, StudyStatus.Failed);
   }};
 
-
   private static String myAccessToken;
   private static String myRefreshToken;
   private static CheckIOUser myUser;
@@ -88,19 +87,16 @@ public class CheckIOConnector {
 
   public static void updateTokensInTaskManager(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    boolean isTokenUpToDate;
-    isTokenUpToDate = isTokenUpToDate(taskManager.getAccessToken());
-    if (isTokenUpToDate) {
-      return;
-    }
-    final String refreshToken = taskManager.getRefreshToken();
-    final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
-    authorizer.setTokensFromRefreshToken(refreshToken);
-    myAccessToken = authorizer.getAccessToken();
-    myRefreshToken = authorizer.getRefreshToken();
+    if (!isTokenUpToDate(taskManager.getAccessToken())) {
+      final String refreshToken = taskManager.getRefreshToken();
+      final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
+      authorizer.setTokensFromRefreshToken(refreshToken);
+      myAccessToken = authorizer.getAccessToken();
+      myRefreshToken = authorizer.getRefreshToken();
 
-    taskManager.setAccessToken(myAccessToken);
-    taskManager.setRefreshToken(myRefreshToken);
+      taskManager.setAccessToken(myAccessToken);
+      taskManager.setRefreshToken(myRefreshToken);
+    }
   }
 
   public static Course getMissionsAndUpdateCourse(@NotNull final Project project) throws IOException {
@@ -123,7 +119,6 @@ public class CheckIOConnector {
     return course;
   }
 
-
   private static void setCourseAndLessonByName(@NotNull final Project project) {
     course = StudyTaskManager.getInstance(project).getCourse();
     lessonsByName = new HashMap<>();
@@ -134,22 +129,35 @@ public class CheckIOConnector {
     course.setDescription(COURSE_NAME + "project");
   }
 
-
   private static boolean isTokenUpToDate(@NotNull final String token) throws IOException {
-    final HttpGet request = makeMissionsRequest(token);
-    final HttpResponse response = requestMissions(request);
-    final boolean hasUnauthorizedStatusCode = response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED;
+    boolean hasUnauthorizedStatusCode = false;
+    try {
+
+      final HttpGet request = makeMissionsRequest(token);
+      final HttpResponse response = requestMissions(request);
+      hasUnauthorizedStatusCode = response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED;
+    }
+    catch (URISyntaxException e) {
+      LOG.warn(e.getMessage());
+    }
     return !hasUnauthorizedStatusCode;
   }
 
   public static MissionWrapper[] getMissions(@NotNull final String token) throws IOException {
-    final HttpGet request = makeMissionsRequest(token);
-    LOG.info("Requesting missions");
-    final HttpResponse response = requestMissions(request);
+    MissionWrapper[] missionWrapper = new MissionWrapper[]{};
+    try {
+      final HttpGet request = makeMissionsRequest(token);
+      LOG.info("Requesting missions");
+      final HttpResponse response = requestMissions(request);
 
-    String missions = EntityUtils.toString(response.getEntity());
-    final Gson gson = new GsonBuilder().create();
-    return gson.fromJson(missions, MissionWrapper[].class);
+      String missions = EntityUtils.toString(response.getEntity());
+      final Gson gson = new GsonBuilder().create();
+      missionWrapper = gson.fromJson(missions, MissionWrapper[].class);
+    }
+    catch (URISyntaxException e) {
+      LOG.warn(e.getMessage());
+    }
+    return missionWrapper;
   }
 
   private static Lesson getLessonOrCreateIfDoesntExist(final String lessonName) {
@@ -184,16 +192,10 @@ public class CheckIOConnector {
   }
 
 
-  private static HttpGet makeMissionsRequest(@NotNull final String token) {
-    URI uri = null;
-    try {
-      uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
+  private static HttpGet makeMissionsRequest(@NotNull final String token) throws URISyntaxException {
+    URI uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
         .addParameter(PARAMETER_ACCESS_TOKEN, token)
         .build();
-    }
-    catch (URISyntaxException e) {
-      LOG.warn(e.getMessage());
-    }
     return new HttpGet(uri);
   }
 
@@ -249,16 +251,30 @@ public class CheckIOConnector {
     throws IOException {
     final HashMap<String, CheckIOPublication[]> myCategoryArrayListHashMap = new HashMap<>();
     final String taskName = task.getName();
-    final HttpGet publicationCategoriesRequest = makeAvailablePublicationCategoriesRequest(taskName);
-    final PublicationCategoryWrapper publicationCategoryWrappers = getAvailablePublicationsCategories(publicationCategoriesRequest);
-    final PublicationCategoryWrapper.PublicationCategory[] categories = publicationCategoryWrappers.objects;
+    try {
+      final URI categoriesUrl = new URIBuilder(SOLUTION_CATEGORIES_URL)
+        .addParameter(TASK_PARAMETER_NAME, taskName)
+        .build();
+      final HttpGet publicationCategoriesRequest = new HttpGet(categoriesUrl);
+      final PublicationCategoryWrapper publicationCategoryWrappers = getAvailablePublicationsCategories(publicationCategoriesRequest);
+      final PublicationCategoryWrapper.PublicationCategory[] categories = publicationCategoryWrappers.objects;
 
-    for (PublicationCategoryWrapper.PublicationCategory categoryWrapper : categories) {
-      final HttpGet publicationByCategoryRequest = makePublicationByCategoryRequest(taskName, categoryWrapper.slug);
-      final CheckIOPublication[] publications = getPublicationByCategory(publicationByCategoryRequest);
-      final CheckIOPublication[] publicationsSubset = subsetPublications(publications, 10);
-      myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
+      for (PublicationCategoryWrapper.PublicationCategory categoryWrapper : categories) {
+        final URI publicationUrl = new URIBuilder(PUBLICATION_URL)
+          .addParameter(TASK_PARAMETER_NAME, taskName)
+          .addParameter(CATEGORY_PARAMETER_NAME, categoryWrapper.slug)
+          .addParameter(PAGE_PARAMETER_NAME, DEFAULT_PUBLICATION_PAGE_NUMBER)
+          .build();
+        final HttpGet publicationByCategoryRequest = new HttpGet(publicationUrl);
+        final CheckIOPublication[] publications = getPublicationByCategory(publicationByCategoryRequest);
+        final CheckIOPublication[] publicationsSubset = subsetPublications(publications, 10);
+        myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
+      }
     }
+    catch (URISyntaxException e) {
+      LOG.warn(e.getMessage());
+    }
+
     return myCategoryArrayListHashMap;
   }
 
@@ -274,20 +290,6 @@ public class CheckIOConnector {
     return new GsonBuilder().create().fromJson(entity, PublicationCategoryWrapper.class);
   }
 
-  public static HttpGet makeAvailablePublicationCategoriesRequest(@NotNull final String taskName) {
-    URI uri = null;
-    try {
-      uri = new URIBuilder(SOLUTION_CATEGORIES_URL)
-        .addParameter(TASK_PARAMETER_NAME, taskName)
-        .build();
-    }
-    catch (URISyntaxException e) {
-      LOG.warn(e.getMessage());
-    }
-
-    return new HttpGet(uri);
-  }
-
   private static CheckIOPublication[] getPublicationByCategory(@NotNull final HttpGet request) throws IOException {
     final CloseableHttpClient client = HttpClientBuilder.create().build();
     final CloseableHttpResponse response;
@@ -297,21 +299,6 @@ public class CheckIOConnector {
     publicationByCategoryWrapper = new GsonBuilder().create().fromJson(entity, PublicationsByCategoryWrapper.class);
 
     return publicationByCategoryWrapper.objects;
-  }
-
-  private static HttpGet makePublicationByCategoryRequest(@NotNull final String taskName, @NotNull final String categoryName) {
-    URI uri = null;
-    try {
-      uri = new URIBuilder(PUBLICATION_URL)
-        .addParameter(TASK_PARAMETER_NAME, taskName)
-        .addParameter(CATEGORY_PARAMETER_NAME, categoryName)
-        .addParameter(PAGE_PARAMETER_NAME, DEFAULT_PUBLICATION_PAGE_NUMBER)
-        .build();
-    }
-    catch (URISyntaxException e) {
-      LOG.warn(e.getMessage());
-    }
-    return new HttpGet(uri);
   }
 
   public static void setPublicationCodeAndCategoryFromRequest(@NotNull final String token, @NotNull final CheckIOPublication publication)
