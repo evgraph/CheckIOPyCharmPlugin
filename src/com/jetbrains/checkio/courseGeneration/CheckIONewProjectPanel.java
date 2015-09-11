@@ -10,7 +10,7 @@ public class CheckIONewProjectPanel {
   public CheckIONewProjectPanel() {
     mainPanel = new JPanel();
     mainPanel.add(Box.createRigidArea(new Dimension(-1, 10)));
-    final JLabel myAuthorizationDescriptionLabel = new JLabel("You will be redirect to CheckIO web site to authorize");
+    final JLabel myAuthorizationDescriptionLabel = new JLabel("You will be redirected to CheckIO web site to authorize");
     mainPanel.add(myAuthorizationDescriptionLabel);
   }
 
