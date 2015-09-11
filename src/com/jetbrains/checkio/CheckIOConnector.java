@@ -65,7 +65,7 @@ public class CheckIOConnector {
   private static HashMap<String, Lesson> lessonsByName;
   private static Course course;
 
-  public static CheckIOUser authorizeUser() {
+  public static CheckIOUser authorizeUser() throws IOException {
     final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
     myUser = authorizer.authorizeAndGetUser();
     myAccessToken = authorizer.getAccessToken();
