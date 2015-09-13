@@ -39,7 +39,7 @@ public class AuthorizerTest extends Assert {
   }
 
   @Test
-  public void testGetUser() {
+  public void testGetUser() throws IOException {
     final CheckIOUser expected = new CheckIOUser();
     expected.setUsername("user");
     expected.setId(1);
@@ -63,7 +63,7 @@ public class AuthorizerTest extends Assert {
   }
 
   @Test
-  public void testSetAccessTokenFirstTime() {
+  public void testSetAccessTokenFirstTime() throws IOException {
     String accessToken = "accessToken";
     String refreshToken = "refreshToken";
 
