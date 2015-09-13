@@ -42,27 +42,6 @@ public class CheckIOShowPublicationsAction extends AnAction {
           CheckIOIcons.SHOW_SOLUTIONS);
   }
 
-  @Override
-  public void actionPerformed(AnActionEvent e) {
-    final Project project = e.getProject();
-    final Task task;
-    if (project != null) {
-      task = CheckIOUtils.getTaskFromSelectedEditor(project);
-      if (task != null) {
-        closePreviousPublicationFiles(project);
-        ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getShowSolutionsTask(project, task)));
-      }
-      else {
-        LOG.warn("Task is null");
-        CheckIOUtils.showOperationResultPopUp("Internal problems. Couldn't find task", MessageType.WARNING.getPopupBackground(),
-                                              project);
-      }
-    }
-    else {
-      LOG.warn("Project is null");
-    }
-  }
-
   private static void closePreviousPublicationFiles(@NotNull final Project project) {
     ApplicationManager.getApplication().invokeAndWait(
       () ->
@@ -104,7 +83,6 @@ public class CheckIOShowPublicationsAction extends AnAction {
             ApplicationManager.getApplication().invokeLater(() -> {
               try {
                 showPublicationsInToolWindowByCategory(myPublications);
-                indicator.checkCanceled();
               }
               catch (IllegalStateException e) {
                 LOG.warn(e.getMessage());
@@ -129,7 +107,6 @@ public class CheckIOShowPublicationsAction extends AnAction {
     };
   }
 
-
   private static HashMap<String, CheckIOPublication[]> tryToGetPublicationsFromCache(@NotNull final Project project,
                                                                                      @NotNull final Task task) throws IOException {
     final HashMap<String, CheckIOPublication[]> publicationsForLastSolvedTask =
@@ -138,6 +115,27 @@ public class CheckIOShowPublicationsAction extends AnAction {
       return CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(task);
     }
     return publicationsForLastSolvedTask;
+  }
+
+  @Override
+  public void actionPerformed(AnActionEvent e) {
+    final Project project = e.getProject();
+    final Task task;
+    if (project != null) {
+      task = CheckIOUtils.getTaskFromSelectedEditor(project);
+      if (task != null) {
+        closePreviousPublicationFiles(project);
+        ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getShowSolutionsTask(project, task)));
+      }
+      else {
+        LOG.warn("Task is null");
+        CheckIOUtils.showOperationResultPopUp("Internal problems. Couldn't find task", MessageType.WARNING.getPopupBackground(),
+                                              project);
+      }
+    }
+    else {
+      LOG.warn("Project is null");
+    }
   }
 
   @Override
