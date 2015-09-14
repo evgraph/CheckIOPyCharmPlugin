@@ -1,5 +1,6 @@
 package com.jetbrains.checkio.ui;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -23,11 +24,14 @@ public class CheckIOHintPanel extends JPanel {
   public static final String ID = "Hints";
   private static final Logger LOG = Logger.getInstance(CheckIOHintPanel.class);
   private final LinkedBlockingQueue<JLabel> hintQueue = new LinkedBlockingQueue<>();
+  private final CheckIOToolWindow myCheckIOToolWindow;
   private Task myTask;
   private Project myProject;
   private ScrollablePanel myHintPanel;
+  private JPanel myForumPanel;
 
-  public CheckIOHintPanel(@NotNull Project project) {
+  public CheckIOHintPanel(@NotNull final Project project, @NotNull final CheckIOToolWindow toolWindow) {
+    myCheckIOToolWindow = toolWindow;
     myTask = CheckIOUtils.getTaskFromSelectedEditor(project);
     myProject = project;
 
@@ -58,34 +62,54 @@ public class CheckIOHintPanel extends JPanel {
     final JScrollPane hintsPanel = getHintsPanel(hints);
     setMinimumSize(new Dimension(0, 0));
     setPreferredSize(hintsPanel.getPreferredSize());
-    final JPanel label = getMoreHintsLabel();
+    myForumPanel = createContinueOnForumPanel();
+    JPanel closeButtonPanel = createCloseLabelPanel();
+
     GridBagConstraints constraints = new GridBagConstraints();
     constraints.gridwidth = GridBagConstraints.RELATIVE;
     constraints.weightx = 1;
-    constraints.weighty = 1;
+    constraints.weighty = 0;
     constraints.gridx = 0;
     constraints.gridy = 0;
-    constraints.insets = new Insets(0, 0, 1, 0);
     constraints.fill = GridBagConstraints.BOTH;
+    constraints.ipady = 0;
+    add(closeButtonPanel, constraints);
+
+    constraints.gridy = 1;
+    constraints.weighty = 1;
     constraints.ipady = 250;
+    constraints.insets = new Insets(0, 0, 1, 0);
     add(hintsPanel, constraints);
 
     constraints.weighty = 0;
-    constraints.gridy = 1;
+    constraints.gridy = 2;
     constraints.ipady = 0;
     constraints.fill = GridBagConstraints.BOTH;
-    add(label, constraints);
+    add(myForumPanel, constraints);
   }
 
-  private JPanel getMoreHintsLabel() {
+  private JPanel createContinueOnForumPanel() {
     final JPanel panel = new JPanel(new GridLayout(1, 1));
-    final String text = "One more hint...";
-    final JLabel moreHintsLabel = new JLabel(text);
-    moreHintsLabel.addMouseListener(new HintsMouseListener(moreHintsLabel));
+    final JLabel moreHintsLabel = new JLabel(UIUtil.toHtml("<a href=\"\"> Continue on forum...</a>"));
+    moreHintsLabel.addMouseListener(new HintsMouseListener());
     moreHintsLabel.setHorizontalAlignment(SwingConstants.CENTER);
     moreHintsLabel.setOpaque(true);
     moreHintsLabel.setBackground(UIUtil.getTextFieldBackground());
     panel.add(moreHintsLabel);
+    panel.setVisible(false);
+    return panel;
+  }
+
+  private JPanel createCloseLabelPanel() {
+    final JLabel label = new JLabel(AllIcons.Actions.Close);
+    final JPanel panel = new JPanel(new BorderLayout());
+    label.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        myCheckIOToolWindow.hideHintPanel();
+      }
+    });
+    panel.add(label, BorderLayout.EAST);
     return panel;
   }
 
@@ -102,32 +126,23 @@ public class CheckIOHintPanel extends JPanel {
     return ScrollPaneFactory.createScrollPane(myHintPanel);
   }
 
-  private JLabel showNewHint() {
+  public void showNewHint() {
     final JLabel label = hintQueue.poll();
     label.setVisible(true);
-    return label;
+    scrollRectToVisible(new Rectangle(label.getX(), label.getY(), label.getHeight(), label.getHeight()));
+
+    if (hintQueue.isEmpty()) {
+      myForumPanel.setVisible(true);
+    }
   }
 
   private class HintsMouseListener extends MouseAdapter {
-    private final JLabel moreHintsLabel;
-
-    public HintsMouseListener(@NotNull final JLabel moreHintsLabel) {
-      this.moreHintsLabel = moreHintsLabel;
-    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
       if (hintQueue.size() == 0) {
         BrowserUtil
           .browse(CheckIOUtils.getForumLink(myTask, myProject));
-      }
-      if (hintQueue.size() == 1) {
-        moreHintsLabel
-          .setText(UIUtil.toHtml("<a href=\"\"> Continue on forum...</a>"));
-      }
-      if (hintQueue.size() > 0) {
-        JLabel label = showNewHint();
-        myHintPanel.scrollRectToVisible(new Rectangle(label.getX(), label.getY(), label.getHeight(), label.getHeight()));
       }
     }
   }

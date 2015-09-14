@@ -40,18 +40,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   private CheckIOTaskInfoPanel myTaskInfoPanel;
 
-  public CheckIOPublicationsPanel getSolutionsPanel() {
-    return mySolutionsPanel;
-  }
-
+  private CheckIOHintPanel myHintPanel;
   private CheckIOPublicationsPanel mySolutionsPanel;
-
-
   private CheckIOTestResultsPanel myTestResultsPanel;
   private JBCardLayout myMyCardLayout;
   private JPanel myContentPanel;
   private JSplitPane mySplitPane;
-
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
     this.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.MAX_HEIGHT));
@@ -87,10 +81,33 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, listener);
   }
 
+  private static JPanel createToolbarPanel() {
+    final DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new CheckIOCheckSolutionAction());
+    group.add(new CheckIOPreviousTaskAction());
+    group.add(new CheckIONextTaskAction());
+    group.add(new CheckIORefreshFileAction());
+    group.add(new CheckIOShowHintAction());
+    group.add(new CheckIOUpdateProjectAction());
+    group.add(new CheckIOShowPublicationsAction());
+    group.add(new CheckIOShowUserInfoAction());
+
+    final ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("CheckIO", group, true);
+    return JBUI.Panels.simplePanel(actionToolBar.getComponent());
+  }
+
+  public CheckIOPublicationsPanel getSolutionsPanel() {
+    return mySolutionsPanel;
+  }
+
   public CheckIOTestResultsPanel getTestResultsPanel() {
     return myTestResultsPanel;
   }
-  
+
+  public CheckIOHintPanel getHintPanel() {
+    return myHintPanel;
+  }
+
   public boolean isHintsVisible() {
     return !(mySplitPane.getBottomComponent() == null);
   }
@@ -109,31 +126,17 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
   }
 
-  public void showHintPanel(@NotNull final Project project) {
-    final JPanel panel = new CheckIOHintPanel(project);
-    panel.setMaximumSize(panel.getPreferredSize());
-    panel.setSize(panel.getPreferredSize());
-    myContentPanel.setMinimumSize(new Dimension(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT - (int)panel.getPreferredSize().getHeight()));
-    mySplitPane.setBottomComponent(panel);
+  public CheckIOHintPanel setAdnShowHintPanel(@NotNull final Project project) {
+    myHintPanel = new CheckIOHintPanel(project, this);
+    myHintPanel.setMaximumSize(myHintPanel.getPreferredSize());
+    myHintPanel.setSize(myHintPanel.getPreferredSize());
+    myContentPanel.setMinimumSize(new Dimension(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT - (int)myHintPanel.getPreferredSize().getHeight()));
+    mySplitPane.setBottomComponent(myHintPanel);
+    return myHintPanel;
   }
 
   public void hideHintPanel() {
-    mySplitPane.remove(2);
-  }
-
-  private static JPanel createToolbarPanel() {
-    final DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new CheckIOCheckSolutionAction());
-    group.add(new CheckIOPreviousTaskAction());
-    group.add(new CheckIONextTaskAction());
-    group.add(new CheckIORefreshFileAction());
-    group.add(new CheckIOShowHintAction());
-    group.add(new CheckIOUpdateProjectAction());
-    group.add(new CheckIOShowPublicationsAction());
-    group.add(new CheckIOShowUserInfoAction());
-
-    final ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("CheckIO", group, true);
-    return JBUI.Panels.simplePanel(actionToolBar.getComponent());
+    mySplitPane.setBottomComponent(null);
   }
 
   @Override

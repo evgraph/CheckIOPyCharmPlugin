@@ -24,6 +24,7 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
 
   @Override
   public void actionPerformed(AnActionEvent event) {
+
     final Project project = event.getProject();
     if (project == null) {
       LOG.warn("Project is null");
@@ -35,9 +36,10 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
     assert toolWindowFactory != null;
     final CheckIOToolWindow toolWindow = toolWindowFactory.getCheckIOToolWindow();
     if (toolWindow.isHintsVisible()) {
-      toolWindow.hideHintPanel();
-      return;
+      toolWindow.getHintPanel().showNewHint();
     }
-    toolWindow.showHintPanel(project);
+    else {
+      toolWindow.setAdnShowHintPanel(project);
+    }
   }
 }
