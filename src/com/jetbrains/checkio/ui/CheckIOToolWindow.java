@@ -48,7 +48,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private JSplitPane mySplitPane;
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
-    this.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.MAX_HEIGHT));
 
     mySplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
@@ -64,11 +63,10 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(task);
     mySolutionsPanel = new CheckIOPublicationsPanel(project);
-    myTestResultsPanel = new CheckIOTestResultsPanel(project);
+    myTestResultsPanel = new CheckIOTestResultsPanel();
 
     myMyCardLayout = new JBCardLayout();
     myContentPanel = new JPanel(myMyCardLayout);
-    myContentPanel.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, CheckIOUtils.HEIGHT));
     myContentPanel.add(TASK_DESCRIPTION, myTaskInfoPanel);
     myContentPanel.add(SOLUTIONS, mySolutionsPanel);
     myContentPanel.add(TEST_RESULTS, myTestResultsPanel);
@@ -150,13 +148,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   public JPanel createButtonPanel() {
     final JPanel buttonPanel = new JPanel(new BorderLayout());
-    buttonPanel.setPreferredSize(new Dimension(CheckIOUtils.MAX_WIDTH, 30));
-    buttonPanel.setMaximumSize(new Dimension(CheckIOUtils.MAX_WIDTH, 30));
-    buttonPanel.setMinimumSize(new Dimension(CheckIOUtils.WIDTH, 30));
 
     final JLabel label = new JLabel(AllIcons.Diff.Arrow);
     label.setToolTipText("Back to task text");
+    buttonPanel.add(Box.createRigidArea(new Dimension(0, 7)), BorderLayout.PAGE_START);
     buttonPanel.add(label, BorderLayout.WEST);
+    buttonPanel.add(Box.createRigidArea(new Dimension(0, 7)), BorderLayout.PAGE_END);
 
     buttonPanel.addMouseListener(new MouseAdapter() {
       @Override

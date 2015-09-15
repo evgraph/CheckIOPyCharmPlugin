@@ -26,39 +26,12 @@ import java.awt.*;
 
 
 public class CheckIOTestResultsPanel extends JPanel {
-  private final CheckIOBrowserWindow myBrowserWindow;
   private static final Logger LOG = Logger.getInstance(CheckIOTestResultsPanel.class);
-  private final Project myProject;
-  private boolean isTaskChecked = false;
+  private final CheckIOBrowserWindow myBrowserWindow;
 
-  public CheckIOBrowserWindow getBrowserWindow() {
-    return myBrowserWindow;
-  }
-
-  public CheckIOTestResultsPanel(@NotNull final Project project) {
-    myProject = project;
-    myBrowserWindow = new CheckIOBrowserWindow(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT);
+  public CheckIOTestResultsPanel() {
+    myBrowserWindow = new CheckIOBrowserWindow();
     myBrowserWindow.setShowProgress(true);
-  }
-
-  public void testAndShowResults(@NotNull final JPanel backButtonPanel, @NotNull final Task task, @NotNull final String code) {
-    this.removeAll();
-    final Project project = ProjectUtil.guessCurrentProject(this);
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final String token = taskManager.getAccessToken();
-    final String url = getClass().getResource("/other/pycharm_api_test.html").toExternalForm();
-    final String taskId = taskManager.getTaskId(task).toString();
-    final String interpreter = CheckIOUtils.getInterpreter(task, project);
-
-    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
-    myBrowserWindow.addFormListener(documentListener);
-    myBrowserWindow.load(url);
-
-    final JPanel buttonsPanel = combineButtonPanels(backButtonPanel, createPublishSolutionButton(task));
-
-    setLayout(new BorderLayout());
-    add(buttonsPanel, BorderLayout.PAGE_START);
-    add(myBrowserWindow.getPanel());
   }
 
   private static JPanel combineButtonPanels(@NotNull final JPanel backButtonPanel, @NotNull final JPanel publishButtonPanel) {
@@ -67,7 +40,6 @@ public class CheckIOTestResultsPanel extends JPanel {
     panel.add(publishButtonPanel, BorderLayout.CENTER);
     return panel;
   }
-
 
   private static JPanel createPublishSolutionButton(@NotNull final Task task) {
     final CheckIoPublishSolutionAction publishSolutionAction = new CheckIoPublishSolutionAction(task);
@@ -137,5 +109,25 @@ public class CheckIOTestResultsPanel extends JPanel {
         }
       }
     };
+  }
+
+  public void testAndShowResults(@NotNull final JPanel backButtonPanel, @NotNull final Task task, @NotNull final String code) {
+    this.removeAll();
+    final Project project = ProjectUtil.guessCurrentProject(this);
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    final String token = taskManager.getAccessToken();
+    final String url = getClass().getResource("/other/pycharm_api_test.html").toExternalForm();
+    final String taskId = taskManager.getTaskId(task).toString();
+    final String interpreter = CheckIOUtils.getInterpreter(task, project);
+
+    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
+    myBrowserWindow.addFormListener(documentListener);
+    myBrowserWindow.load(url);
+
+    final JPanel buttonsPanel = combineButtonPanels(backButtonPanel, createPublishSolutionButton(task));
+
+    setLayout(new BorderLayout());
+    add(buttonsPanel, BorderLayout.PAGE_START);
+    add(myBrowserWindow.getPanel());
   }
 }

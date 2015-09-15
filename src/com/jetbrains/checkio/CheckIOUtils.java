@@ -53,10 +53,6 @@ import java.util.List;
 
 public class CheckIOUtils {
   public static final Key<LanguageLevel> CHECKIO_LANGUAGE_LEVEL_KEY = new Key<>("CheckIOLanguageLevel");
-  public static final int WIDTH = 450;
-  public static final int HEIGHT = 1000;
-  public static final int MAX_WIDTH = 2000;
-  public static final int MAX_HEIGHT = 2000;
   public static final String PUBLICATION_FOLDER_NAME = "/.publications/";
   public static final String COURSE_TYPE = "CHECK_IO";
   private final static String MISSION_PARAMETER_NAME = "mission";

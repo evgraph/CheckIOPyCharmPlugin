@@ -36,10 +36,16 @@ public class CheckIOBrowserWindow extends JFrame {
   private WebEngine myEngine;
   private ProgressBar myProgressBar;
   private ChangeListener<Document> myDocumentChangeListener;
-  private final int width;
-  private final int height;
   private boolean refInNewBrowser;
   private boolean showProgress = true;
+
+  public CheckIOBrowserWindow() {
+    setSize(new Dimension(600, 600));
+    setLayout(new BorderLayout());
+    setPanel(new JFXPanel());
+    LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
+    initComponents();
+  }
 
   public void setShowProgress(boolean showProgress) {
     this.showProgress = showProgress;
@@ -47,15 +53,6 @@ public class CheckIOBrowserWindow extends JFrame {
 
   public void setRefInNewBrowser(boolean refInNewBrowser) {
     this.refInNewBrowser = refInNewBrowser;
-  }
-
-  public CheckIOBrowserWindow(int width, int height) {
-    this.width = width;
-    this.height = height;
-    setLayout(new BorderLayout());
-    setPanel(new JFXPanel());
-    LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
-    initComponents();
   }
 
   private void updateLaf(boolean isDarcula) {
@@ -99,7 +96,7 @@ public class CheckIOBrowserWindow extends JFrame {
       if (refInNewBrowser) {
         initHyperlinkListener();
       }
-      Scene scene = new Scene(myPane, width, height);
+      Scene scene = new Scene(myPane);
       myPanel.setScene(scene);
       myPanel.setVisible(true);
       updateLaf(LafManager.getInstance().getCurrentLookAndFeel() instanceof DarculaLookAndFeelInfo);
@@ -107,7 +104,6 @@ public class CheckIOBrowserWindow extends JFrame {
 
     add(myPanel, BorderLayout.CENTER);
     setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    setSize(width, height);
   }
 
 
@@ -140,7 +136,7 @@ public class CheckIOBrowserWindow extends JFrame {
 
             final String href = ((Element)ev.getTarget()).getAttribute("href");
             ApplicationManager.getApplication().invokeLater(() -> {
-              final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow(700, 700);
+              final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow();
               checkIOBrowserWindow.addBackAndOpenButtons();
               checkIOBrowserWindow.setRefInNewBrowser(false);
               checkIOBrowserWindow.setShowProgress(true);

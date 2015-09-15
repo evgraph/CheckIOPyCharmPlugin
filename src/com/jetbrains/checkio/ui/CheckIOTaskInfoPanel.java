@@ -1,6 +1,5 @@
 package com.jetbrains.checkio.ui;
 
-import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +13,7 @@ public class CheckIOTaskInfoPanel extends JPanel {
   public CheckIOTaskInfoPanel(@NotNull final Task task) {
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
     taskNameLabel = new JLabel(task.getName());
-    myBrowserWindow = new CheckIOBrowserWindow(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT);
+    myBrowserWindow = new CheckIOBrowserWindow();
     myBrowserWindow.setShowProgress(false);
     myBrowserWindow.setRefInNewBrowser(true);
     myBrowserWindow.loadContent(task.getText());
