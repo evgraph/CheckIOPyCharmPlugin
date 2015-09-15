@@ -126,13 +126,17 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
   }
 
-  public CheckIOHintPanel setAdnShowHintPanel(@NotNull final Project project) {
+  public void setAdnShowHintPanel(@NotNull final Project project) {
     myHintPanel = new CheckIOHintPanel(project, this);
     myHintPanel.setMaximumSize(myHintPanel.getPreferredSize());
     myHintPanel.setSize(myHintPanel.getPreferredSize());
-    myContentPanel.setMinimumSize(new Dimension(CheckIOUtils.WIDTH, CheckIOUtils.HEIGHT - (int)myHintPanel.getPreferredSize().getHeight()));
+    double preferredHintPanelHeight = myHintPanel.getPreferredSize().getHeight();
+    myContentPanel.setMinimumSize(new Dimension((int)myContentPanel.getPreferredSize().getWidth(),
+                                                myContentPanel.getHeight() - (int)preferredHintPanelHeight));
+    if (myContentPanel.getMinimumSize().getHeight() / preferredHintPanelHeight < 1) {
+      mySplitPane.setDividerLocation(0.5);
+    }
     mySplitPane.setBottomComponent(myHintPanel);
-    return myHintPanel;
   }
 
   public void hideHintPanel() {
