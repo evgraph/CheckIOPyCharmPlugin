@@ -9,7 +9,6 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
 import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
@@ -28,6 +27,26 @@ import java.util.List;
 public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
   public static final String ID = "User Info";
   private JLabel myUserLevelLabel = new JLabel();
+
+  private static int getSolvedTasks(@NotNull final Lesson lesson, @NotNull final StudyTaskManager taskManager) {
+    int solved = 0;
+    List<Task> tasks = lesson.getTaskList();
+
+    for (Task task : tasks) {
+      if (taskManager.getStatus(task) == StudyStatus.Solved) {
+        ++solved;
+      }
+    }
+
+    return solved;
+  }
+
+  private static void addStatistics(String statistics, JPanel contentPanel) {
+    String labelText = UIUtil.toHtml(statistics, 5);
+    contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+    JLabel statisticLabel = new JLabel(labelText);
+    contentPanel.add(statisticLabel);
+  }
 
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow window) {
@@ -83,26 +102,6 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
     myUserLevelLabel.setText(UIUtil.toHtml("<b>Level: </b>" + level, 5));
   }
 
-  private static int getSolvedTasks(@NotNull final Lesson lesson, @NotNull final StudyTaskManager taskManager) {
-    int solved = 0;
-    List<Task> tasks = lesson.getTaskList();
-
-    for (Task task : tasks) {
-      if (taskManager.getStatus(task) == StudyStatus.Solved) {
-        ++solved;
-      }
-    }
-
-    return solved;
-  }
-
-  private static void addStatistics(String statistics, JPanel contentPanel) {
-    String labelText = UIUtil.toHtml(statistics, 5);
-    contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-    JLabel statisticLabel = new JLabel(labelText);
-    contentPanel.add(statisticLabel);
-  }
-
   private static class MyMouseListener extends MouseAdapter {
     private final CheckIOUser myUser;
 
@@ -112,7 +111,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-      BrowserUtil.browse(CheckIOUtils.getUserProfileLink(myUser));
+      BrowserUtil.browse(myUser.getUserProfileLink());
     }
   }
 }

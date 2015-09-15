@@ -27,7 +27,6 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
-import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.courseFormat.Course;
@@ -262,11 +261,6 @@ public class CheckIOUtils {
 
   private static String createAddPublicationLinkParameter(@NotNull final String taskName) {
     return String.join("/", new String[]{"", MISSION_PARAMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, ADD_PARAMETER_NAME, ""});
-  }
-
-  //TODO: update (api needed)
-  public static String getUserProfileLink(@NotNull final CheckIOUser user) {
-    return "http://www.checkio.org/user/" + user.getUsername();
   }
 
   public static boolean isPublicationFile(@NotNull final VirtualFile file) {

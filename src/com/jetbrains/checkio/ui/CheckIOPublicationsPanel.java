@@ -39,14 +39,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class CheckIOPublicationsPanel extends JPanel {
+  private static final Logger LOG = Logger.getInstance(CheckIOPublicationsPanel.class);
+  private final Project myProject;
   private HashMap<String, CheckIOPublication[]> myCategoryArrayListHashMap;
   private PublicationInfoPanel publicationInfoPanel;
   private JScrollPane mySolutionTreePanel;
   private JPanel myButtonPanel;
-  private final Project myProject;
   private Tree tree;
   private Task task;
-  private static final Logger LOG = Logger.getInstance(CheckIOPublicationsPanel.class);
 
   public CheckIOPublicationsPanel(@NotNull final Project project) {
     myProject = project;
@@ -139,6 +139,44 @@ public class CheckIOPublicationsPanel extends JPanel {
   }
 
 
+  enum ListenerKind {
+    Publication, User
+  }
+
+  private static class MyRenderer extends DefaultTreeCellRenderer {
+    private final HashMap<String, Icon> myIconsForRunners = new HashMap<String, Icon>() {
+      {
+        put("python-27", CheckIOIcons.PYTHON_2);
+        put("python-3", CheckIOIcons.PYTHON_3);
+      }
+    };
+
+    @Override
+    public Component getTreeCellRendererComponent(JTree tree,
+                                                  Object value,
+                                                  boolean selected,
+                                                  boolean expanded,
+                                                  boolean leaf,
+                                                  int row,
+                                                  boolean hasFocus) {
+      super.getTreeCellRendererComponent(
+        tree, value, selected,
+        expanded, leaf, row,
+        hasFocus);
+
+      if (leaf) {
+        final DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+        final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
+        final Icon icon = myIconsForRunners.get(publication.getInterpreter());
+        setIcon(icon);
+      }
+      else {
+        setIcon(CheckIOIcons.SHOW_SOLUTIONS);
+      }
+      return this;
+    }
+  }
+
   private class PublicationInfoPanel extends JPanel {
     private final JLabel myViewOnWebLabel;
     private final JLabel myUserNameLabel;
@@ -186,7 +224,7 @@ public class CheckIOPublicationsPanel extends JPanel {
             url = myPublication.getPublicationLink(token, task.getName());
           }
           else {
-            url = CheckIOUtils.getUserProfileLink(myPublication.getAuthor());
+            url = myPublication.getAuthor().getUserProfileLink();
           }
         }
         return url;
@@ -199,11 +237,6 @@ public class CheckIOPublicationsPanel extends JPanel {
       }
     }
   }
-
-  enum ListenerKind {
-    Publication, User
-  }
-
 
   private class MyTreeSelectionListener implements TreeSelectionListener {
     @Override
@@ -264,40 +297,6 @@ public class CheckIOPublicationsPanel extends JPanel {
           }
         }
       };
-    }
-  }
-
-  private static class MyRenderer extends DefaultTreeCellRenderer {
-    private final HashMap<String, Icon> myIconsForRunners = new HashMap<String, Icon>() {
-      {
-        put("python-27", CheckIOIcons.PYTHON_2);
-        put("python-3", CheckIOIcons.PYTHON_3);
-      }
-    };
-
-    @Override
-    public Component getTreeCellRendererComponent(JTree tree,
-                                                  Object value,
-                                                  boolean selected,
-                                                  boolean expanded,
-                                                  boolean leaf,
-                                                  int row,
-                                                  boolean hasFocus) {
-      super.getTreeCellRendererComponent(
-        tree, value, selected,
-        expanded, leaf, row,
-        hasFocus);
-
-      if (leaf) {
-        final DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-        final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
-        final Icon icon = myIconsForRunners.get(publication.getInterpreter());
-        setIcon(icon);
-      }
-      else {
-        setIcon(CheckIOIcons.SHOW_SOLUTIONS);
-      }
-      return this;
     }
   }
 }
