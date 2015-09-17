@@ -22,9 +22,9 @@ import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.checkio.ui.CheckIOPublicationsPanel;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
+import com.jetbrains.edu.courseFormat.StudyStatus;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

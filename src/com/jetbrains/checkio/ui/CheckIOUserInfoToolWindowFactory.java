@@ -12,9 +12,9 @@ import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
+import com.jetbrains.edu.courseFormat.StudyStatus;
 import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import com.jetbrains.edu.learning.ui.StudyProgressBar;
 import org.jetbrains.annotations.NotNull;
 
