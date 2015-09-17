@@ -23,10 +23,9 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -110,9 +109,14 @@ public class CheckIOUserAuthorizer {
     getAndSetTokens(request);
   }
 
-  public void setTokensFirstTime(@NotNull final String code) throws IOException {
-    final HttpUriRequest request = makeAccessTokenRequest(code);
-    getAndSetTokens(request);
+  public void setTokensFirstTime(@Nullable final String code) throws IOException {
+    if (code != null) {
+      final HttpUriRequest request = makeAccessTokenRequest(code);
+      getAndSetTokens(request);
+    }
+    else {
+      throw new IOException("Code is null");
+    }
   }
 
   public void startServer() {
@@ -244,18 +248,17 @@ public class CheckIOUserAuthorizer {
 
   private class MyContextHandler extends AbstractHandler {
     @Override
-    public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
-      throws IOException, ServletException {
+    public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
       LOG.info("Handling auth response");
       final String code = httpServletRequest.getParameter(PARAMETER_CODE);
-      final OutputStream os = httpServletResponse.getOutputStream();
-      os.write(SUCCESS_AUTHORIZATION_MESSAGE.getBytes(Charset.defaultCharset()));
-      os.close();
 
       try {
+        final OutputStream os = httpServletResponse.getOutputStream();
+        os.write(SUCCESS_AUTHORIZATION_MESSAGE.getBytes(Charset.defaultCharset()));
+        os.close();
         setTokensFirstTime(code);
       }
-      catch (JSONException e) {
+      catch (IOException e) {
         LOG.warn(e.getMessage());
       }
 
