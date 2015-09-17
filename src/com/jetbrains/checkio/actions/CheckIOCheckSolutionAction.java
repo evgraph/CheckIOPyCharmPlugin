@@ -113,7 +113,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
           try {
             while (testResultsPanel.isShowing()) {
               status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
-              TimeUnit.SECONDS.sleep(1);
+              TimeUnit.MILLISECONDS.sleep(500);
               if (status != statusBeforeCheck) {
                 if (status == StudyStatus.Solved) {
                   checkAchievements();
