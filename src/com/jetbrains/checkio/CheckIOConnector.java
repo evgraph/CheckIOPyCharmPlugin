@@ -182,7 +182,12 @@ public class CheckIOConnector {
                                                @NotNull final MissionWrapper missionWrapper) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    studyManager.setStatus(task, taskSolutionStatusForProjectCreation.get(missionWrapper.isSolved));
+    final StudyStatus oldStatus = studyManager.getStatus(task);
+    final StudyStatus newStatus = taskSolutionStatusForProjectCreation.get(missionWrapper.isSolved);
+    if (!(oldStatus == StudyStatus.Failed && newStatus == StudyStatus.Unchecked)) {
+      studyManager.setStatus(task, newStatus);
+    }
+
     taskManager.setPublicationStatus(task, missionWrapper.isPublished);
     taskManager.setTaskId(task, missionWrapper.id);
   }
