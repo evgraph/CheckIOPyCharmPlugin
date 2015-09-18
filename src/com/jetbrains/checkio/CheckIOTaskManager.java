@@ -1,12 +1,6 @@
 package com.jetbrains.checkio;
 
-import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.components.StoragePathMacros;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleServiceManager;
+import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -20,12 +14,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("WeakerAccess")
+
 @State(
   name = "CheckIOTaskManager",
   storages = {
     @Storage(
-      file = StoragePathMacros.PROJECT_CONFIG_DIR + "/task_info.xml"
+      file = StoragePathMacros.PROJECT_CONFIG_DIR + "/checkio_project.xml",
+      scheme = StorageScheme.DIRECTORY_BASED
     )}
 )
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
@@ -56,8 +51,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   }
 
   public static CheckIOTaskManager getInstance(@NotNull final Project project) {
-    final Module module = ModuleManager.getInstance(project).getModules()[0];
-    return ModuleServiceManager.getService(module, CheckIOTaskManager.class);
+    return ServiceManager.getService(project, CheckIOTaskManager.class);
   }
 
   public CheckIOUser getUser() {
