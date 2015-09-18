@@ -45,6 +45,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private JBCardLayout myMyCardLayout;
   private JPanel myContentPanel;
   private JSplitPane mySplitPane;
+  private static final String nonStudyFileMessage = "You've opened non-study file, so no task info is shown";
+
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
 
@@ -55,12 +57,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     StudyEditor studyEditor = StudyUtils.getSelectedStudyEditor(project);
 
-    if (studyEditor == null) {
-      return;
-    }
-    final Task task = studyEditor.getTaskFile().getTask();
+    final String taskText = studyEditor == null ? nonStudyFileMessage : studyEditor.getTaskFile().getTask().getText();
 
-    myTaskInfoPanel = new CheckIOTaskInfoPanel(task);
+    myTaskInfoPanel = new CheckIOTaskInfoPanel(taskText);
     mySolutionsPanel = new CheckIOPublicationsPanel(project);
     myTestResultsPanel = new CheckIOTestResultsPanel();
 
@@ -244,7 +243,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private void setTaskInfoTextForNonStudyFiles() {
-      myTaskInfoPanel.setTaskText("You've opened non-study file, so no task info is shown");
+      myTaskInfoPanel.setTaskText(nonStudyFileMessage);
     }
 
     private void showTaskToolWindow() {
