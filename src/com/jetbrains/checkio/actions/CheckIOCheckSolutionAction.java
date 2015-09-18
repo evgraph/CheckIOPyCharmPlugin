@@ -65,14 +65,11 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
       final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
       CheckIOTaskToolWindowFactory toolWindowFactory;
-      private CheckIOToolWindow ourToolWindow;
 
       @Override
       public void onCancel() {
         studyManager.setStatus(task, statusBeforeCheck);
-        if (toolWindowFactory != null) {
-          toolWindowFactory.getCheckIOToolWindow().showTaskInfoPanel();
-        }
+        CheckIOProjectComponent.getInstance(project).getToolWindow().showTaskInfoPanel();
       }
 
       @Override
@@ -92,12 +89,11 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         }
 
         try {
-          ourToolWindow = toolWindowFactory.getCheckIOToolWindow();
           CheckIOConnector.updateTokensInTaskManager(project);
           indicator.checkCanceled();
           ApplicationManager.getApplication().invokeLater(
             () -> {
-              ourToolWindow.checkAndShowResults(task, code);
+              CheckIOProjectComponent.getInstance(project).getToolWindow().checkAndShowResults(task, code);
               setNewTaskStatusAndCheckAchievementsIfTaskSolved();
             });
         }
@@ -107,7 +103,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       }
 
       private void setNewTaskStatusAndCheckAchievementsIfTaskSolved() {
-        final CheckIOTestResultsPanel testResultsPanel = ourToolWindow.getTestResultsPanel();
+        final CheckIOTestResultsPanel testResultsPanel = CheckIOProjectComponent.getInstance(project).getToolWindow().getTestResultsPanel();
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
           StudyStatus status = statusBeforeCheck;
           try {

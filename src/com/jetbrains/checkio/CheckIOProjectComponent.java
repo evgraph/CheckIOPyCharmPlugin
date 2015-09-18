@@ -32,6 +32,7 @@ import java.util.Map;
 
 public class CheckIOProjectComponent implements ProjectComponent {
   private final Project myProject;
+  private CheckIOToolWindow myToolWindow;
   private static final Map<String, String> myDeletedShortcuts = new HashMap<>();
 
   private CheckIOProjectComponent(Project project) {
@@ -45,11 +46,16 @@ public class CheckIOProjectComponent implements ProjectComponent {
     Platform.setImplicitExit(false);
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
+      myToolWindow = new CheckIOToolWindow(myProject);
       registerTaskToolWindow(course);
       registerUserInfoToolWindow();
       registerShortcuts(course);
       CheckIOUtils.selectCurrentTask(myProject);
     });
+  }
+
+  public CheckIOToolWindow getToolWindow() {
+    return myToolWindow;
   }
 
   public void registerTaskToolWindow(@Nullable final Course course) {

@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
+import com.jetbrains.checkio.CheckIOProjectComponent;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
@@ -34,7 +35,7 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
     final CheckIOTaskToolWindowFactory toolWindowFactory =
       (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
     assert toolWindowFactory != null;
-    final CheckIOToolWindow toolWindow = toolWindowFactory.getCheckIOToolWindow();
+    final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
     if (toolWindow.isHintsVisible()) {
       toolWindow.getHintPanel().showNewHint();
     }

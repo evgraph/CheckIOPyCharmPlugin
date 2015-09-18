@@ -15,12 +15,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.jetbrains.checkio.CheckIOConnector;
+import com.jetbrains.checkio.CheckIOProjectComponent;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.checkio.ui.CheckIOPublicationsPanel;
-import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.courseFormat.StudyStatus;
 import com.jetbrains.edu.courseFormat.Task;
@@ -62,35 +62,29 @@ public class CheckIOShowPublicationsAction extends AnAction {
                                                                                         @NotNull final Task task) {
     return new com.intellij.openapi.progress.Task.Backgroundable(project, "Downloading solutions list", true) {
       private HashMap<String, CheckIOPublication[]> myPublications;
-      private CheckIOTaskToolWindowFactory myToolWindowFactory;
 
       @Override
       public void onCancel() {
-        if (myToolWindowFactory != null) {
-          myToolWindowFactory.getCheckIOToolWindow().showTaskInfoPanel();
-        }
+        CheckIOProjectComponent.getInstance(project).getToolWindow().showTaskInfoPanel();
       }
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        myToolWindowFactory = (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
         try {
-          if (myToolWindowFactory != null) {
-            CheckIOConnector.updateTokensInTaskManager(project);
-            indicator.checkCanceled();
-            myPublications = tryToGetPublicationsFromCache(project, task);
-            indicator.checkCanceled();
-            ApplicationManager.getApplication().invokeLater(() -> {
-              try {
-                showPublicationsInToolWindowByCategory(myPublications);
-              }
-              catch (IllegalStateException e) {
-                LOG.warn(e.getMessage());
-                CheckIOUtils.showOperationResultPopUp("Couldn't load solutions for no task", MessageType.ERROR.getPopupBackground(),
-                                                      project);
-              }
-            });
-          }
+          CheckIOConnector.updateTokensInTaskManager(project);
+          indicator.checkCanceled();
+          myPublications = tryToGetPublicationsFromCache(project, task);
+          indicator.checkCanceled();
+          ApplicationManager.getApplication().invokeLater(() -> {
+            try {
+              showPublicationsInToolWindowByCategory(myPublications);
+            }
+            catch (IllegalStateException e) {
+              LOG.warn(e.getMessage());
+              CheckIOUtils.showOperationResultPopUp("Couldn't load solutions for no task", MessageType.ERROR.getPopupBackground(),
+                                                    project);
+            }
+          });
         }
         catch (IOException e) {
           LOG.warn(e.getMessage());
@@ -100,9 +94,10 @@ public class CheckIOShowPublicationsAction extends AnAction {
 
       private void showPublicationsInToolWindowByCategory(@NotNull final HashMap<String, CheckIOPublication[]> publications)
         throws IllegalStateException {
-        final CheckIOPublicationsPanel solutionsPanel = myToolWindowFactory.getCheckIOToolWindow().getSolutionsPanel();
-        solutionsPanel.update(publications, myToolWindowFactory.getCheckIOToolWindow().createButtonPanel());
-        myToolWindowFactory.getCheckIOToolWindow().showSolutionsPanel();
+        final CheckIOToolWindow checkIOToolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
+        final CheckIOPublicationsPanel solutionsPanel = checkIOToolWindow.getSolutionsPanel();
+        solutionsPanel.update(publications, checkIOToolWindow.createButtonPanel());
+        checkIOToolWindow.showSolutionsPanel();
       }
     };
   }

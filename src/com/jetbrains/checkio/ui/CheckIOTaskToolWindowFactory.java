@@ -7,6 +7,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import com.jetbrains.checkio.CheckIOProjectComponent;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
@@ -14,7 +15,7 @@ import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
 
 public class CheckIOTaskToolWindowFactory implements ToolWindowFactory, DumbAware {
-  private CheckIOToolWindow myCheckIOToolWindow;
+
   @Override
   public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
@@ -22,16 +23,11 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory, DumbAwar
     final Course course = studyManager.getCourse();
     final CheckIOUser user = taskManager.getUser();
     if (course != null && user != null) {
-      myCheckIOToolWindow = new CheckIOToolWindow(project);
+      final CheckIOToolWindow myCheckIOToolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
       final ContentManager contentManager = toolWindow.getContentManager();
       final Content content = contentManager.getFactory().createContent(myCheckIOToolWindow, null, false);
       contentManager.addContent(content);
       Disposer.register(project, myCheckIOToolWindow);
     }
-  }
-
-
-  public CheckIOToolWindow getCheckIOToolWindow() {
-    return myCheckIOToolWindow;
   }
 }
