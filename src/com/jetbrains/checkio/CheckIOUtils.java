@@ -38,6 +38,7 @@ import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import com.jetbrains.python.psi.LanguageLevel;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,11 +94,23 @@ public class CheckIOUtils {
     Document document = getDocumentFromSelectedEditor(project);
     if (document != null) {
       VirtualFile file = fileDocumentManager.getFile(document);
-      assert file != null;
-      StudyUtils.getTaskFile(project, file);
-      TaskFile taskFile = StudyUtils.getTaskFile(project, file);
-      if (taskFile != null) {
-        return taskFile.getTask();
+      if (file != null) {
+        final Task task = getTaskFromVirtualFile(project, file);
+        if (task != null) return task;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public static Task getTaskFromVirtualFile(@NotNull Project project, VirtualFile file) {
+    StudyUtils.getTaskFile(project, file);
+    TaskFile taskFile = StudyUtils.getTaskFile(project, file);
+    if (taskFile != null) {
+      final Task task = taskFile.getTask();
+      boolean isStudyTaskFile = task.getName().equals(FilenameUtils.removeExtension(taskFile.name));
+      if (isStudyTaskFile) {
+        return task;
       }
     }
     return null;
@@ -140,14 +153,14 @@ public class CheckIOUtils {
         ApplicationManager.getApplication().runWriteAction(() -> {
           try {
             StudyGenerator.createLesson(newLesson, baseDir, new File(oldCourse.getCourseDirectory()), project);
+            final File myCoursesDir = new File(PathManager.getConfigPath(), "courses" + oldCourse.getName());
+            StudyProjectGenerator.flushLesson(myCoursesDir, newLesson);
           }
           catch (IOException e) {
             LOG.warn(e.getMessage());
           }
         });
       }
-      final File myCoursesDir = new File(PathManager.getConfigPath(), "courses" + oldCourse.getName());
-      StudyProjectGenerator.flushLesson(myCoursesDir, newLesson);
       index++;
     }
     VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);

@@ -18,7 +18,7 @@ public class CheckIOTaskInfoPanel extends JPanel {
     add(myBrowserWindow.getPanel());
   }
 
-  public void setTaskText(@NotNull final Task task) {
-    myBrowserWindow.loadContent(task.getText());
+  public void setTaskText(String taskText) {
+    myBrowserWindow.loadContent(taskText);
   }
 }

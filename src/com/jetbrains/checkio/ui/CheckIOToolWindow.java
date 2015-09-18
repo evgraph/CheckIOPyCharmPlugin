@@ -20,7 +20,6 @@ import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.*;
 import com.jetbrains.edu.courseFormat.Task;
-import com.jetbrains.edu.courseFormat.TaskFile;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import org.jetbrains.annotations.NotNull;
@@ -179,7 +178,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      final Task task = getTask(file);
+      final Task task = CheckIOUtils.getTaskFromVirtualFile(myProject, file);
       if (task != null) {
         setTaskInfoPanelAndSwipeIfNeeded(task, false);
       }
@@ -193,7 +192,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
       final Editor selectedEditor = source.getSelectedTextEditor();
       if (selectedEditor == null) {
-        hideTaskToolWindow();
+        setTaskInfoTextForNonStudyFiles();
       }
     }
 
@@ -206,7 +205,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
           myMyCardLayout.swipe(myContentPanel, SOLUTIONS, JBCardLayout.SwipeDirection.AUTO);
           return;
         }
-        final Task task = getTask(newFile);
+        final Task task = CheckIOUtils.getTaskFromVirtualFile(myProject, newFile);
         boolean isStudyFile = task != null;
         if (isStudyFile) {
           boolean shouldSwipeToTaskDescription = !isPublicationFileOfSelectedTaskFile(oldFile, task);
@@ -217,7 +216,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
           }
           return;
         }
-        hideTaskToolWindow();
+        setTaskInfoTextForNonStudyFiles();
       }
     }
 
@@ -234,18 +233,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
       return taskFile.getNameWithoutExtension();
     }
 
-    @Nullable
-    private Task getTask(@NotNull VirtualFile file) {
-      TaskFile taskFile = StudyUtils.getTaskFile(myProject, file);
-      if (taskFile != null) {
-        return taskFile.getTask();
-      }
-      return null;
-    }
-
     private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
       if (myTaskInfoPanel != null) {
-        myTaskInfoPanel.setTaskText(task);
+        myTaskInfoPanel.setTaskText(task.getText());
         showTaskToolWindow();
       }
       if (shouldSwipe) {
@@ -253,9 +243,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
       }
     }
 
-    private void hideTaskToolWindow() {
-      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-      toolWindowManager.getToolWindow(ID).setAvailable(false, null);
+    private void setTaskInfoTextForNonStudyFiles() {
+      myTaskInfoPanel.setTaskText("You've opened non-study file, so no task info is shown");
     }
 
     private void showTaskToolWindow() {
