@@ -244,10 +244,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
-      final String taskName = task.getName();
       if (myTaskInfoPanel != null) {
         myTaskInfoPanel.setTaskText(task);
-        myTaskInfoPanel.setTaskNameLabelText(taskName);
         showTaskToolWindow();
       }
       if (shouldSwipe) {
