@@ -88,7 +88,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     group.add(new CheckIOShowHintAction());
     group.add(new CheckIOUpdateProjectAction());
     group.add(new CheckIOShowPublicationsAction());
-    group.add(new CheckIOShowUserInfoAction());
 
     final ActionToolbar actionToolBar = ActionManager.getInstance().createActionToolbar("CheckIO", group, true);
     return JBUI.Panels.simplePanel(actionToolBar.getComponent());

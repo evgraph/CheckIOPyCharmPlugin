@@ -18,6 +18,7 @@ import com.jetbrains.checkio.actions.CheckIORefreshFileAction;
 import com.jetbrains.checkio.actions.CheckIOShowHintAction;
 import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
+import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import javafx.application.Platform;
@@ -45,6 +46,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       registerTaskToolWindow(course);
+      registerUserInfoToolWindow();
       registerShortcuts(course);
       CheckIOUtils.selectCurrentTask(myProject);
     });
@@ -52,8 +54,8 @@ public class CheckIOProjectComponent implements ProjectComponent {
 
   public void registerTaskToolWindow(@Nullable final Course course) {
     if (course != null && course.getCourseType().equals(CheckIOUtils.COURSE_TYPE)) {
-      registerToolWindowIfNeeded();
-      final ToolWindow toolWindow = getToolWindowByID();
+      registerToolWindowIfNeeded(CheckIOToolWindow.ID);
+      final ToolWindow toolWindow = getToolWindowByID(CheckIOToolWindow.ID);
       if (toolWindow != null) {
         CheckIOUtils.updateTaskToolWindow(myProject);
         toolWindow.show(null);
@@ -61,17 +63,27 @@ public class CheckIOProjectComponent implements ProjectComponent {
     }
   }
 
-  private void registerToolWindowIfNeeded() {
-    final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-    final ToolWindow toolWindow = toolWindowManager.getToolWindow(CheckIOToolWindow.ID);
-    if (toolWindow == null) {
-      toolWindowManager.registerToolWindow(CheckIOToolWindow.ID, true, ToolWindowAnchor.RIGHT, myProject, true);
+
+  public void registerUserInfoToolWindow() {
+    registerToolWindowIfNeeded(CheckIOUserInfoToolWindowFactory.ID);
+    final ToolWindow toolWindow = getToolWindowByID(CheckIOUserInfoToolWindowFactory.ID);
+    if (toolWindow != null) {
+      toolWindow.setSplitMode(true, null);
+      new CheckIOUserInfoToolWindowFactory().createToolWindowContent(myProject, toolWindow);
     }
   }
 
-  private ToolWindow getToolWindowByID() {
+  private void registerToolWindowIfNeeded(@NotNull final String id) {
+    final ToolWindow toolWindow = getToolWindowByID(id);
+    if (toolWindow == null) {
+      final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+      toolWindowManager.registerToolWindow(id, true, ToolWindowAnchor.RIGHT, myProject, true);
+    }
+  }
+
+  private ToolWindow getToolWindowByID(@NotNull final String id) {
     final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-    return toolWindowManager.getToolWindow(CheckIOToolWindow.ID);
+    return toolWindowManager.getToolWindow(id);
   }
 
   private static void registerShortcuts(@Nullable final Course course) {

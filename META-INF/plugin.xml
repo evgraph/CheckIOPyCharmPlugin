@@ -78,8 +78,6 @@
             description="Show solutions">
       <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt P"/>
     </action>
-    <action id="CheckIOShowUserInfo" class="com.jetbrains.checkio.actions.CheckIOShowUserInfoAction" text="ShowUserInfo"
-            description="Show user info"/>
     <action id="CheckIOPreviousTaskAction" class="com.jetbrains.checkio.actions.CheckIOPreviousTaskAction" text="CheckIOBackAction"
             description="Go to previous task"/>
     <action id="CheckIONextTaskAction" class="com.jetbrains.checkio.actions.CheckIONextTaskAction" text="CheckIONextTaskAction"
