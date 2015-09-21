@@ -41,9 +41,10 @@ import java.util.Properties;
 
 
 public class CheckIOUserAuthorizer {
-  private static final String TOKEN_URL = "/oauth/token/";
-  private static final String AUTHORIZATION_URL = "/oauth/authorize/";
-  private static final String USER_INFO_URL = "/oauth/information/";
+  private static String MY_SERVER_URL = "http://www.checkio.org";
+  private static final String TOKEN_URL = MY_SERVER_URL + "/oauth/token/";
+  private static final String AUTHORIZATION_URL = MY_SERVER_URL + "/oauth/authorize/";
+  private static final String USER_INFO_URL = MY_SERVER_URL + "/oauth/information/";
   private static final String CLIENT_ID_PROPERTY = "clientId";
   private static final String CLIENT_SECRET_PROPERTY = "clientSecret";
   private static final String PARAMETER_CLIENT_ID = "client_id";
@@ -66,7 +67,6 @@ public class CheckIOUserAuthorizer {
   private static final String REDIRECT_URI = "http://localhost:" + ourPort;
   private static volatile CheckIOUserAuthorizer ourAuthorizer;
   private Server myServer;
-  private String myServerUrl = "http://www.checkio.org";
   private String myAccessToken;
   private String myRefreshToken;
 
@@ -131,9 +131,9 @@ public class CheckIOUserAuthorizer {
     }
   }
 
-  private void openAuthorizationPage() {
+  private static void openAuthorizationPage() {
     try {
-      final URI url = new URIBuilder(myServerUrl + AUTHORIZATION_URL)
+      final URI url = new URIBuilder(AUTHORIZATION_URL)
         .addParameter(PARAMETER_REDIRECT_URI, REDIRECT_URI)
         .addParameter(PARAMETER_RESPONSE_TYPE, PARAMETER_CODE)
         .addParameter(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY))
@@ -150,7 +150,7 @@ public class CheckIOUserAuthorizer {
   public CheckIOUser getUser(@NotNull final String accessToken) throws IOException {
     CheckIOUser user = new CheckIOUser();
     try {
-      final URI uri = new URIBuilder(myServerUrl + USER_INFO_URL)
+      final URI uri = new URIBuilder(USER_INFO_URL)
         .addParameter(PARAMETER_ACCESS_TOKEN, accessToken)
         .build();
       final HttpUriRequest request = new HttpGet(uri);
@@ -180,8 +180,8 @@ public class CheckIOUserAuthorizer {
     }
   }
 
-  private HttpUriRequest makeRefreshTokenRequest(@NotNull final String refreshToken) {
-    final HttpPost request = new HttpPost(myServerUrl + TOKEN_URL);
+  private static HttpUriRequest makeRefreshTokenRequest(@NotNull final String refreshToken) {
+    final HttpPost request = new HttpPost(TOKEN_URL);
     try {
       final List<NameValuePair> requestParameters = new ArrayList<>();
       requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, PARAMETER_REFRESH_TOKEN));
@@ -199,8 +199,8 @@ public class CheckIOUserAuthorizer {
     return request;
   }
 
-  private HttpUriRequest makeAccessTokenRequest(@NotNull final String code) {
-    final HttpPost request = new HttpPost(myServerUrl + TOKEN_URL);
+  private static HttpUriRequest makeAccessTokenRequest(@NotNull final String code) {
+    final HttpPost request = new HttpPost(TOKEN_URL);
     try {
       final List<NameValuePair> requestParameters = new ArrayList<>();
       requestParameters.add(new BasicNameValuePair(PARAMETER_CODE, code));
@@ -234,8 +234,8 @@ public class CheckIOUserAuthorizer {
     return myServer;
   }
 
-  public void setServerUrl(String serverUrl) {
-    myServerUrl = serverUrl;
+  public static void setServerUrl(String serverUrl) {
+    MY_SERVER_URL = serverUrl;
   }
 
   public String getAccessToken() {
@@ -259,9 +259,14 @@ public class CheckIOUserAuthorizer {
         setTokensFirstTime(code);
       }
       catch (IOException e) {
+        stopServerInNewThread();
         LOG.warn(e.getMessage());
       }
 
+      stopServerInNewThread();
+    }
+
+    private void stopServerInNewThread() {
       new Thread() {
         @Override
         public void run() {
