@@ -23,6 +23,7 @@ import org.w3c.dom.html.HTMLTextAreaElement;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 
 public class CheckIOTestResultsPanel extends JPanel {
@@ -111,7 +112,8 @@ public class CheckIOTestResultsPanel extends JPanel {
     };
   }
 
-  public void testAndShowResults(@NotNull final JPanel backButtonPanel, @NotNull final Task task, @NotNull final String code) {
+  public void testAndShowResults(@NotNull final JPanel backButtonPanel, @NotNull final Task task, @NotNull final String code)
+    throws IOException {
     this.removeAll();
     final Project project = ProjectUtil.guessCurrentProject(this);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);

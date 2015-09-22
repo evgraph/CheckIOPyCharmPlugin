@@ -219,14 +219,19 @@ public class CheckIOPublicationsPanel extends JPanel {
 
       private String getUrl() {
         String url = "";
-        if (myPublication != null) {
-          if (kind == ListenerKind.Publication) {
-            final String token = CheckIOTaskManager.getInstance(myProject).accessToken;
-            url = myPublication.getPublicationLink(token, task.getName());
+        try {
+          if (myPublication != null) {
+            if (kind == ListenerKind.Publication) {
+              final String token = CheckIOTaskManager.getInstance(myProject).getAccessToken();
+              url = myPublication.getPublicationLink(token, task.getName());
+            }
+            else {
+              url = myPublication.getAuthor().getUserProfileLink();
+            }
           }
-          else {
-            url = myPublication.getAuthor().getUserProfileLink();
-          }
+        }
+        catch (IOException e) {
+          CheckIOUtils.makeNoInternetConnectionNotifier(myProject);
         }
         return url;
       }
@@ -248,7 +253,8 @@ public class CheckIOPublicationsPanel extends JPanel {
 
     @NotNull
     private com.intellij.openapi.progress.Task.Backgroundable getLoadingSolutionTask(final TreeSelectionEvent e) {
-      return new com.intellij.openapi.progress.Task.Backgroundable(myProject, CheckIOBundle.message("publication.loading.process.message"), false) {
+      return new com.intellij.openapi.progress.Task.Backgroundable(myProject, CheckIOBundle.message("publication.loading.process.message"),
+                                                                   false) {
 
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
@@ -261,18 +267,24 @@ public class CheckIOPublicationsPanel extends JPanel {
           DefaultMutableTreeNode node = nodes[0];
 
           final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
-          final String token = CheckIOTaskManager.getInstance(myProject).accessToken;
-          final Future<?> future =
-            ApplicationManager.getApplication().executeOnPooledThread(() -> getPublicationInfoAndOpenFile(publication, token));
 
-          while (!future.isDone()) {
-            indicator.checkCanceled();
-            try {
-              TimeUnit.MILLISECONDS.sleep(500);
+          try {
+            final String token = CheckIOTaskManager.getInstance(myProject).getAccessToken();
+            final Future<?> future =
+              ApplicationManager.getApplication().executeOnPooledThread(() -> getPublicationInfoAndOpenFile(publication, token));
+
+            while (!future.isDone()) {
+              indicator.checkCanceled();
+              try {
+                TimeUnit.MILLISECONDS.sleep(500);
+              }
+              catch (InterruptedException e) {
+                LOG.info(e.getMessage());
+              }
             }
-            catch (InterruptedException e) {
-              LOG.info(e.getMessage());
-            }
+          }
+          catch (IOException e1) {
+            CheckIOUtils.makeNoInternetConnectionNotifier(myProject);
           }
         }
 

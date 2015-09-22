@@ -30,6 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 
 public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProvider, Disposable {
@@ -116,7 +117,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
   }
 
-  public void checkAndShowResults(@NotNull final Task task, @NotNull final String code) {
+  public void checkAndShowResults(@NotNull final Task task, @NotNull final String code) throws IOException {
     final JPanel buttonPanel = createButtonPanel();
     myMyCardLayout.swipe(myContentPanel, TEST_RESULTS, JBCardLayout.SwipeDirection.AUTO);
     myTestResultsPanel.testAndShowResults(buttonPanel, task, code);

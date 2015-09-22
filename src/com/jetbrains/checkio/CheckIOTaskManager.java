@@ -10,6 +10,7 @@ import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,7 @@ import java.util.Map;
 )
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
   public String accessToken;
-  public String refreshToken;
+  private String refreshToken;
 
   public UpdateProjectPolicy myUpdateProjectPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
@@ -91,7 +92,13 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     XmlSerializerUtil.copyBean(state, this);
   }
 
-  public String getAccessToken() {
+  public String getAccessToken() throws IOException {
+    if (!CheckIOConnector.isTokenUpToDate(accessToken)) {
+      final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
+      authorizer.setTokensFromRefreshToken(refreshToken);
+      accessToken = authorizer.getAccessToken();
+      refreshToken = authorizer.getRefreshToken();
+    }
     return accessToken;
   }
 

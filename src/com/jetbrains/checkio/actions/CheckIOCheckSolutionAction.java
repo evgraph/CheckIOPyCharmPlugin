@@ -89,18 +89,16 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
           return;
         }
 
-        try {
-          CheckIOConnector.updateTokensInTaskManager(project);
-          indicator.checkCanceled();
-          ApplicationManager.getApplication().invokeLater(
-            () -> {
+        ApplicationManager.getApplication().invokeLater(
+          () -> {
+            try {
               CheckIOProjectComponent.getInstance(project).getToolWindow().checkAndShowResults(task, code);
               setNewTaskStatusAndCheckAchievementsIfTaskSolved();
-            });
-        }
-        catch (IOException e) {
-          CheckIOUtils.makeNoInternetConnectionNotifier(project);
-        }
+            }
+            catch (IOException e) {
+              CheckIOUtils.makeNoInternetConnectionNotifier(project);
+            }
+          });
       }
 
       private void setNewTaskStatusAndCheckAchievementsIfTaskSolved() {
@@ -108,7 +106,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
           StudyStatus status = statusBeforeCheck;
           try {
-            TimeUnit.MILLISECONDS.sleep(500);
+            TimeUnit.MILLISECONDS.sleep(1000);
             while (testResultsPanel.isShowing()) {
               status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, this.task);
               if (status != statusBeforeCheck) {
@@ -122,6 +120,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
                 break;
               }
             }
+            checkAchievements();
           }
 
           catch (IOException e) {
@@ -165,7 +164,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       final List<Lesson> newLessons = newCourse.getLessons();
 
       final Lesson lesson = newLessons.get(0);
-      lesson.setName("test1");
+      lesson.setName("test_test");
       lesson.setIndex(newLessons.size());
       newLessons.add(lesson);
 

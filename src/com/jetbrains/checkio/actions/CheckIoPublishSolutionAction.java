@@ -13,6 +13,8 @@ import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+
 public class CheckIoPublishSolutionAction extends DumbAwareAction {
   private Task myTask = null;
 
@@ -32,8 +34,14 @@ public class CheckIoPublishSolutionAction extends DumbAwareAction {
   }
 
   public void publish(@NotNull final Project project) {
-    final String addPublicationLink = CheckIOUtils.getAddPublicationLink(project, myTask);
-    BrowserUtil.browse(addPublicationLink);
+    final String addPublicationLink;
+    try {
+      addPublicationLink = CheckIOUtils.getAddPublicationLink(project, myTask);
+      BrowserUtil.browse(addPublicationLink);
+    }
+    catch (IOException e) {
+      CheckIOUtils.makeNoInternetConnectionNotifier(project);
+    }
   }
 
   @Override

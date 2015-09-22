@@ -68,8 +68,6 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         try {
-          CheckIOConnector.updateTokensInTaskManager(project);
-          indicator.checkCanceled();
           final Course newCourse = CheckIOConnector.getMissionsAndUpdateCourse(project);
           createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
         }

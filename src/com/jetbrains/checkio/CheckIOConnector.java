@@ -36,7 +36,8 @@ public class CheckIOConnector {
   public static String CHECKIO_API_URL = "http://www.checkio.org/api/";
   private static final String SOLUTION_CATEGORIES_URL = CHECKIO_API_URL + "publications-categories/";
   private static final String PUBLICATION_URL = CHECKIO_API_URL + "publications/";
-  private static final String MISSIONS_API = CHECKIO_API_URL + "user-missions/";
+  private static final String MISSIONS_URL = CHECKIO_API_URL + "user-missions/";
+  private static final String HINTS_URL = CHECKIO_API_URL + "v2/hints/";
 
   private static final String TASK_PARAMETER_NAME = "task";
   private static final String CATEGORY_PARAMETER_NAME = "category";
@@ -45,6 +46,8 @@ public class CheckIOConnector {
   private static final String DEFAULT_PUBLICATION_PAGE_NUMBER = "1";
   private static final String COURSE_NAME = "CheckIO";
   private static final String PARAMETER_ACCESS_TOKEN = "token";
+  private static final String SLUG_PARAMETER = "task_slug";
+  ;
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
   private static final Map<Boolean, StudyStatus> taskSolutionStatusForProjectCreation = new HashMap<Boolean, StudyStatus>() {{
     put(true, StudyStatus.Solved);
@@ -80,19 +83,7 @@ public class CheckIOConnector {
     return myRefreshToken;
   }
 
-  public static void updateTokensInTaskManager(@NotNull final Project project) throws IOException {
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    if (!isTokenUpToDate(taskManager.getAccessToken())) {
-      final String refreshToken = taskManager.getRefreshToken();
-      final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
-      authorizer.setTokensFromRefreshToken(refreshToken);
-      myAccessToken = authorizer.getAccessToken();
-      myRefreshToken = authorizer.getRefreshToken();
 
-      taskManager.setAccessToken(myAccessToken);
-      taskManager.setRefreshToken(myRefreshToken);
-    }
-  }
 
   public static Course getMissionsAndUpdateCourse(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
@@ -124,7 +115,7 @@ public class CheckIOConnector {
     return course;
   }
 
-  private static boolean isTokenUpToDate(@NotNull final String token) throws IOException {
+  static boolean isTokenUpToDate(@NotNull final String token) throws IOException {
     boolean hasUnauthorizedStatusCode = false;
     try {
 
@@ -196,7 +187,7 @@ public class CheckIOConnector {
 
 
   private static HttpGet makeMissionsRequest(@NotNull final String token) throws URISyntaxException {
-    URI uri = new URIBuilder(MISSIONS_API)
+    URI uri = new URIBuilder(MISSIONS_URL)
         .addParameter(PARAMETER_ACCESS_TOKEN, token)
         .build();
     return new HttpGet(uri);

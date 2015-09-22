@@ -247,7 +247,7 @@ public class CheckIOUtils {
   }
 
 
-  public static String getAddPublicationLink(@NotNull final Project project, @NotNull final Task task) {
+  public static String getAddPublicationLink(@NotNull final Project project, @NotNull final Task task) throws IOException {
     String publicationLink = "";
 
     final CheckIOTaskManager checkIOTaskManager = CheckIOTaskManager.getInstance(project);

@@ -69,8 +69,6 @@ public class CheckIOShowPublicationsAction extends AnAction {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         try {
-          CheckIOConnector.updateTokensInTaskManager(project);
-          indicator.checkCanceled();
           myPublications = tryToGetPublicationsFromCache(project, task);
           indicator.checkCanceled();
           ApplicationManager.getApplication().invokeLater(() -> {
