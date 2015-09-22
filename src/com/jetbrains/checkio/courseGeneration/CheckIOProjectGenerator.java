@@ -102,7 +102,6 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
         new StudyProjectGenerator().flushCourse(course);
         course.initCourse(false);
         StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
-        CheckIOProjectComponent.getInstance(project).registerTaskToolWindow(course);
         openFirstTask(course, project);
       }));
   }

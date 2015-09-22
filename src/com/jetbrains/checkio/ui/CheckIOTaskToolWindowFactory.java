@@ -25,7 +25,7 @@ public class CheckIOTaskToolWindowFactory implements ToolWindowFactory, DumbAwar
     if (course != null && user != null) {
       final CheckIOToolWindow myCheckIOToolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
       final ContentManager contentManager = toolWindow.getContentManager();
-      final Content content = contentManager.getFactory().createContent(myCheckIOToolWindow, null, false);
+      final Content content = contentManager.getFactory().createContent(myCheckIOToolWindow, "", false);
       contentManager.addContent(content);
       Disposer.register(project, myCheckIOToolWindow);
     }
