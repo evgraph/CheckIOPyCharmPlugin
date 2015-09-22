@@ -138,7 +138,6 @@ public class CheckIOUtils {
     final VirtualFile baseDir = project.getBaseDir();
     final List<Lesson> oldLessons = oldCourse.getLessons();
     final List<Lesson> newLessons = newCourse.getLessons();
-    int index = 1;
     for (Lesson newLesson : newLessons) {
       boolean isNew = true;
       for (Lesson oldLesson : oldLessons) {
@@ -149,7 +148,7 @@ public class CheckIOUtils {
       }
       if (isNew) {
         oldCourse.addLesson(newLesson);
-        newLesson.setIndex(index);
+        newLesson.setIndex(oldCourse.getLessons().size());
         ApplicationManager.getApplication().runWriteAction(() -> {
           try {
             StudyGenerator.createLesson(newLesson, baseDir, new File(oldCourse.getCourseDirectory()), project);
@@ -161,7 +160,6 @@ public class CheckIOUtils {
           }
         });
       }
-      index++;
     }
     VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
   }
