@@ -6,10 +6,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
-import com.jetbrains.checkio.CheckIOBundle;
-import com.jetbrains.checkio.CheckIOProjectComponent;
-import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.*;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.courseFormat.Task;
@@ -42,7 +39,7 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
     final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
     try {
       if (task != null) {
-        taskManager.getAccessToken();
+        CheckIOConnector.getHints(project, task.getName());
         final CheckIOTaskToolWindowFactory toolWindowFactory =
           (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
         assert toolWindowFactory != null;

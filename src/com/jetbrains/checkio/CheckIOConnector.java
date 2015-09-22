@@ -13,7 +13,9 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
@@ -26,6 +28,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +50,6 @@ public class CheckIOConnector {
   private static final String COURSE_NAME = "CheckIO";
   private static final String PARAMETER_ACCESS_TOKEN = "token";
   private static final String SLUG_PARAMETER = "task_slug";
-  ;
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
   private static final Map<Boolean, StudyStatus> taskSolutionStatusForProjectCreation = new HashMap<Boolean, StudyStatus>() {{
     put(true, StudyStatus.Solved);
@@ -316,6 +318,116 @@ public class CheckIOConnector {
       LOG.warn(e.getMessage());
     }
   }
+
+  public static String[] getHints(@NotNull final Project project, @NotNull final String taskName) throws IOException {
+    final HintsInfoGetter hintsInfoGetter = new HintsInfoGetter(taskName, project);
+    hintsInfoGetter.initialize();
+    final ArrayList<HintsInfoGetter.Hint> hints = hintsInfoGetter.mySeenHints;
+    return new String[]{""};
+  }
+
+
+  private static class HintsInfoGetter {
+    public int myUnseenHintId = -1;
+    public ArrayList<Hint> mySeenHints = new ArrayList<>();
+    private String myTaskName;
+    private Project myProject;
+    private Hint unseenHint;
+
+    private static class HintResponse {
+      public HintsWrapper[] objects;
+    }
+
+    private static class HintsWrapper {
+      public String slug;
+      public Hint[] hints;
+      public int id;
+      public int totalHintsCount;
+      public CheckIOUser author;
+    }
+
+    private static class Hint {
+      String answer;
+      String question;
+      boolean isRead;
+      int id;
+      int step;
+    }
+
+
+    public HintsInfoGetter(@NotNull final String taskName, @NotNull final Project project) throws IOException {
+      myTaskName = taskName;
+      myProject = project;
+      initialize();
+    }
+
+    private void initialize() throws IOException {
+      final String token = CheckIOTaskManager.getInstance(myProject).getAccessToken();
+      final HintResponse hintResponse = requestHintsList(token, myTaskName);
+      if (hintResponse != null && hintResponse.objects != null) {
+        for (HintsWrapper wrapper : hintResponse.objects) {
+          for (Hint hint : wrapper.hints) {
+            if (!hint.isRead) {
+              myUnseenHintId = hint.id;
+              unseenHint = hint;
+              break;
+            }
+            mySeenHints.add(hint);
+          }
+          saveAllHints(wrapper);
+        }
+      }
+    }
+
+    private void saveAllHints(@NotNull final HintsWrapper wrapper) throws IOException {
+      for (int i = 0; i < wrapper.totalHintsCount; i++) {
+        requestNewHint();
+      }
+    }
+
+    private void requestNewHint() throws IOException {
+      final String token = CheckIOTaskManager.getInstance(myProject).getAccessToken();
+      if (myUnseenHintId != -1) {
+        try {
+          final URI hintUri = new URIBuilder(HINTS_URL + "/" + myUnseenHintId + "/")
+            .addParameter(SLUG_PARAMETER, myTaskName)
+            .addParameter(TOKEN_PARAMETER_NAME, token)
+            .build();
+          final HttpPut httpPut = new HttpPut(hintUri);
+          httpPut.setEntity(new StringEntity(new GsonBuilder().create().toJson(unseenHint)));
+          final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+          final CloseableHttpResponse response = httpClient.execute(httpPut);
+          String entity = EntityUtils.toString(response.getEntity());
+          Hint hint = new GsonBuilder().create().fromJson(entity, Hint.class);
+          mySeenHints.add(hint);
+        }
+        catch (URISyntaxException e) {
+          LOG.warn(e.getMessage());
+        }
+      }
+    }
+
+
+    private static HintResponse requestHintsList(@NotNull final String token, @NotNull final String taskName) throws IOException {
+      try {
+        URI hintListUri = new URIBuilder(HINTS_URL)
+          .addParameter(SLUG_PARAMETER, taskName)
+          .addParameter(TOKEN_PARAMETER_NAME, token)
+          .build();
+        final HttpGet request = new HttpGet(hintListUri);
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        CloseableHttpResponse httpResponse = httpClient.execute(request);
+        String entity = EntityUtils.toString(httpResponse.getEntity());
+        return new GsonBuilder().create().fromJson(entity, HintResponse.class);
+      }
+      catch (URISyntaxException e) {
+        LOG.warn(e.getMessage());
+      }
+      return null;
+    }
+  }
+
+
 
   public static class MissionWrapper {
     public boolean isPublished;
