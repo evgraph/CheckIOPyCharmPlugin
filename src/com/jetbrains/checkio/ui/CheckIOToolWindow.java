@@ -17,6 +17,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.util.ui.JBUI;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.*;
 import com.jetbrains.edu.courseFormat.Task;
@@ -45,7 +46,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private JBCardLayout myMyCardLayout;
   private JPanel myContentPanel;
   private JSplitPane mySplitPane;
-  private static final String nonStudyFileMessage = "You've opened non-study file, so no task info is shown";
 
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
@@ -57,7 +57,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     StudyEditor studyEditor = StudyUtils.getSelectedStudyEditor(project);
 
-    final String taskText = studyEditor == null ? nonStudyFileMessage : studyEditor.getTaskFile().getTask().getText();
+    final String taskText =
+      studyEditor == null ? CheckIOBundle.message("task.info.non.study.file.task.text") : studyEditor.getTaskFile().getTask().getText();
 
     myTaskInfoPanel = new CheckIOTaskInfoPanel(taskText);
     mySolutionsPanel = new CheckIOPublicationsPanel(project);
@@ -147,7 +148,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     final JPanel buttonPanel = new JPanel(new BorderLayout());
 
     final JLabel label = new JLabel(AllIcons.Diff.Arrow);
-    label.setToolTipText("Back to task text");
+    label.setToolTipText(CheckIOBundle.message("tool.window.back.to.task.text"));
     buttonPanel.add(Box.createRigidArea(new Dimension(0, 7)), BorderLayout.PAGE_START);
     buttonPanel.add(label, BorderLayout.WEST);
     buttonPanel.add(Box.createRigidArea(new Dimension(0, 7)), BorderLayout.PAGE_END);
@@ -243,7 +244,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private void setTaskInfoTextForNonStudyFiles() {
-      myTaskInfoPanel.setTaskText(nonStudyFileMessage);
+      myTaskInfoPanel.setTaskText(CheckIOBundle.message("task.info.non.study.file.task.text"));
     }
 
     private void showTaskToolWindow() {

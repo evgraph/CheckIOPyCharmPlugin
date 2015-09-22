@@ -12,6 +12,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.courseFormat.Course;
@@ -30,8 +31,8 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
   private static final Logger LOG = Logger.getInstance(CheckIOUpdateProjectAction.class);
 
   public CheckIOUpdateProjectAction() {
-    super("Update project (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
-          "Update project",
+    super(CheckIOBundle.message("action.update.project.description") + " (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
+          CheckIOBundle.message("action.update.project.description"),
           AllIcons.Actions.Download);
   }
 
@@ -53,10 +54,10 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
 
   private static Task.Backgroundable getUpdateTask(@NotNull final Project project) {
 
-    return new Task.Backgroundable(project, "Updating project", false) {
+    return new Task.Backgroundable(project, CheckIOBundle.message("action.update.project.process.message"), false) {
       @Override
       public void onCancel() {
-        CheckIOUtils.showOperationResultPopUp("Project updating cancelled", MessageType.WARNING.getPopupBackground(), project);
+        CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("action.update.project.cancel"), MessageType.WARNING.getPopupBackground(), project);
       }
 
       @Override
@@ -73,8 +74,8 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
           createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
         }
         catch (IOException e) {
-          LOG.info("Tried to update project with no internet connection. Exception message: " + e.getLocalizedMessage());
           CheckIOUtils.makeNoInternetConnectionNotifier(project);
+          LOG.info("Tried to update project with no internet connection. Exception message: " + e.getLocalizedMessage());
         }
       }
     };
@@ -90,24 +91,18 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
     final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
 
     if (unlockedStationsNumber > 0) {
-      final String messageEnding;
-      if (unlockedStationsNumber == 1) {
-        messageEnding = " new station";
-      }
-      else {
-        messageEnding = " new stations";
-      }
       ApplicationManager.getApplication()
         .invokeLater(() -> {
           CheckIOUtils.createNewLessonsDirsAndFlush(oldCourse, newCourse, project);
-          final String message = "You unlock " + unlockedStationsNumber + messageEnding;
+          final String message = CheckIOBundle.message("action.update.project.unlock.message", unlockedStationsNumber);
           CheckIOUtils.showOperationResultPopUp(message, MessageType.INFO.getPopupBackground(), project);
+          ProjectView.getInstance(project).refresh();
           oldCourse.initCourse(false);
         });
     }
     else {
-      CheckIOUtils.showOperationResultPopUp("Project successfully updated", MessageType.INFO.getPopupBackground(), project);
-
+      CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("action.update.project.success"), MessageType.INFO.getPopupBackground(),
+                                            project);
     }
   }
 }

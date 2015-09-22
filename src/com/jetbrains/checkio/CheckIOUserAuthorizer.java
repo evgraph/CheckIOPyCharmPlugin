@@ -60,7 +60,7 @@ public class CheckIOUserAuthorizer {
   private static final String ACCEPT_TYPE = "application/json";
   private static final String GRANT_TYPE_TOKEN = "authorization_code";
   private static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
-  public static final String SUCCESS_AUTHORIZATION_MESSAGE = "Authorization succeeded. You may return to PyCharm";
+  public static final String SUCCESS_AUTHORIZATION_MESSAGE = CheckIOBundle.message("authorization.success.message");
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
   private static final Properties ourProperties = new Properties();
   private static final int ourPort = 36655;

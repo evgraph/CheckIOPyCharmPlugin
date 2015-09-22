@@ -169,7 +169,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
               return generator -> true;
             }
             return generator -> false;
-          }, "Creating Project", true, project);
+          }, CheckIOBundle.message("project.generation.process.message"), true, project);
       }
       catch (IOException e) {
         LOG.warn(e.getMessage());
@@ -192,7 +192,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   @Override
   public ValidationResult validate(@NotNull String baseDirPath) {
     boolean isConnected = CheckIOUtils.checkConnection();
-    return isConnected ? ValidationResult.OK : new ValidationResult("CheckIO is unavailable. Please, check internet connection");
+    return isConnected ? ValidationResult.OK : new ValidationResult(CheckIOBundle.message("project.generation.internet.connection.problems"));
   }
 
   @Nullable

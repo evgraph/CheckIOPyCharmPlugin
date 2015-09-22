@@ -18,6 +18,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -116,7 +117,7 @@ public class CheckIOPublicationsPanel extends JPanel {
 
   private HyperlinkLabel createSeeMoreSolutionsLabel() {
     final HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
-    hyperlinkLabel.setHyperlinkText("See more solutions on web");
+    hyperlinkLabel.setHyperlinkText(CheckIOBundle.message("publication.see.more.on.web"));
     hyperlinkLabel.setHyperlinkTarget(CheckIOUtils.getSeePublicationsOnWebLink(task.getName()));
     return hyperlinkLabel;
   }
@@ -198,8 +199,8 @@ public class CheckIOPublicationsPanel extends JPanel {
       add(Box.createRigidArea(new Dimension(0, 20)));
       myUserNameLabel.addMouseListener(new MyMouseListener(ListenerKind.User));
       myViewOnWebLabel.addMouseListener(new MyMouseListener(ListenerKind.Publication));
-      myUserNameLabel.setToolTipText("Click to see user profile on web");
-      myViewOnWebLabel.setToolTipText("Click to see solution on web");
+      myUserNameLabel.setToolTipText(CheckIOBundle.message("publication.action.user.profile"));
+      myViewOnWebLabel.setToolTipText(CheckIOBundle.message("publication.action.solution.on.web"));
     }
 
     public void setUserInfo(@NotNull final CheckIOPublication publication) {
@@ -247,7 +248,7 @@ public class CheckIOPublicationsPanel extends JPanel {
 
     @NotNull
     private com.intellij.openapi.progress.Task.Backgroundable getLoadingSolutionTask(final TreeSelectionEvent e) {
-      return new com.intellij.openapi.progress.Task.Backgroundable(myProject, "Loading solution", false) {
+      return new com.intellij.openapi.progress.Task.Backgroundable(myProject, CheckIOBundle.message("publication.loading.process.message"), false) {
 
         @Override
         public void run(@NotNull ProgressIndicator indicator) {

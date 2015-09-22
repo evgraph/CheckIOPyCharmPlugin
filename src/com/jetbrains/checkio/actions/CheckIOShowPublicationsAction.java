@@ -14,10 +14,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.jetbrains.checkio.CheckIOConnector;
-import com.jetbrains.checkio.CheckIOProjectComponent;
-import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.*;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.checkio.ui.CheckIOPublicationsPanel;
@@ -38,7 +35,7 @@ public class CheckIOShowPublicationsAction extends AnAction {
 
   public CheckIOShowPublicationsAction() {
     super("Show solutions (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
-          "Show solutions",
+          CheckIOBundle.message("action.show.publication.description"),
           CheckIOIcons.SHOW_SOLUTIONS);
   }
 
@@ -60,7 +57,8 @@ public class CheckIOShowPublicationsAction extends AnAction {
 
   private static com.intellij.openapi.progress.Task.Backgroundable getShowSolutionsTask(@NotNull final Project project,
                                                                                         @NotNull final Task task) {
-    return new com.intellij.openapi.progress.Task.Backgroundable(project, "Downloading solutions list", true) {
+    return new com.intellij.openapi.progress.Task.Backgroundable(project,
+                                                                 CheckIOBundle.message("action.show.publication.downloading.message"), true) {
       private HashMap<String, CheckIOPublication[]> myPublications;
 
       @Override
@@ -81,7 +79,7 @@ public class CheckIOShowPublicationsAction extends AnAction {
             }
             catch (IllegalStateException e) {
               LOG.warn(e.getMessage());
-              CheckIOUtils.showOperationResultPopUp("Couldn't load solutions for no task", MessageType.ERROR.getPopupBackground(),
+              CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("action.show.publication.load.problem"), MessageType.ERROR.getPopupBackground(),
                                                     project);
             }
           });
@@ -123,9 +121,10 @@ public class CheckIOShowPublicationsAction extends AnAction {
         ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getShowSolutionsTask(project, task)));
       }
       else {
+        CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("action.show.publications.find.task.problems"),
+                                              MessageType.WARNING.getPopupBackground(), project);
         LOG.warn("Task is null");
-        CheckIOUtils.showOperationResultPopUp("Internal problems. Couldn't find task", MessageType.WARNING.getPopupBackground(),
-                                              project);
+
       }
     }
     else {

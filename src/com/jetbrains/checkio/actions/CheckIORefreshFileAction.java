@@ -17,6 +17,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.DocumentUtil;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.EduNames;
 import com.jetbrains.edu.courseFormat.Course;
@@ -32,8 +33,8 @@ public class CheckIORefreshFileAction extends CheckIOTaskAction {
   private static final Logger LOG = Logger.getInstance(CheckIORefreshFileAction.class);
 
   public CheckIORefreshFileAction() {
-    super("Refresh task text (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
-          "Refresh task text",
+    super(CheckIOBundle.message("action.text.refresh.task") + "(" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
+          CheckIOBundle.message("action.text.refresh.task"),
           AllIcons.Actions.Refresh);
   }
 
@@ -46,7 +47,7 @@ public class CheckIORefreshFileAction extends CheckIOTaskAction {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       if (task == null || fileEditor == null) {
         CheckIOUtils
-          .showOperationResultPopUp("Refresh action was called outside the editor", MessageType.ERROR.getPopupBackground(), project);
+          .showOperationResultPopUp(CheckIOBundle.message("action.refresh.cancelled.text"), MessageType.ERROR.getPopupBackground(), project);
         LOG.warn("Refresh action was called outside the editor");
         return;
       }
@@ -57,7 +58,7 @@ public class CheckIORefreshFileAction extends CheckIOTaskAction {
       final File resourceFile = new File(course.getCourseDirectory());
       if (!resourceFile.exists()) {
         CheckIOUtils
-          .showOperationResultPopUp("Course was deleted", MessageType.ERROR.getPopupBackground(), project);
+          .showOperationResultPopUp(CheckIOBundle.message("action.refresh.course.was.deleted"), MessageType.ERROR.getPopupBackground(), project);
       }
       final String patternPath = FileUtil.join(resourceFile.getPath(), lessonDir, taskDir, fileName);
       final VirtualFile patternFile = VfsUtil.findFileByIoFile(new File(patternPath), true);
@@ -74,7 +75,7 @@ public class CheckIORefreshFileAction extends CheckIOTaskAction {
       final DocumentImpl document = (DocumentImpl)fileEditor.getDocument();
       DocumentUtil.writeInRunUndoTransparentAction(() -> {
         document.setText(patternDocument.getCharsSequence());
-        CheckIOUtils.showOperationResultPopUp("Task refreshed", MessageType.INFO.getPopupBackground(), project);
+        CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("action.refresh.success"), MessageType.INFO.getPopupBackground(), project);
         ProjectView.getInstance(project).refresh();
       });
     }

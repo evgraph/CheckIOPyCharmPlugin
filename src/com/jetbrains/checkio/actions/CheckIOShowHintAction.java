@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOProjectComponent;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
@@ -19,7 +20,8 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
   private static final Logger LOG = Logger.getInstance(CheckIOShowHintAction.class);
 
   public CheckIOShowHintAction() {
-    super("Show hint (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")", "Show hint",
+    super(CheckIOBundle.message("action.hint.message") + " (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
+          CheckIOBundle.message("action.hint.message"),
           InteractiveLearningIcons.ShowHint);
   }
 

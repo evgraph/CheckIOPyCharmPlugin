@@ -8,6 +8,7 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Course;
@@ -58,7 +59,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
       final JPanel contentPanel = new JPanel();
       contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.PAGE_AXIS));
       contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-      final JLabel userNameLabel = new JLabel(UIUtil.toHtml("<b>User: </b>" + "<a href=\"\">" + user.getUsername() + "</a>", 5));
+      final JLabel userNameLabel = new JLabel(UIUtil.toHtml(CheckIOBundle.message("user.label.text", user.getUsername()), 5));
       userNameLabel.addMouseListener(new MyMouseListener(user));
       setLevelLabel(user.getLevel());
       contentPanel.add(userNameLabel);

@@ -1,6 +1,7 @@
 package com.jetbrains.checkio.ui;
 
 import com.intellij.diff.settings.DiffSettingsConfigurable;
+import com.jetbrains.checkio.CheckIOBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +21,7 @@ public class CheckIOSettings extends DiffSettingsConfigurable {
   @Nls
   @Override
   public String getDisplayName() {
-    return "CheckIO Setting";
+    return CheckIOBundle.message("checkio.setting.name");
   }
 
   @Nullable

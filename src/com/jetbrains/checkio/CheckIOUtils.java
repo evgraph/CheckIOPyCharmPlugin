@@ -298,7 +298,8 @@ public class CheckIOUtils {
   }
 
   public static void makeNoInternetConnectionNotifier(@NotNull Project project) {
-    final Notification notification = new Notification("No.connection", "Internet connection problem", "CheckIO is unavailable. Please, check internet connection",
+    final Notification notification = new Notification("No.connection", CheckIOBundle.message("no.internet.connection.title"),
+                                                       CheckIOBundle.message("project.generation.internet.connection.problems"),
                                                        NotificationType.ERROR);
     notification.notify(project);
   }

@@ -4,6 +4,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.ui.CheckIOIcons;
@@ -19,7 +20,7 @@ public class CheckIoPublishSolutionAction extends DumbAwareAction {
   }
 
   public CheckIoPublishSolutionAction(@NotNull final Task task) {
-    super("Click to publish solution on web", "", CheckIOIcons.PUBLISH_SOLUTION);
+    super(CheckIOBundle.message("action.publish.solution.description"), "", CheckIOIcons.PUBLISH_SOLUTION);
     myTask = task;
   }
 

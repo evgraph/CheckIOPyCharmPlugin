@@ -34,6 +34,9 @@ import java.util.Map;
 public class CheckIOConnector {
   //public for tests
   public static String CHECKIO_API_URL = "http://www.checkio.org/api/";
+  private static final String SOLUTION_CATEGORIES_URL = CHECKIO_API_URL + "publications-categories/";
+  private static final String PUBLICATION_URL = CHECKIO_API_URL + "publications/";
+  private static final String MISSIONS_API = CHECKIO_API_URL + "user-missions/";
 
   private static final String TASK_PARAMETER_NAME = "task";
   private static final String CATEGORY_PARAMETER_NAME = "category";
@@ -41,9 +44,6 @@ public class CheckIOConnector {
   private static final String TOKEN_PARAMETER_NAME = "token";
   private static final String DEFAULT_PUBLICATION_PAGE_NUMBER = "1";
   private static final String COURSE_NAME = "CheckIO";
-  private static final String SOLUTION_CATEGORIES_URL = "http://www.checkio.org/api/publications-categories/";
-  private static final String PUBLICATION_URL = "http://www.checkio.org/api/publications/";
-  private static final String MISSIONS_API = "user-missions/";
   private static final String PARAMETER_ACCESS_TOKEN = "token";
   private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
   private static final Map<Boolean, StudyStatus> taskSolutionStatusForProjectCreation = new HashMap<Boolean, StudyStatus>() {{
@@ -59,7 +59,6 @@ public class CheckIOConnector {
   private static String myRefreshToken;
   private static CheckIOUser myUser;
   private static HashMap<String, Lesson> lessonsByName;
-  private static Course course;
 
   public static CheckIOUser authorizeUser() throws IOException {
     final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
@@ -104,25 +103,25 @@ public class CheckIOConnector {
   @NotNull
   public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project,
                                                               @NotNull final MissionWrapper[] missionWrappers) {
-    setCourseAndLessonByName(project);
+    final Course course = setCourseAndLessonByName();
+    lessonsByName = new HashMap<>();
     for (MissionWrapper missionWrapper : missionWrappers) {
-      final Lesson lesson = getLessonOrCreateIfDoesntExist(missionWrapper.stationName);
+      final Lesson lesson = getLessonOrCreateIfDoesntExist(course, missionWrapper.stationName);
       final Task task = getTaskFromMission(missionWrapper);
-      setTaskInfoInTaskManager(project, task, missionWrapper);
       lesson.addTask(task);
+      setTaskInfoInTaskManager(project, task, missionWrapper);
     }
 
     return course;
   }
 
-  private static void setCourseAndLessonByName(@NotNull final Project project) {
-    course = StudyTaskManager.getInstance(project).getCourse();
-    lessonsByName = new HashMap<>();
-    course = new Course();
+  private static Course setCourseAndLessonByName() {
+    final Course course = new Course();
     course.setLanguage(PythonLanguage.getInstance().getID());
     course.setName(COURSE_NAME);
     course.setCourseType(CheckIOUtils.COURSE_TYPE);
     course.setDescription(COURSE_NAME + "project");
+    return course;
   }
 
   private static boolean isTokenUpToDate(@NotNull final String token) throws IOException {
@@ -143,7 +142,7 @@ public class CheckIOConnector {
     MissionWrapper[] missionWrapper = new MissionWrapper[]{};
     try {
       final HttpGet request = makeMissionsRequest(token);
-      LOG.info("Requesting missions");
+      LOG.info(CheckIOBundle.message("requesting.missions"));
       final HttpResponse response = requestMissions(request);
 
       String missions = EntityUtils.toString(response.getEntity());
@@ -156,7 +155,7 @@ public class CheckIOConnector {
     return missionWrapper;
   }
 
-  private static Lesson getLessonOrCreateIfDoesntExist(final String lessonName) {
+  private static Lesson getLessonOrCreateIfDoesntExist(@NotNull final Course course, final String lessonName) {
     Lesson lesson = lessonsByName.get(lessonName);
     if (lesson == null) {
       lesson = new Lesson();
@@ -184,7 +183,10 @@ public class CheckIOConnector {
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
     final StudyStatus oldStatus = studyManager.getStatus(task);
     final StudyStatus newStatus = taskSolutionStatusForProjectCreation.get(missionWrapper.isSolved);
-    if (!(oldStatus == StudyStatus.Failed && newStatus == StudyStatus.Unchecked)) {
+    if (oldStatus == StudyStatus.Failed && newStatus == StudyStatus.Unchecked) {
+      studyManager.setStatus(task, StudyStatus.Failed);
+    }
+    else {
       studyManager.setStatus(task, newStatus);
     }
 
@@ -194,7 +196,7 @@ public class CheckIOConnector {
 
 
   private static HttpGet makeMissionsRequest(@NotNull final String token) throws URISyntaxException {
-    URI uri = new URIBuilder(CHECKIO_API_URL + MISSIONS_API)
+    URI uri = new URIBuilder(MISSIONS_API)
         .addParameter(PARAMETER_ACCESS_TOKEN, token)
         .build();
     return new HttpGet(uri);
@@ -241,6 +243,7 @@ public class CheckIOConnector {
     for (MissionWrapper missionWrapper : missionWrappers) {
       if (missionWrapper.id == id) {
         status = taskSolutionStatus.get(missionWrapper.isSolved);
+        task.getTaskFile(CheckIOUtils.getTaskFileNameFromTask(task)).text = missionWrapper.code;
         studyManager.setStatus(task, status);
         break;
       }

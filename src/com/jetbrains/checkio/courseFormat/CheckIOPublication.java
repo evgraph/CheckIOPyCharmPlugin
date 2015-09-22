@@ -13,7 +13,6 @@ public class CheckIOPublication {
   public static final String PUBLICATION_URL = "http://www.checkio.org/oauth/authorize-token/";
   private final static String MISSION_PAREMETER_NAME = "mission";
   private final static String PUBLICATION_PARAMETER_NAME = "publications";
-  private final static String ADD_PARAMETER_NAME = "add";
   private static final Logger LOG = Logger.getInstance(CheckIOPublication.class);
   private static final HashMap<String, LanguageLevel> LANGUAGE_LEVEL_MAP = new HashMap<String, LanguageLevel>() {{
     put("python-27", LanguageLevel.PYTHON27);

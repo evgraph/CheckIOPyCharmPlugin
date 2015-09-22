@@ -125,12 +125,9 @@ public class CheckIOProjectComponent implements ProjectComponent {
   public void projectClosed() {
     final Course course = StudyTaskManager.getInstance(myProject).getCourse();
     if (course != null) {
-      if (!myDeletedShortcuts.isEmpty()) {
-        for (Map.Entry<String, String> shortcut : myDeletedShortcuts.entrySet()) {
-          final Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
-          final Shortcut actionShortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(shortcut.getValue()), null);
-          keymap.addShortcut(shortcut.getKey(), actionShortcut);
-        }
+      final ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(CheckIOToolWindow.ID);
+      if (toolWindow != null) {
+        toolWindow.getContentManager().removeAllContents(false);
       }
       FileUtil.delete(new File(myProject.getBasePath() + CheckIOUtils.PUBLICATION_FOLDER_NAME));
     }

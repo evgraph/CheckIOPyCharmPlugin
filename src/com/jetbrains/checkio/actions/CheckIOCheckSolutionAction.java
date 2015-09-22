@@ -51,7 +51,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
   public CheckIOCheckSolutionAction() {
     super("Check Task (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
-          "Check current mission", InteractiveLearningIcons.Resolve);
+          CheckIOBundle.message("action.description.check.current.task"), InteractiveLearningIcons.Resolve);
   }
 
   private static void check(@NotNull final Project project) {
@@ -60,7 +60,8 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   }
 
   private static Backgroundable getCheckTask(@NotNull final Project project) {
-    return new com.intellij.openapi.progress.Task.Backgroundable(project, "Checking task", true) {
+    final String title = CheckIOBundle.message("action.checking.task");
+    return new com.intellij.openapi.progress.Task.Backgroundable(project, title, true) {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
       final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
@@ -84,7 +85,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         final String code;
 
         if (!NullUtils.notNull(task, editor, toolWindowFactory) || (code = editor.getDocument().getText()).isEmpty()) {
-          CheckIOUtils.showOperationResultPopUp("Couldn't find task or task is empty", MessageType.WARNING.getPopupBackground(), project);
+          CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("error.no.task"), MessageType.WARNING.getPopupBackground(), project);
           return;
         }
 
@@ -107,15 +108,15 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
           StudyStatus status = statusBeforeCheck;
           try {
+            TimeUnit.MILLISECONDS.sleep(500);
             while (testResultsPanel.isShowing()) {
-              status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, task);
-              TimeUnit.MILLISECONDS.sleep(500);
+              status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, this.task);
               if (status != statusBeforeCheck) {
                 if (status == StudyStatus.Solved) {
                   checkAchievements();
                   final HashMap<String, CheckIOPublication[]> publicationFiles =
-                    CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(task);
-                  CheckIOTaskManager.getInstance(myProject).setPublicationsForLastSolvedTask(task, publicationFiles);
+                    CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(this.task);
+                  CheckIOTaskManager.getInstance(myProject).setPublicationsForLastSolvedTask(this.task, publicationFiles);
                 }
                 ProjectView.getInstance(myProject).refresh();
                 break;
@@ -163,14 +164,19 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       final List<Lesson> oldLessons = oldCourse.getLessons();
       final List<Lesson> newLessons = newCourse.getLessons();
 
+      final Lesson lesson = newLessons.get(0);
+      lesson.setName("test1");
+      lesson.setIndex(newLessons.size());
+      newLessons.add(lesson);
+
       final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
       if (unlockedStationsNumber > 0) {
         DialogWrapper.DoNotAskOption option = createDoNotAskOption(taskManager);
 
-        if (option.isToBeShown()) {
-          ApplicationManager.getApplication().invokeLater(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          if (option.isToBeShown()) {
             if (MessageDialogBuilder
-                  .yesNo("Update project", "You unlocked the new station. Update project to get new missions?")
+                  .yesNo(CheckIOBundle.message("ask.to.update.title.update.project"), CheckIOBundle.message("ask.to.update.message"))
                   .yesText("Yes")
                   .noText(CommonBundle.message("button.cancel"))
                   .doNotAsk(option).show() != Messages.YES) {
@@ -181,8 +187,8 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
             }
 
             CheckIOUpdateProjectAction.createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
-          });
-        }
+          }
+        });
       }
     }
     catch (IOException e) {
@@ -216,7 +222,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       @NotNull
       @Override
       public String getDoNotShowMessage() {
-        return "Do not ask me again";
+        return CheckIOBundle.message("ask.to.update.do.not.ask");
       }
     };
   }

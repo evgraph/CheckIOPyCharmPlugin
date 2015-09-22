@@ -6,6 +6,7 @@ import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.jetbrains.checkio.CheckIOBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
@@ -163,16 +164,16 @@ public class CheckIOBrowserWindow extends JFrame {
     final JButton backButton = new JButton(AllIcons.Actions.Back);
     backButton.setEnabled(false);
     backButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(-1)));
-    backButton.setToolTipText("Click to go back");
+    backButton.setToolTipText(CheckIOBundle.message("browser.action.back"));
 
     final JButton forwardButton = new JButton(AllIcons.Actions.Forward);
     forwardButton.setEnabled(false);
     forwardButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(1)));
-    forwardButton.setToolTipText("Click to go forward");
+    forwardButton.setToolTipText(CheckIOBundle.message("browser.action.forward"));
 
     final JButton openInBrowser = new JButton(AllIcons.Actions.Browser_externalJavaDoc);
     openInBrowser.addActionListener(e -> BrowserUtil.browse(myEngine.getLocation()));
-    openInBrowser.setToolTipText("Click to open link in browser");
+    openInBrowser.setToolTipText(CheckIOBundle.message("browser.action.open.link"));
     panel.setMaximumSize(new Dimension(40, getPanel().getHeight()));
     panel.add(backButton);
     panel.add(forwardButton);

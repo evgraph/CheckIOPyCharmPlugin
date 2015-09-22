@@ -23,13 +23,15 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.MessageFormat;
+
 
 public class CheckIOInterpreterInspection extends PyInspection {
 
   @Nls
   @NotNull
   public String getDisplayName() {
-    return "Project and publication language level mismatch";
+    return CheckIOBundle.message("inspection.language.level.mismatch.name");
   }
 
   @NotNull
@@ -59,8 +61,9 @@ public class CheckIOInterpreterInspection extends PyInspection {
             final Sdk sdk = PythonSdkType.findPythonSdk(module);
             final LanguageLevel projectLanguageLevel = PythonSdkType.getLanguageLevelForSdk(sdk);
             if (projectLanguageLevel.isPy3K() != publicationLanguageLevel.isPy3K()) {
-              registerProblem(node, "Language levels mismatch. Project language level is " + projectLanguageLevel +
-                                    ", file's is " + publicationLanguageLevel, new ConfigureInterpreterFix());
+              registerProblem(node, MessageFormat
+                .format(CheckIOBundle.message("inspection.language.level.mismatch.text", projectLanguageLevel, publicationLanguageLevel),
+                        new ConfigureInterpreterFix()));
             }
           }
         }

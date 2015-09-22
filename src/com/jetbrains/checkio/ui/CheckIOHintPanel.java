@@ -35,8 +35,8 @@ public class CheckIOHintPanel extends JPanel {
     myProject = project;
 
     if (myTask == null) {
-      LOG.warn("User request hints for an empty editor");
       ToolWindowManager.getInstance(project).unregisterToolWindow(ID);
+      LOG.warn("User request hints for an empty editor");
       return;
     }
     //TODO: change (api needed)
