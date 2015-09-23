@@ -325,7 +325,6 @@ public class CheckIOConnector {
 
   public static ArrayList<String> getHints(@NotNull final Project project, @NotNull final String taskName) throws IOException {
     final HintsInfoGetter hintsInfoGetter = new HintsInfoGetter(taskName, project);
-    hintsInfoGetter.initialize();
     final ArrayList<HintsInfoGetter.Hint> hints = hintsInfoGetter.mySeenHints;
     final ArrayList<String> hintStrings = new ArrayList<>();
     for (HintsInfoGetter.Hint hint : hints) {
@@ -388,7 +387,8 @@ public class CheckIOConnector {
     }
 
     private void saveAllHints(@NotNull final HintsWrapper wrapper) throws IOException {
-      for (int i = 0; i < wrapper.totalHintsCount; i++) {
+      final int size = mySeenHints.size();
+      for (int i = 0; i < wrapper.totalHintsCount - size; i++) {
         requestNewHint();
       }
     }
