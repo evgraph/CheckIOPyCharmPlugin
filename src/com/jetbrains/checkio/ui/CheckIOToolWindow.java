@@ -31,6 +31,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProvider, Disposable {
@@ -123,8 +124,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
   }
 
-  public void setAdnShowHintPanel(@NotNull final Project project) {
-    myHintPanel = new CheckIOHintPanel(project, this);
+  public void setAndShowHintPanel(@NotNull final String forumLink, @NotNull final ArrayList<String> hints) {
+    myHintPanel = new CheckIOHintPanel(forumLink, hints, this);
     myHintPanel.setMaximumSize(myHintPanel.getPreferredSize());
     myHintPanel.setSize(myHintPanel.getPreferredSize());
     double preferredHintPanelHeight = myHintPanel.getPreferredSize().getHeight();

@@ -2,63 +2,40 @@ package com.jetbrains.checkio.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
-import com.jetbrains.checkio.CheckIOUtils;
-import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class CheckIOHintPanel extends JPanel {
-  public static final String ID = "Hints";
-  private static final Logger LOG = Logger.getInstance(CheckIOHintPanel.class);
   private final LinkedBlockingQueue<JLabel> hintQueue = new LinkedBlockingQueue<>();
   private final CheckIOToolWindow myCheckIOToolWindow;
-  private Task myTask;
-  private Project myProject;
+  private final String myForumLink;
   private ScrollablePanel myHintsPanel;
+  private List<String> myHints;
 
-  public CheckIOHintPanel(@NotNull final Project project, @NotNull final CheckIOToolWindow toolWindow) {
+  public CheckIOHintPanel(@NotNull final String forumLink,
+                          @NotNull final ArrayList<String> hints,
+                          @NotNull final CheckIOToolWindow toolWindow) {
     myCheckIOToolWindow = toolWindow;
-    myTask = CheckIOUtils.getTaskFromSelectedEditor(project);
-    myProject = project;
-
-    if (myTask == null) {
-      ToolWindowManager.getInstance(project).unregisterToolWindow(ID);
-      LOG.warn("User request hints for an empty editor");
-      return;
-    }
-    //TODO: change (api needed)
-    //final ArrayList<String> hints = taskManager.myTaskHints.get(myTask.getName());
+    myForumLink = forumLink;
+    myHints = hints;
 
     createHintPanel();
     showNewHint();
   }
 
   public void createHintPanel() {
-    final List<String> hints = Arrays.asList("Try to run the code and see which test fails", "The problem is likely an empty dictionary.",
-                                             "Try to add special case processing.",
-                                             "Look carefully when your code checks keys and values in the \"for ... in ...\" loop.",
-                                             "You can replace a value if it equals {}",
-
-                                             "Try to run the code and see which test fails", "The problem is likely an empty dictionary.",
-                                             "Try to add special case processing.",
-                                             "Look carefully when your code checks keys and values in the \"for ... in ...\" loop.",
-                                             "You can replace a value if it equals {}");
-
     setLayout(new GridBagLayout());
-    myHintsPanel = getHintsPanel(hints);
+    myHintsPanel = getHintsPanel(myHints);
     JPanel closeButtonPanel = createCloseLabelPanel();
 
     GridBagConstraints constraints = new GridBagConstraints();
@@ -157,8 +134,7 @@ public class CheckIOHintPanel extends JPanel {
     @Override
     public void mouseClicked(MouseEvent e) {
       if (hintQueue.size() == 0) {
-        BrowserUtil
-          .browse(CheckIOUtils.getForumLink(myTask, myProject));
+        BrowserUtil.browse(myForumLink);
       }
     }
   }
