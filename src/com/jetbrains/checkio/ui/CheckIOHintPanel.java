@@ -20,7 +20,7 @@ public class CheckIOHintPanel extends JPanel {
   private final CheckIOToolWindow myCheckIOToolWindow;
   private final String myForumLink;
   private ScrollablePanel myHintsPanel;
-  private List<String> myHints;
+  private final List<String> myHints;
 
   public CheckIOHintPanel(@NotNull final String forumLink,
                           @NotNull final ArrayList<String> hints,
@@ -33,7 +33,7 @@ public class CheckIOHintPanel extends JPanel {
     showNewHint();
   }
 
-  public void createHintPanel() {
+  private void createHintPanel() {
     setLayout(new GridBagLayout());
     myHintsPanel = getHintsPanel(myHints);
     JPanel closeButtonPanel = createCloseLabelPanel();

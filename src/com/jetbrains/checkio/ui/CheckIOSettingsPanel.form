@@ -25,7 +25,7 @@
         </constraints>
         <properties>
           <labelFor value="77611"/>
-          <text value="Update project if new stations unlicked after mission solving"/>
+          <text resource-bundle="properties/CheckIOBundle" key="settings.update.policy"/>
         </properties>
       </component>
     </children>

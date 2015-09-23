@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 public class CheckIOPublication {
   public static final String PUBLICATION_URL = "http://www.checkio.org/oauth/authorize-token/";
-  private final static String MISSION_PAREMETER_NAME = "mission";
+  private final static String MISSION_PARAMETER_NAME = "mission";
   private final static String PUBLICATION_PARAMETER_NAME = "publications";
   private static final Logger LOG = Logger.getInstance(CheckIOPublication.class);
   private static final HashMap<String, LanguageLevel> LANGUAGE_LEVEL_MAP = new HashMap<String, LanguageLevel>() {{
@@ -31,7 +31,7 @@ public class CheckIOPublication {
     return id;
   }
 
-  public String getPublicationName() {
+  private String getPublicationName() {
     return getAuthor().getUsername();
   }
 
@@ -89,7 +89,7 @@ public class CheckIOPublication {
   }
 
   private String createPublicationLinkParameter(@NotNull final String taskName) {
-    return String.join("/", new String[]{"", MISSION_PAREMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, user.getUsername(),
+    return String.join("/", new String[]{"", MISSION_PARAMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, user.getUsername(),
       interpreter, slug, ""});
   }
 }

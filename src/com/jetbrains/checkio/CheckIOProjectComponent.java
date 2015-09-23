@@ -58,7 +58,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
     return myToolWindow;
   }
 
-  public void registerTaskToolWindow(@Nullable final Course course) {
+  private void registerTaskToolWindow(@Nullable final Course course) {
     if (course != null && course.getCourseType().equals(CheckIOUtils.COURSE_TYPE)) {
       registerToolWindowIfNeeded(CheckIOToolWindow.ID);
       final ToolWindow toolWindow = getToolWindowByID(CheckIOToolWindow.ID);
@@ -70,7 +70,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
   }
 
 
-  public void registerUserInfoToolWindow() {
+  private void registerUserInfoToolWindow() {
     registerToolWindowIfNeeded(CheckIOUserInfoToolWindowFactory.ID);
     final ToolWindow toolWindow = getToolWindowByID(CheckIOUserInfoToolWindowFactory.ID);
     if (toolWindow != null) {

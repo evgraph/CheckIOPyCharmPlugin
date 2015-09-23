@@ -27,7 +27,7 @@ import java.util.List;
 
 public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
   public static final String ID = "User Info";
-  private JLabel myUserLevelLabel = new JLabel();
+  private final JLabel myUserLevelLabel = new JLabel();
 
   private static int getSolvedTasks(@NotNull final Lesson lesson, @NotNull final StudyTaskManager taskManager) {
     int solved = 0;
@@ -99,7 +99,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
     }
   }
 
-  public void setLevelLabel(int level) {
+  private void setLevelLabel(int level) {
     myUserLevelLabel.setText(UIUtil.toHtml("<b>Level: </b>" + level, 5));
   }
 

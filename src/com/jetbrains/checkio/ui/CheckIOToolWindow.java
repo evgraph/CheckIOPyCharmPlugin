@@ -40,14 +40,14 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private static final String SOLUTIONS = "Solutions";
   private static final String TEST_RESULTS = "Test results";
 
-  private CheckIOTaskInfoPanel myTaskInfoPanel;
+  private final CheckIOTaskInfoPanel myTaskInfoPanel;
 
   private CheckIOHintPanel myHintPanel;
-  private CheckIOPublicationsPanel mySolutionsPanel;
-  private CheckIOTestResultsPanel myTestResultsPanel;
-  private JBCardLayout myMyCardLayout;
-  private JPanel myContentPanel;
-  private JSplitPane mySplitPane;
+  private final CheckIOPublicationsPanel mySolutionsPanel;
+  private final CheckIOTestResultsPanel myTestResultsPanel;
+  private final JBCardLayout myMyCardLayout;
+  private final JPanel myContentPanel;
+  private final JSplitPane mySplitPane;
 
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);

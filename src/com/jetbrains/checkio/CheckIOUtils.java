@@ -210,7 +210,7 @@ public class CheckIOUtils {
     }
   }
 
-  //TODO: update (api needed)
+
   public static String getForumLink(@NotNull Task task, @NotNull final Project project) {
     final Sdk sdk= StudyUtils.findSdk(task, project);
     int taskId = CheckIOTaskManager.getInstance(project).getTaskId(task);

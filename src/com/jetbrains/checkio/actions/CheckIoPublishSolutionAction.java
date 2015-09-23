@@ -33,7 +33,7 @@ public class CheckIoPublishSolutionAction extends DumbAwareAction {
     }
   }
 
-  public void publish(@NotNull final Project project) {
+  private void publish(@NotNull final Project project) {
     final String addPublicationLink;
     try {
       addPublicationLink = CheckIOUtils.getAddPublicationLink(project, myTask);

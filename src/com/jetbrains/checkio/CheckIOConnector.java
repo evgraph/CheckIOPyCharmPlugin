@@ -64,6 +64,7 @@ public class CheckIOConnector {
   private static String myRefreshToken;
   private static CheckIOUser myUser;
   private static HashMap<String, Lesson> lessonsByName;
+  private static int displayedPublicationNumber = 10;
 
   public static CheckIOUser authorizeUser() throws IOException {
     final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
@@ -236,8 +237,11 @@ public class CheckIOConnector {
     for (MissionWrapper missionWrapper : missionWrappers) {
       if (missionWrapper.id == id) {
         status = taskSolutionStatus.get(missionWrapper.isSolved);
-        task.getTaskFile(CheckIOUtils.getTaskFileNameFromTask(task)).text = missionWrapper.code;
-        studyManager.setStatus(task, status);
+        final TaskFile taskFile = task.getTaskFile(CheckIOUtils.getTaskFileNameFromTask(task));
+        if (taskFile != null) {
+          taskFile.text = missionWrapper.code;
+          studyManager.setStatus(task, status);
+        }
         break;
       }
     }
@@ -264,7 +268,7 @@ public class CheckIOConnector {
           .build();
         final HttpGet publicationByCategoryRequest = new HttpGet(publicationUrl);
         final CheckIOPublication[] publications = getPublicationByCategory(publicationByCategoryRequest);
-        final CheckIOPublication[] publicationsSubset = subsetPublications(publications, 10);
+        final CheckIOPublication[] publicationsSubset = subsetPublications(publications);
         myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
       }
     }
@@ -275,8 +279,8 @@ public class CheckIOConnector {
     return myCategoryArrayListHashMap;
   }
 
-  private static CheckIOPublication[] subsetPublications(CheckIOPublication[] publications, int n) {
-    return Arrays.copyOfRange(publications, 0, n);
+  private static CheckIOPublication[] subsetPublications(CheckIOPublication[] publications) {
+    return Arrays.copyOfRange(publications, 0, displayedPublicationNumber);
   }
 
   private static PublicationCategoryWrapper getAvailablePublicationsCategories(@NotNull final HttpGet request) throws IOException {
@@ -333,9 +337,9 @@ public class CheckIOConnector {
 
   private static class HintsInfoGetter {
     public int myUnseenHintId = -1;
-    public ArrayList<Hint> mySeenHints = new ArrayList<>();
-    private String myTaskName;
-    private Project myProject;
+    public final ArrayList<Hint> mySeenHints = new ArrayList<>();
+    private final String myTaskName;
+    private final Project myProject;
     private Hint unseenHint;
 
     private static class HintResponse {
