@@ -157,7 +157,7 @@ public class CheckIOBrowserWindow extends JFrame {
     });
   }
 
-  private void addBackAndOpenButtons() {
+  public void addBackAndOpenButtons() {
     final JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 

@@ -204,11 +204,11 @@ public class CheckIOConnector {
 
   private static Task createTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
     final Task task = new Task(missionWrapper.slug);
-    task.setText(removeTryItBlockFromAndSetMetaInfo(missionWrapper.description));
+    task.setText(getDocumentTextWithoutCodeBlock(missionWrapper.description));
     return task;
   }
 
-  private static String removeTryItBlockFromAndSetMetaInfo(String taskHtml) {
+  private static String getDocumentTextWithoutCodeBlock(String taskHtml) {
     final String contentTypeString = "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" /> \n";
 
     Document text = Jsoup.parse(taskHtml);
