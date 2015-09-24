@@ -325,6 +325,7 @@ public class CheckIOConnector {
 
   public static ArrayList<String> getHints(@NotNull final Project project, @NotNull final String taskName) throws IOException {
     final HintsInfoGetter hintsInfoGetter = new HintsInfoGetter(taskName, project);
+    hintsInfoGetter.getHints();
     final ArrayList<HintsInfoGetter.Hint> hints = hintsInfoGetter.mySeenHints;
     final ArrayList<String> hintStrings = new ArrayList<>();
     for (HintsInfoGetter.Hint hint : hints) {
@@ -365,10 +366,9 @@ public class CheckIOConnector {
     public HintsInfoGetter(@NotNull final String taskName, @NotNull final Project project) throws IOException {
       myTaskName = taskName;
       myProject = project;
-      initialize();
     }
 
-    private void initialize() throws IOException {
+    private void getHints() throws IOException {
       final String token = CheckIOTaskManager.getInstance(myProject).getAccessToken();
       final HintResponse hintResponse = requestHintsList(token, myTaskName);
       if (hintResponse != null && hintResponse.objects != null) {

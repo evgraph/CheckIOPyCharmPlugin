@@ -3,10 +3,12 @@ package com.jetbrains.checkio.actions;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.jetbrains.checkio.CheckIOBundle;
@@ -25,6 +27,7 @@ import java.util.ArrayList;
 public class CheckIOShowHintAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOShowHintAction";
   public static final String SHORTCUT = "ctrl pressed 7";
+  private ProgressIndicator myProgressIndicator;
   private static final Logger LOG = Logger.getInstance(CheckIOShowHintAction.class);
 
   public CheckIOShowHintAction() {
@@ -42,7 +45,18 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
     if (project != null) {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       if (task != null) {
-        ProgressManager.getInstance().run(getDownloadHintsTask(project, task));
+        final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
+        if (toolWindow.isHintsVisible()) {
+          ApplicationManager.getApplication().invokeLater(() -> toolWindow.getHintPanel().showNewHint());
+        }
+        else {
+          myProgressIndicator = new ProgressIndicatorBase(false);
+          final com.intellij.openapi.progress.Task.Backgroundable hintsTask = getDownloadHintsTask(project, task);
+          final ProgressManager progressManager = ProgressManager.getInstance();
+          ProgressManager.progress("Downloading");
+          progressManager.runProcessWithProgressAsynchronously(hintsTask, myProgressIndicator);
+          hintsTask.queue();
+        }
       }
       else {
         LOG.warn("Task is null");
@@ -53,20 +67,33 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
     }
   }
 
-  private static com.intellij.openapi.progress.Task getDownloadHintsTask(@NotNull final Project project, @NotNull final Task task) {
+  private static com.intellij.openapi.progress.Task.Backgroundable getDownloadHintsTask(@NotNull final Project project,
+                                                                                        @NotNull final Task task) {
     return new com.intellij.openapi.progress.Task.Backgroundable(project, "Downloading hints") {
+      @Override
+      public void onCancel() {
+        final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
+        toolWindow.hideHintPanel();
+      }
+
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         try {
           final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
-          if (toolWindow.isHintsVisible()) {
-            ApplicationManager.getApplication().invokeLater(() -> toolWindow.getHintPanel().showNewHint());
-          }
-          else {
-            final ArrayList<String> hints = CheckIOConnector.getHints(project, task.getName());
-            final String forumLink = CheckIOUtils.getForumLink(task, project);
-            ApplicationManager.getApplication().invokeLater(() -> toolWindow.setAndShowHintPanel(forumLink, hints));
-          }
+          final ArrayList<String> hints = CheckIOConnector.getHints(project, task.getName());
+          final String forumLink = CheckIOUtils.getForumLink(task, project);
+          ApplicationManager.getApplication().invokeAndWait(() -> {
+            try {
+              toolWindow.setAndShowHintPanel(forumLink, hints);
+            }
+            catch (IOException e) {
+              ApplicationManager.getApplication().invokeLater(() -> CheckIOUtils.showOperationResultPopUp(
+                CheckIOBundle.message("project.generation.internet.connection.problems"),
+                MessageType.WARNING.getPopupBackground(), project));
+
+              LOG.warn(e.getMessage());
+            }
+          }, ModalityState.defaultModalityState());
         }
         catch (IOException e) {
           ApplicationManager.getApplication().invokeLater(() -> CheckIOUtils.showOperationResultPopUp(
@@ -77,5 +104,27 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
         }
       }
     };
+  }
+
+
+  @Override
+  public void update(AnActionEvent e) {
+    final Project project = e.getProject();
+    if (project != null) {
+      final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
+      if (toolWindow.isHintsVisible()) {
+        final boolean shouldEnablePresentation = toolWindow.getHintPanel().hasUnseenHints();
+        e.getPresentation().setEnabled(shouldEnablePresentation);
+      }
+      else {
+        if (myProgressIndicator != null) {
+          final boolean isHintsLoadingAlreadyStarted = myProgressIndicator.isRunning();
+          e.getPresentation().setEnabled(!isHintsLoadingAlreadyStarted);
+        }
+        else {
+          e.getPresentation().setEnabled(true);
+        }
+      }
+    }
   }
 }
