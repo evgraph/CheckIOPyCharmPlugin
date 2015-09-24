@@ -12,6 +12,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -124,7 +125,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
   }
 
-  public void setAndShowHintPanel(@NotNull final String forumLink, @NotNull final ArrayList<String> hints) {
+  public void setAndShowHintPanel(@NotNull final String forumLink, @NotNull final ArrayList<String> hints) throws IOException {
     myHintPanel = new CheckIOHintPanel(forumLink, hints, this);
     myHintPanel.setMaximumSize(myHintPanel.getPreferredSize());
     myHintPanel.setSize(myHintPanel.getPreferredSize());
@@ -143,6 +144,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   @Override
   public void dispose() {
+    if (myHintPanel != null) {
+      Disposer.dispose(myHintPanel);
+    }
 
   }
 
