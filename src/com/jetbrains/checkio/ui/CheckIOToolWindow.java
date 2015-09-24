@@ -43,7 +43,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   private final CheckIOTaskInfoPanel myTaskInfoPanel;
 
-  private CheckIOHintPanel myHintPanel;
+  private CheckIOHintsPanel myHintPanel;
   private final CheckIOPublicationsPanel mySolutionsPanel;
   private final CheckIOTestResultsPanel myTestResultsPanel;
   private final JBCardLayout myMyCardLayout;
@@ -103,7 +103,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     return myTestResultsPanel;
   }
 
-  public CheckIOHintPanel getHintPanel() {
+  public CheckIOHintsPanel getHintPanel() {
     return myHintPanel;
   }
 
@@ -126,13 +126,13 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   }
 
   public void setAndShowHintPanel(@NotNull final String forumLink, @NotNull final ArrayList<String> hints) throws IOException {
-    myHintPanel = new CheckIOHintPanel(forumLink, hints, this);
+    myHintPanel = new CheckIOHintsPanel(forumLink, hints, this);
     myHintPanel.setMaximumSize(myHintPanel.getPreferredSize());
     myHintPanel.setSize(myHintPanel.getPreferredSize());
     double preferredHintPanelHeight = myHintPanel.getPreferredSize().getHeight();
-    myContentPanel.setMinimumSize(new Dimension((int)myContentPanel.getPreferredSize().getWidth(),
-                                                myContentPanel.getHeight() - (int)preferredHintPanelHeight));
-    if (myContentPanel.getMinimumSize().getHeight() / preferredHintPanelHeight < 1) {
+    myContentPanel.setPreferredSize(new Dimension((int)myContentPanel.getPreferredSize().getWidth(),
+                                                  myContentPanel.getHeight() - (int)preferredHintPanelHeight));
+    if (myContentPanel.getPreferredSize().getHeight() / preferredHintPanelHeight < 1) {
       mySplitPane.setDividerLocation(0.5);
     }
     mySplitPane.setBottomComponent(myHintPanel);
