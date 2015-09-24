@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
-public class CheckIOHintPanel extends JPanel implements Disposable {
+public class CheckIOHintsPanel extends JPanel implements Disposable {
   private final LinkedBlockingQueue<JComponent> hintQueue = new LinkedBlockingQueue<>();
   private final CheckIOToolWindow myCheckIOToolWindow;
   private final String myForumLink;
@@ -43,9 +43,9 @@ public class CheckIOHintPanel extends JPanel implements Disposable {
   private static final String HINT_PANEL_ID = "HINT";
   private static final String EMPTY_PANEL_ID = "Empty";
 
-  public CheckIOHintPanel(@NotNull final String forumLink,
-                          @NotNull final ArrayList<String> hints,
-                          @NotNull final CheckIOToolWindow toolWindow) throws IOException {
+  public CheckIOHintsPanel(@NotNull final String forumLink,
+                           @NotNull final ArrayList<String> hints,
+                           @NotNull final CheckIOToolWindow toolWindow) throws IOException {
     removeAll();
     editors = new ArrayList<>();
     myCheckIOToolWindow = toolWindow;
