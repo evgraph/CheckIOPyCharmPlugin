@@ -39,7 +39,6 @@ import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import com.jetbrains.python.psi.LanguageLevel;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,8 +46,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
@@ -56,11 +53,8 @@ public class CheckIOUtils {
   public static final Key<LanguageLevel> CHECKIO_LANGUAGE_LEVEL_KEY = new Key<>("CheckIOLanguageLevel");
   public static final String PUBLICATION_FOLDER_NAME = "/.publications/";
   public static final String COURSE_TYPE = "CHECK_IO";
-  private final static String MISSION_PARAMETER_NAME = "mission";
-  private final static String PUBLICATION_PARAMETER_NAME = "publications";
-  private static final String MISSION_URL = "http://www.checkio.org/mission/";
+  private static final String MISSION_URL = "http://www.checkio.org/" + "mission/";
   private static final String PUBLICATION_SUFFIX = "/publications/";
-  private final static String ADD_PARAMETER_NAME = "add";
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
   private CheckIOUtils() {
@@ -246,29 +240,6 @@ public class CheckIOUtils {
     return runner;
   }
 
-
-  public static String getAddPublicationLink(@NotNull final Project project, @NotNull final Task task) throws IOException {
-    String publicationLink = "";
-
-    final CheckIOTaskManager checkIOTaskManager = CheckIOTaskManager.getInstance(project);
-    final String token = checkIOTaskManager.getAccessToken();
-    try {
-      final URI uri = new URIBuilder(CheckIOPublication.PUBLICATION_URL)
-        .addParameter("token", token)
-        .addParameter("interpreter", getInterpreter(task, project))
-        .addParameter("next", "")
-        .build();
-      publicationLink = uri.toString() + createAddPublicationLinkParameter(task.getName());
-    }
-    catch (URISyntaxException e) {
-      LOG.warn(e.getMessage());
-    }
-    return publicationLink;
-  }
-
-  private static String createAddPublicationLinkParameter(@NotNull final String taskName) {
-    return String.join("/", new String[]{"", MISSION_PARAMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, ADD_PARAMETER_NAME, ""});
-  }
 
   public static boolean isPublicationFile(@NotNull final VirtualFile file) {
     return file.getUserData(CHECKIO_LANGUAGE_LEVEL_KEY) != null;

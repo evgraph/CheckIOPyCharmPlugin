@@ -13,8 +13,8 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.jetbrains.checkio.CheckIOBundle;
-import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.learning.StudyTaskManager;
@@ -68,7 +68,7 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         try {
-          final Course newCourse = CheckIOConnector.getMissionsAndUpdateCourse(project);
+          final Course newCourse = CheckIOMissionGetter.getMissionsAndUpdateCourse(project);
           createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
         }
         catch (IOException e) {

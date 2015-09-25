@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.edu.courseFormat.StudyStatus;
 import com.jetbrains.edu.courseFormat.Task;
@@ -36,7 +37,7 @@ public class CheckIoPublishSolutionAction extends DumbAwareAction {
   private void publish(@NotNull final Project project) {
     final String addPublicationLink;
     try {
-      addPublicationLink = CheckIOUtils.getAddPublicationLink(project, myTask);
+      addPublicationLink = CheckIOPublicationGetter.getAddPublicationLink(project, myTask);
       BrowserUtil.browse(addPublicationLink);
     }
     catch (IOException e) {

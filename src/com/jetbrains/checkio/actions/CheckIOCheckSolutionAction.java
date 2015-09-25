@@ -23,6 +23,9 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.checkio.*;
+import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
+import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
+import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
@@ -108,12 +111,12 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
           try {
             TimeUnit.MILLISECONDS.sleep(1000);
             while (testResultsPanel.isShowing()) {
-              status = CheckIOConnector.getSolutionStatusAndSetInStudyManager(project, this.task);
+              status = CheckIOMissionGetter.getSolutionStatusAndSetInStudyManager(project, this.task);
               if (status != statusBeforeCheck) {
                 if (status == StudyStatus.Solved) {
                   checkAchievements();
                   final HashMap<String, CheckIOPublication[]> publicationFiles =
-                    CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(this.task);
+                    CheckIOPublicationGetter.getPublicationsForTaskAndCreatePublicationFiles(this.task);
                   CheckIOTaskManager.getInstance(myProject).setPublicationsForLastSolvedTask(this.task, publicationFiles);
                 }
                 ProjectView.getInstance(myProject).refresh();
@@ -157,7 +160,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     final Course oldCourse = studyTaskManager.getCourse();
     final Course newCourse;
     try {
-      newCourse = CheckIOConnector.getMissionsAndUpdateCourse(project);
+      newCourse = CheckIOMissionGetter.getMissionsAndUpdateCourse(project);
       assert oldCourse != null;
 
       final List<Lesson> oldLessons = oldCourse.getLessons();

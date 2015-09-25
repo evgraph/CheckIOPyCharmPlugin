@@ -1,10 +1,11 @@
-package com.jetbrains.checkio;
+package com.jetbrains.checkio.connectors;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpEntity;
@@ -41,31 +42,12 @@ import java.util.Properties;
 
 
 public class CheckIOUserAuthorizer {
-  private static String MY_SERVER_URL = "http://www.checkio.org";
-  private static final String TOKEN_URL = MY_SERVER_URL + "/oauth/token/";
-  private static final String AUTHORIZATION_URL = MY_SERVER_URL + "/oauth/authorize/";
-  private static final String USER_INFO_URL = MY_SERVER_URL + "/oauth/information/";
-  private static final String CLIENT_ID_PROPERTY = "clientId";
-  private static final String CLIENT_SECRET_PROPERTY = "clientSecret";
-  private static final String PARAMETER_CLIENT_ID = "client_id";
-  private static final String PARAMETER_CLIENT_SECRET = "client_secret";
-  private static final String PARAMETER_REDIRECT_URI = "redirect_uri";
-  private static final String PARAMETER_CODE = "code";
-  private static final String PARAMETER_CONTENT_TYPE = "Content-Type";
-  private static final String PARAMETER_GRANT_TYPE = "grant_type";
-  private static final String PARAMETER_ACCESS_TOKEN = "access_token";
-  private static final String PARAMETER_REFRESH_TOKEN = "refresh_token";
-  private static final String PARAMETER_RESPONSE_TYPE = "response_type";
-  private static final String PARAMETER_ACCEPT = "accept";
-  private static final String ACCEPT_TYPE = "application/json";
-  private static final String GRANT_TYPE_TOKEN = "authorization_code";
-  private static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
-  public static final String SUCCESS_AUTHORIZATION_MESSAGE = CheckIOBundle.message("authorization.success.message");
-  private static final Logger LOG = Logger.getInstance(CheckIOConnector.class.getName());
-  private static final Properties ourProperties = new Properties();
   private static final int ourPort = 36655;
-  private static final String REDIRECT_URI = "http://localhost:" + ourPort;
   private static volatile CheckIOUserAuthorizer ourAuthorizer;
+  private static final Properties ourProperties = new Properties();
+  private static final String REDIRECT_URI = "http://localhost:" + ourPort;
+  private static final Logger LOG = Logger.getInstance(CheckIOMissionGetter.class.getName());
+
   private Server myServer;
   private String myAccessToken;
   private String myRefreshToken;
@@ -77,7 +59,7 @@ public class CheckIOUserAuthorizer {
   public static CheckIOUserAuthorizer getInstance() {
     CheckIOUserAuthorizer authorizer = ourAuthorizer;
     if (authorizer == null) {
-      synchronized (CheckIOConnector.class) {
+      synchronized (CheckIOMissionGetter.class) {
         authorizer = ourAuthorizer;
         if (authorizer == null) {
           ourAuthorizer = authorizer = new CheckIOUserAuthorizer();
@@ -133,10 +115,12 @@ public class CheckIOUserAuthorizer {
 
   private static void openAuthorizationPage() {
     try {
-      final URI url = new URIBuilder(AUTHORIZATION_URL)
-        .addParameter(PARAMETER_REDIRECT_URI, REDIRECT_URI)
-        .addParameter(PARAMETER_RESPONSE_TYPE, PARAMETER_CODE)
-        .addParameter(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY))
+      final URI url = new URIBuilder(CheckIOConnectorBundle.message("authorization.url",
+                                                                    CheckIOConnectorBundle.message("checkio.url")))
+        .addParameter(CheckIOConnectorBundle.message("redirect.uri.parameter"), REDIRECT_URI)
+        .addParameter(CheckIOConnectorBundle.message("response.type.parameter"), CheckIOConnectorBundle.message("code.parameter"))
+        .addParameter(CheckIOConnectorBundle.message("client.id.parameter"),
+                      ourProperties.getProperty(CheckIOConnectorBundle.message("client.id.property.value")))
         .build();
       LOG.info("Auth url created");
       BrowserUtil.browse(url);
@@ -150,8 +134,8 @@ public class CheckIOUserAuthorizer {
   public CheckIOUser getUser(@NotNull final String accessToken) throws IOException {
     CheckIOUser user = new CheckIOUser();
     try {
-      final URI uri = new URIBuilder(USER_INFO_URL)
-        .addParameter(PARAMETER_ACCESS_TOKEN, accessToken)
+      final URI uri = new URIBuilder(CheckIOConnectorBundle.message("userinfo.url", CheckIOConnectorBundle.message("checkio.url")))
+        .addParameter(CheckIOConnectorBundle.message("access.token.parameter"), accessToken)
         .build();
       final HttpUriRequest request = new HttpGet(uri);
       final CloseableHttpClient client = HttpClientBuilder.create().build();
@@ -181,16 +165,19 @@ public class CheckIOUserAuthorizer {
   }
 
   private static HttpUriRequest makeRefreshTokenRequest(@NotNull final String refreshToken) {
-    final HttpPost request = new HttpPost(TOKEN_URL);
+    final HttpPost request = new HttpPost(CheckIOConnectorBundle.message("token.url", CheckIOConnectorBundle.message("checkio.url")));
     try {
       final List<NameValuePair> requestParameters = new ArrayList<>();
-      requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, PARAMETER_REFRESH_TOKEN));
-      requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY)));
-      requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_SECRET, ourProperties.getProperty(CLIENT_SECRET_PROPERTY)));
-      requestParameters.add(new BasicNameValuePair(PARAMETER_REFRESH_TOKEN, refreshToken));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("grant.type.parameter"),
+                                                   CheckIOConnectorBundle.message("refresh.token.parameter")));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("client.id.parameter"), ourProperties.getProperty(
+        CheckIOConnectorBundle.message("client.id.property.value"))));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("client.secret.parameter"), ourProperties.getProperty(
+        CheckIOConnectorBundle.message("client.secret.property.value"))));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("refresh.token.parameter"), refreshToken));
 
-      request.addHeader(PARAMETER_CONTENT_TYPE, CONTENT_TYPE);
-      request.addHeader(PARAMETER_ACCEPT, ACCEPT_TYPE);
+      request.addHeader(CheckIOConnectorBundle.message("content.type.parameter"), CheckIOConnectorBundle.message("content.type.value"));
+      request.addHeader(CheckIOConnectorBundle.message("accept.parameter"), CheckIOConnectorBundle.message("application.type"));
       request.setEntity(new UrlEncodedFormEntity(requestParameters));
     }
     catch (UnsupportedEncodingException e) {
@@ -200,17 +187,20 @@ public class CheckIOUserAuthorizer {
   }
 
   private static HttpUriRequest makeAccessTokenRequest(@NotNull final String code) {
-    final HttpPost request = new HttpPost(TOKEN_URL);
+    final HttpPost request = new HttpPost(CheckIOConnectorBundle.message("token.url", CheckIOConnectorBundle.message("checkio.url")));
     try {
       final List<NameValuePair> requestParameters = new ArrayList<>();
-      requestParameters.add(new BasicNameValuePair(PARAMETER_CODE, code));
-      requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_SECRET, ourProperties.getProperty(CLIENT_SECRET_PROPERTY)));
-      requestParameters.add(new BasicNameValuePair(PARAMETER_GRANT_TYPE, GRANT_TYPE_TOKEN));
-      requestParameters.add(new BasicNameValuePair(PARAMETER_CLIENT_ID, ourProperties.getProperty(CLIENT_ID_PROPERTY)));
-      requestParameters.add(new BasicNameValuePair(PARAMETER_REDIRECT_URI, REDIRECT_URI));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("code.parameter"), code));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("client.secret.parameter"), ourProperties.getProperty(
+        CheckIOConnectorBundle.message("client.secret.property.value"))));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("grant.type.parameter"),
+                                                   CheckIOConnectorBundle.message("grant.type.token")));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("client.id.parameter"), ourProperties.getProperty(
+        CheckIOConnectorBundle.message("client.id.property.value"))));
+      requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("redirect.uri.parameter"), REDIRECT_URI));
 
-      request.addHeader(PARAMETER_CONTENT_TYPE, CONTENT_TYPE);
-      request.addHeader(PARAMETER_ACCEPT, ACCEPT_TYPE);
+      request.addHeader(CheckIOConnectorBundle.message("content.type.parameter"), CheckIOConnectorBundle.message("content.type.value"));
+      request.addHeader(CheckIOConnectorBundle.message("accept.parameter"), CheckIOConnectorBundle.message("application.type"));
       request.setEntity(new UrlEncodedFormEntity(requestParameters));
     }
     catch (UnsupportedEncodingException e) {
@@ -225,17 +215,13 @@ public class CheckIOUserAuthorizer {
 
     if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
       JSONObject jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
-      myAccessToken = jsonObject.getString(PARAMETER_ACCESS_TOKEN);
-      myRefreshToken = jsonObject.getString(PARAMETER_REFRESH_TOKEN);
+      myAccessToken = jsonObject.getString(CheckIOConnectorBundle.message("access.token.parameter"));
+      myRefreshToken = jsonObject.getString(CheckIOConnectorBundle.message("refresh.token.parameter"));
     }
   }
 
   public Server getServer() {
     return myServer;
-  }
-
-  public static void setServerUrl(String serverUrl) {
-    MY_SERVER_URL = serverUrl;
   }
 
   public String getAccessToken() {
@@ -250,11 +236,11 @@ public class CheckIOUserAuthorizer {
     @Override
     public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
       LOG.info("Handling auth response");
-      final String code = httpServletRequest.getParameter(PARAMETER_CODE);
+      final String code = httpServletRequest.getParameter(CheckIOConnectorBundle.message("code.parameter"));
 
       try {
         final OutputStream os = httpServletResponse.getOutputStream();
-        os.write(SUCCESS_AUTHORIZATION_MESSAGE.getBytes(Charset.defaultCharset()));
+        os.write(CheckIOBundle.message("authorization.success.message").getBytes(Charset.defaultCharset()));
         os.close();
         setTokensFirstTime(code);
       }

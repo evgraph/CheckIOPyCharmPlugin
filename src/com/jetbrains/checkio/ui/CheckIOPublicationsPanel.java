@@ -19,9 +19,9 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.jetbrains.checkio.CheckIOBundle;
-import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
@@ -290,7 +290,7 @@ public class CheckIOPublicationsPanel extends JPanel {
 
         private void getPublicationInfoAndOpenFile(CheckIOPublication publication, String token) {
           try {
-            CheckIOConnector.setPublicationCodeAndCategoryFromRequest(token, publication);
+            CheckIOPublicationGetter.setPublicationCodeAndCategoryFromRequest(token, publication);
             final File
               publicationFile = CheckIOUtils
               .createPublicationFile(myProject, CheckIOPublicationsPanel.this.task.getName(), publication);

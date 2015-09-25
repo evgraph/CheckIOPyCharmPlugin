@@ -12,9 +12,9 @@ import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.jetbrains.checkio.CheckIOBundle;
-import com.jetbrains.checkio.CheckIOConnector;
 import com.jetbrains.checkio.CheckIOProjectComponent;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.connectors.CheckIOHintsInfoGetter;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.courseFormat.Task;
 import icons.InteractiveLearningIcons;
@@ -80,7 +80,8 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
       public void run(@NotNull ProgressIndicator indicator) {
         try {
           final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
-          final ArrayList<String> hints = CheckIOConnector.getHints(project, task.getName());
+          final CheckIOHintsInfoGetter checkIOHintsInfoGetter = new CheckIOHintsInfoGetter(task.getName(), project);
+          final ArrayList<String> hints = checkIOHintsInfoGetter.getHintStrings();
           final String forumLink = CheckIOUtils.getForumLink(task, project);
           ApplicationManager.getApplication().invokeAndWait(() -> {
             try {

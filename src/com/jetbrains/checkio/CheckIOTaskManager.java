@@ -4,6 +4,8 @@ import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
+import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.edu.courseFormat.Task;
@@ -93,7 +95,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   }
 
   public String getAccessToken() throws IOException {
-    if (!CheckIOConnector.isTokenUpToDate(accessToken)) {
+    if (!CheckIOMissionGetter.isTokenUpToDate(accessToken)) {
       final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
       authorizer.setTokensFromRefreshToken(refreshToken);
       accessToken = authorizer.getAccessToken();

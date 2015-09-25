@@ -1,6 +1,7 @@
 package com.jetbrains.checkio;
 
 import com.google.gson.Gson;
+import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -22,13 +23,13 @@ public class CheckIOConnectorTest extends Assert {
   @Before
   public void setUp() {
     int port = mockServerRule.getHttpPort();
-    CheckIOConnector.CHECKIO_API_URL = "http://localhost:" + port;
+    //CheckIOPublicationGetter.CHECKIO_API_URL = "http://localhost:" + port;
   }
 
   @Test
   public void testGetMissions() {
-    CheckIOConnector.MissionWrapper[] missionWrappers = new CheckIOConnector.MissionWrapper[1];
-    missionWrappers[0] = new CheckIOConnector.MissionWrapper();
+    CheckIOMissionGetter.MissionWrapper[] missionWrappers = new CheckIOMissionGetter.MissionWrapper[1];
+    missionWrappers[0] = new CheckIOMissionGetter.MissionWrapper();
     missionWrappers[0].code = "code";
     missionWrappers[0].id = 1;
     missionWrappers[0].description = "";
@@ -50,17 +51,17 @@ public class CheckIOConnectorTest extends Assert {
           .withHeader("Content-Type", "application/json")
           .withBody(new Gson().toJson(missionWrappers))
       );
-    CheckIOConnector.MissionWrapper[] actuals = new CheckIOConnector.MissionWrapper[0];
+    CheckIOMissionGetter.MissionWrapper[] actuals = new CheckIOMissionGetter.MissionWrapper[0];
     try {
-      actuals = CheckIOConnector.getMissions("token");
+      actuals = CheckIOMissionGetter.getMissions("token");
     }
     catch (IOException e) {
       e.printStackTrace();
     }
 
     assertEquals(actuals.length, 1);
-    CheckIOConnector.MissionWrapper actual = actuals[0];
-    CheckIOConnector.MissionWrapper missionWrapper = missionWrappers[0];
+    CheckIOMissionGetter.MissionWrapper actual = actuals[0];
+    CheckIOMissionGetter.MissionWrapper missionWrapper = missionWrappers[0];
     assertEquals(actual.code, missionWrapper.code);
     assertEquals(actual.description, missionWrapper.description);
     assertEquals(actual.id, missionWrapper.id);
@@ -73,8 +74,8 @@ public class CheckIOConnectorTest extends Assert {
 
   @Test
   public void getCourseForProject() {
-    CheckIOConnector.MissionWrapper[] missionWrappers = new CheckIOConnector.MissionWrapper[1];
-    missionWrappers[0] = new CheckIOConnector.MissionWrapper();
+    CheckIOMissionGetter.MissionWrapper[] missionWrappers = new CheckIOMissionGetter.MissionWrapper[1];
+    missionWrappers[0] = new CheckIOMissionGetter.MissionWrapper();
     missionWrappers[0].code = "code";
     missionWrappers[0].id = 1;
     missionWrappers[0].description = "";

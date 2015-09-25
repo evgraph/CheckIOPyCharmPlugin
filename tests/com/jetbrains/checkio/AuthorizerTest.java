@@ -2,6 +2,7 @@ package com.jetbrains.checkio;
 
 
 import com.google.gson.Gson;
+import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -35,7 +36,7 @@ public class AuthorizerTest extends Assert {
     int port = mockServerRule.getHttpPort();
 
     checkIOUserAuthorizer = CheckIOUserAuthorizer.getInstance();
-    CheckIOUserAuthorizer.setServerUrl("http://localhost:" + port);
+    //CheckIOUserAuthorizer.setServerUrl("http://localhost:" + port);
   }
 
   @Test
@@ -138,7 +139,7 @@ public class AuthorizerTest extends Assert {
     try {
       org.apache.http.HttpResponse response = client.execute(new HttpGet(uri));
       String responseEntity = EntityUtils.toString(response.getEntity());
-      assertEquals(responseEntity, CheckIOUserAuthorizer.SUCCESS_AUTHORIZATION_MESSAGE);
+      assertEquals(responseEntity, CheckIOBundle.message("authorization.success.message"));
     }
     catch (IOException e) {
       e.printStackTrace();

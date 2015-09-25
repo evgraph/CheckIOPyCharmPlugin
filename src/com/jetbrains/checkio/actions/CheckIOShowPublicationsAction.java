@@ -14,7 +14,11 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.jetbrains.checkio.*;
+import com.jetbrains.checkio.CheckIOBundle;
+import com.jetbrains.checkio.CheckIOProjectComponent;
+import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.checkio.ui.CheckIOPublicationsPanel;
@@ -103,7 +107,7 @@ public class CheckIOShowPublicationsAction extends AnAction {
     final HashMap<String, CheckIOPublication[]> publicationsForLastSolvedTask =
       CheckIOTaskManager.getInstance(project).getPublicationsForLastSolvedTask(task);
     if (publicationsForLastSolvedTask == null) {
-      return CheckIOConnector.getPublicationsForTaskAndCreatePublicationFiles(task);
+      return CheckIOPublicationGetter.getPublicationsForTaskAndCreatePublicationFiles(task);
     }
     return publicationsForLastSolvedTask;
   }

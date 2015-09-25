@@ -18,7 +18,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.platform.DirectoryProjectGenerator;
 import com.intellij.util.BooleanFunction;
-import com.jetbrains.checkio.*;
+import com.jetbrains.checkio.CheckIOBundle;
+import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
+import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.edu.courseFormat.Course;
@@ -46,15 +50,14 @@ import java.util.concurrent.TimeUnit;
 public class CheckIOProjectGenerator extends PythonProjectGenerator implements DirectoryProjectGenerator {
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
   private static final File myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-  private CheckIOConnector.MissionWrapper[] myMissionWrappers;
+  private CheckIOMissionGetter.MissionWrapper[] myMissionWrappers;
   private CheckIOUser user;
+  private String accessToken;
+  private String refreshToken;
 
-  private static void setParametersInTaskManager(@NotNull Project project) {
+  private void setParametersInTaskManager(@NotNull Project project) {
     if (!checkIfUserOrAccessTokenIsNull()) {
       final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-      final CheckIOUser user = CheckIOConnector.getMyUser();
-      final String accessToken = CheckIOConnector.getMyAccessToken();
-      final String refreshToken = CheckIOConnector.getMyRefreshToken();
       taskManager.setUser(user);
       taskManager.setAccessToken(accessToken);
       taskManager.setRefreshToken(refreshToken);
@@ -62,13 +65,13 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   }
 
 
-  private static boolean checkIfUserOrAccessTokenIsNull() {
-    if (CheckIOConnector.getMyUser() == null) {
+  private boolean checkIfUserOrAccessTokenIsNull() {
+    if (user == null) {
       LOG.warn("User object is null");
       return true;
     }
 
-    if (CheckIOConnector.getMyAccessToken() == null) {
+    if (accessToken == null) {
       LOG.warn("Access token is null");
       return true;
     }
@@ -93,7 +96,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
     setParametersInTaskManager(project);
     final Course course;
-    course = CheckIOConnector.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
+    course = CheckIOMissionGetter.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
     StudyTaskManager.getInstance(project).setCourse(course);
     DumbService.allowStartingDumbModeInside(DumbModePermission.MAY_START_BACKGROUND, () ->
       ApplicationManager.getApplication().runWriteAction(() -> {
@@ -126,16 +129,21 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   private void authorizeUserAndGetMissions() {
     try {
       LOG.info("Starting authorization");
-      user = CheckIOConnector.authorizeUser();
-      final String accessToken = CheckIOUserAuthorizer.getInstance().getAccessToken();
+      final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
+      user = authorizer.authorizeAndGetUser();
+      accessToken = authorizer.getAccessToken();
+      refreshToken = authorizer.getRefreshToken();
       if (accessToken != null) {
         try {
           LOG.info("Getting missions");
-          myMissionWrappers = CheckIOConnector.getMissions(accessToken);
+          myMissionWrappers = CheckIOMissionGetter.getMissions(accessToken);
         }
         catch (IOException e) {
           LOG.warn(e.getMessage());
         }
+      }
+      else {
+        LOG.warn("access token is null");
       }
     }
     catch (Throwable throwable) {
