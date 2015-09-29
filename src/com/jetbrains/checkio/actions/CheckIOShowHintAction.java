@@ -8,7 +8,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.jetbrains.checkio.CheckIOBundle;
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 public class CheckIOShowHintAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOShowHintAction";
   public static final String SHORTCUT = "ctrl pressed 7";
-  private ProgressIndicator myProgressIndicator;
+  private BackgroundableProcessIndicator myProgressIndicator;
   private static final Logger LOG = Logger.getInstance(CheckIOShowHintAction.class);
 
   public CheckIOShowHintAction() {
@@ -50,12 +50,9 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
           ApplicationManager.getApplication().invokeLater(() -> toolWindow.getHintPanel().showNewHint());
         }
         else {
-          myProgressIndicator = new ProgressIndicatorBase(false);
           final com.intellij.openapi.progress.Task.Backgroundable hintsTask = getDownloadHintsTask(project, task);
-          final ProgressManager progressManager = ProgressManager.getInstance();
-          ProgressManager.progress("Downloading");
-          progressManager.runProcessWithProgressAsynchronously(hintsTask, myProgressIndicator);
-          hintsTask.queue();
+          myProgressIndicator = new BackgroundableProcessIndicator(hintsTask);
+          ProgressManager.getInstance().runProcessWithProgressAsynchronously(hintsTask, myProgressIndicator);
         }
       }
       else {
