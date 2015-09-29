@@ -1,6 +1,5 @@
 package com.jetbrains.checkio.ui;
 
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,6 +23,7 @@ import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.edu.courseFormat.Task;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -207,7 +207,8 @@ public class CheckIOPublicationsPanel extends JPanel {
       myPublication = publication;
       myUserNameLabel.setText(UIUtil.toHtml("<b>User: </b>" + "<a href=\"\">" + myPublication.getAuthor().getUsername() + "</a>", 5));
       myUserLevelLabel.setText(UIUtil.toHtml("<b>Level: </b>" + myPublication.getAuthor().getLevel(), 5));
-      myViewOnWebLabel.setText(UIUtil.toHtml(myPublication.getCategory() + " <a href=\"\">solution</a> for " + task.getName()));
+      myViewOnWebLabel.setText(UIUtil.toHtml(
+        StringUtils.capitalize(myPublication.getCategory()) + " <a href=\"\">solution</a> for " + task.getName()));
     }
 
     private class MyMouseListener extends MouseAdapter {
@@ -239,7 +240,10 @@ public class CheckIOPublicationsPanel extends JPanel {
       @Override
       public void mouseClicked(MouseEvent e) {
         final String url = getUrl();
-        BrowserUtil.browse(url);
+        final CheckIOBrowserWindow window = new CheckIOBrowserWindow();
+        window.setShowProgress(true);
+        window.load(url);
+        window.setVisible(true);
       }
     }
   }

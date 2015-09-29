@@ -1,7 +1,6 @@
 package com.jetbrains.checkio.ui;
 
 
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -35,7 +34,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
 
     for (Task task : tasks) {
       if (taskManager.getStatus(task) == StudyStatus.Solved) {
-        ++solved;
+        solved++;
       }
     }
 
@@ -112,7 +111,10 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-      BrowserUtil.browse(myUser.getUserProfileLink());
+      final CheckIOBrowserWindow browserWindow = new CheckIOBrowserWindow();
+      browserWindow.setShowProgress(true);
+      browserWindow.load(myUser.getUserProfileLink());
+      browserWindow.setVisible(true);
     }
   }
 }
