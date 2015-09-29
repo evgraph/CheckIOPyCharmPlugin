@@ -41,9 +41,10 @@ public class CheckIOBrowserWindow extends JFrame {
   private boolean showProgress = true;
 
   public CheckIOBrowserWindow() {
-    setSize(new Dimension(600, 600));
+    setSize(new Dimension(900, 800));
     setLayout(new BorderLayout());
     setPanel(new JFXPanel());
+    setTitle("CheckIO Browser");
     LafManager.getInstance().addLafManagerListener(new CheckIOLafManagerListener());
     initComponents();
   }
@@ -86,6 +87,8 @@ public class CheckIOBrowserWindow extends JFrame {
       myPane = new StackPane();
       myWebComponent = new WebView();
       myEngine = myWebComponent.getEngine();
+
+      addBackAndOpenButtons();
       if (showProgress) {
         myProgressBar = makeProgressBarWithListener();
         myWebComponent.setVisible(false);
@@ -157,7 +160,7 @@ public class CheckIOBrowserWindow extends JFrame {
     });
   }
 
-  public void addBackAndOpenButtons() {
+  private void addBackAndOpenButtons() {
     final JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 

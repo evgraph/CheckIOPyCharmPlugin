@@ -81,7 +81,6 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
   private ScrollablePanel getHintsPanel(@NotNull final List<String> hints) throws IOException {
     final ScrollablePanel panel = new ScrollablePanel(new GridBagLayout());
     final CheckIOBrowserWindow browserWindow = new CheckIOBrowserWindow();
-    browserWindow.addBackAndOpenButtons();
 
     final GridBagConstraints constraints = new GridBagConstraints();
     constraints.gridwidth = GridBagConstraints.RELATIVE;
