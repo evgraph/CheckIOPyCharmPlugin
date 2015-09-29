@@ -110,6 +110,7 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
     final JPanel contentPanel = new JPanel(cardLayout);
     final JLabel continueOnForumLabel = createContinueOnForumLabel();
     final JPanel forumPanel = new JPanel(new BorderLayout());
+    forumPanel.setBorder(BorderFactory.createEtchedBorder());
     forumPanel.add(continueOnForumLabel, BorderLayout.CENTER);
 
     contentPanel.add(new JPanel(), EMPTY_PANEL_ID);
