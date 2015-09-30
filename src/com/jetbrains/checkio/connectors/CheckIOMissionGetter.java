@@ -69,7 +69,7 @@ public class CheckIOMissionGetter {
     final Course course = new Course();
     course.setLanguage(PythonLanguage.getInstance().getID());
     course.setName(CheckIOBundle.message("course.name"));
-    course.setCourseType(CheckIOUtils.COURSE_TYPE);
+    course.setCourseType(CheckIOBundle.message("check.io.project.type"));
     course.setDescription(CheckIOBundle.message
       ("project.description", CheckIOBundle.message("course.name")));
     return course;
