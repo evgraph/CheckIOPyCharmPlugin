@@ -25,6 +25,7 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.jetbrains.checkio.connectors.CheckIOConnectorBundle;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
@@ -52,8 +53,8 @@ import java.util.List;
 public class CheckIOUtils {
   public static final Key<LanguageLevel> CHECKIO_LANGUAGE_LEVEL_KEY = new Key<>("CheckIOLanguageLevel");
   public static final String PUBLICATION_FOLDER_NAME = "/.publications/";
-  public static final String COURSE_TYPE = "CHECK_IO";
-  private static final String MISSION_URL = "http://www.checkio.org/" + "mission/";
+  private static final String MISSION_URL = CheckIOConnectorBundle.message
+    ("http.www.checkio.org.mission");
   private static final String PUBLICATION_SUFFIX = "/publications/";
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
