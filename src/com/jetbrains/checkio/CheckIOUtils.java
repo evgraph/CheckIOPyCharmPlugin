@@ -4,7 +4,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -29,6 +28,7 @@ import com.intellij.psi.PsiManager;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
+import com.jetbrains.edu.EduNames;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
@@ -132,6 +132,7 @@ public class CheckIOUtils {
     final VirtualFile baseDir = project.getBaseDir();
     final List<Lesson> oldLessons = oldCourse.getLessons();
     final List<Lesson> newLessons = newCourse.getLessons();
+    int lastLessonIndex = oldLessons.size() + 1;
     for (Lesson newLesson : newLessons) {
       boolean isNew = true;
       for (Lesson oldLesson : oldLessons) {
@@ -142,12 +143,11 @@ public class CheckIOUtils {
       }
       if (isNew) {
         oldCourse.addLesson(newLesson);
-        newLesson.setIndex(oldCourse.getLessons().size());
+        newLesson.setIndex(lastLessonIndex++);
+        StudyProjectGenerator.flushLesson(new File(oldCourse.getCourseDirectory(), EduNames.LESSON + newLesson.getIndex()), newLesson);
         ApplicationManager.getApplication().runWriteAction(() -> {
           try {
             StudyGenerator.createLesson(newLesson, baseDir, new File(oldCourse.getCourseDirectory()), project);
-            final File myCoursesDir = new File(PathManager.getConfigPath(), "courses" + oldCourse.getName());
-            StudyProjectGenerator.flushLesson(myCoursesDir, newLesson);
           }
           catch (IOException e) {
             LOG.warn(e.getMessage());
