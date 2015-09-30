@@ -10,6 +10,7 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.jetbrains.checkio.CheckIOBundle;
@@ -47,8 +48,10 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
     }
   }
 
-  private static void update(@NotNull final Project project) {
-    ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(getUpdateTask(project)));
+  private void update(@NotNull final Project project) {
+    final Task.Backgroundable updateTask = getUpdateTask(project);
+    myProcessIndicator = new BackgroundableProcessIndicator(updateTask);
+    ProgressManager.getInstance().runProcessWithProgressAsynchronously(updateTask, myProcessIndicator);
   }
 
 

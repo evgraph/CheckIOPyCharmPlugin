@@ -27,7 +27,6 @@ import java.util.ArrayList;
 public class CheckIOShowHintAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOShowHintAction";
   public static final String SHORTCUT = "ctrl pressed 7";
-  private BackgroundableProcessIndicator myProgressIndicator;
   private static final Logger LOG = Logger.getInstance(CheckIOShowHintAction.class);
 
   public CheckIOShowHintAction() {
@@ -51,8 +50,8 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
         }
         else {
           final com.intellij.openapi.progress.Task.Backgroundable hintsTask = getDownloadHintsTask(project, task);
-          myProgressIndicator = new BackgroundableProcessIndicator(hintsTask);
-          ProgressManager.getInstance().runProcessWithProgressAsynchronously(hintsTask, myProgressIndicator);
+          myProcessIndicator = new BackgroundableProcessIndicator(hintsTask);
+          ProgressManager.getInstance().runProcessWithProgressAsynchronously(hintsTask, myProcessIndicator);
         }
       }
       else {
@@ -107,20 +106,14 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
 
   @Override
   public void update(AnActionEvent e) {
+    super.update(e);
     final Project project = e.getProject();
     if (project != null) {
       final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
       if (toolWindow.isHintsVisible()) {
         final boolean shouldEnablePresentation = toolWindow.getHintPanel().hasUnseenHints();
-        e.getPresentation().setEnabled(shouldEnablePresentation);
-      }
-      else {
-        if (myProgressIndicator != null) {
-          final boolean isHintsLoadingAlreadyStarted = myProgressIndicator.isRunning();
-          e.getPresentation().setEnabled(!isHintsLoadingAlreadyStarted);
-        }
-        else {
-          e.getPresentation().setEnabled(true);
+        if (!shouldEnablePresentation) {
+          e.getPresentation().setEnabled(false);
         }
       }
     }

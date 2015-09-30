@@ -98,8 +98,8 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     try {
       CheckIOProjectComponent.getInstance(project).getToolWindow().checkAndShowResults(task, code);
       final Backgroundable checkTask = getCheckTask(task, project);
-      BackgroundableProcessIndicator processIndicator = new BackgroundableProcessIndicator(checkTask);
-      ProgressManager.getInstance().runProcessWithProgressAsynchronously(checkTask, processIndicator);
+      myProcessIndicator = new BackgroundableProcessIndicator(checkTask);
+      ProgressManager.getInstance().runProcessWithProgressAsynchronously(checkTask, myProcessIndicator);
     }
     catch (IOException e) {
       CheckIOUtils.makeNoInternetConnectionNotifier(project);

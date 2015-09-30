@@ -2,16 +2,19 @@ package com.jetbrains.checkio.actions;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.courseFormat.Task;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 
 public abstract class CheckIOTaskAction extends DumbAwareAction {
+  protected BackgroundableProcessIndicator myProcessIndicator;
   protected CheckIOTaskAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
     super(text, description, icon);
   }
@@ -24,13 +27,20 @@ public abstract class CheckIOTaskAction extends DumbAwareAction {
   public void update(AnActionEvent e) {
     final Project project = e.getProject();
     final Presentation presentation = e.getPresentation();
-    if (project != null) {
-      final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
-      if (task != null && task.getTaskFile(CheckIOUtils.getTaskFileNameFromTask(task)) != null) {
-        presentation.setEnabled(true);
-        return;
-      }
+    if (project != null && !isActionPerforming() && isStudyFileOpened(project)) {
+      presentation.setEnabled(true);
     }
-    presentation.setEnabled(false);
+    else {
+      presentation.setEnabled(false);
+    }
+  }
+
+  private boolean isActionPerforming() {
+    return myProcessIndicator != null && myProcessIndicator.isRunning();
+  }
+
+  private static boolean isStudyFileOpened(@NotNull final Project project) {
+    final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
+    return task != null && task.getTaskFile(CheckIOUtils.getTaskFileNameFromTask(task)) != null;
   }
 }
