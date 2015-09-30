@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,8 +33,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public Map<String, Integer> myTaskIds = new HashMap<>();
   public CheckIOUser myUser;
   public HashMap<String, Boolean> myPublicationStatusMap = new HashMap<>();
-  //TODO: update (api needed)
-  public Map<String, ArrayList<String>> myTaskHints = new HashMap<>();
   public Task myLastSolvedTask;
   public HashMap<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
 
