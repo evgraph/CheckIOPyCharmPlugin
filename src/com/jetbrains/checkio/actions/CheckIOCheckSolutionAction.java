@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
-  public static final String SHORTCUT = "ctrl pressed PERIOD";
+  public static final String SHORTCUT = "ctrl alt pressed ENTER";
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
   public CheckIOCheckSolutionAction() {
@@ -184,11 +184,6 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
       final List<Lesson> oldLessons = oldCourse.getLessons();
       final List<Lesson> newLessons = newCourse.getLessons();
-
-      final Lesson lesson = newLessons.get(0);
-      lesson.setName("test_test");
-      lesson.setIndex(newLessons.size());
-      newLessons.add(lesson);
 
       final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
       if (unlockedStationsNumber > 0) {
