@@ -5,9 +5,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
-import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -35,7 +35,6 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -240,7 +239,8 @@ public class CheckIOUserAuthorizer {
 
       try {
         final OutputStream os = httpServletResponse.getOutputStream();
-        os.write(CheckIOBundle.message("authorization.success.message").getBytes(Charset.defaultCharset()));
+
+        os.write(IOUtils.toByteArray(getClass().getResourceAsStream("/style/authorizationPage.html")));
         os.close();
         setTokensFirstTime(code);
       }
