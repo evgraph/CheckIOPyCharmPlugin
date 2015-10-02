@@ -11,6 +11,7 @@ import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.CheckIoPublishSolutionAction;
+import com.jetbrains.checkio.connectors.CheckIOConnectorBundle;
 import com.jetbrains.edu.courseFormat.Task;
 import javafx.beans.value.ChangeListener;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +60,7 @@ public class CheckIOTestResultsPanel extends JPanel {
       if (newDocument != null) {
         if (newDocument.getElementsByTagName("form").getLength() > 0) {
           final HTMLFormElement form = (HTMLFormElement)newDocument.getElementsByTagName("form").item(0);
-          if ("http://www.checkio.org/mission/check-html-output/".equals(form.getAttribute("action"))) {
+          if (form.getAttribute("action").contains(CheckIOConnectorBundle.message("mission.check.action.name"))) {
             HTMLInputElement tokenElement = null;
             HTMLInputElement taskIdElement = null;
             HTMLInputElement interpreterElement = null;

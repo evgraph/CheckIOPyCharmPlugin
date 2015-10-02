@@ -54,7 +54,7 @@ public class CheckIOUtils {
   public static final Key<LanguageLevel> CHECKIO_LANGUAGE_LEVEL_KEY = new Key<>("CheckIOLanguageLevel");
   public static final String PUBLICATION_FOLDER_NAME = "/.publications/";
   private static final String MISSION_URL = CheckIOConnectorBundle.message
-    ("http.www.checkio.org.mission");
+    ("http.www.checkio.org.mission", CheckIOConnectorBundle.message("checkio.url"));
   private static final String PUBLICATION_SUFFIX = "/publications/";
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
