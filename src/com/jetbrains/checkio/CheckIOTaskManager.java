@@ -36,6 +36,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public HashMap<String, Boolean> myPublicationStatusMap = new HashMap<>();
   public Task myLastSolvedTask;
   public HashMap<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
+  public HashMap<String, String> myInitialCodeForTask = new HashMap<>();
 
   private CheckIOTaskManager() {
     if (myUpdateProjectPolicy == null) {
@@ -102,6 +103,14 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
       refreshToken = authorizer.getRefreshToken();
     }
     return accessToken;
+  }
+
+  public void addInitialCodeForTask(@NotNull final String taskName, @NotNull final String initialCode) {
+    myInitialCodeForTask.put(taskName, initialCode);
+  }
+
+  public String getInitialCodeForTask(@NotNull final String taskName) {
+    return myInitialCodeForTask.get(taskName);
   }
 
   public void setAccessToken(String accessToken) {

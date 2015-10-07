@@ -143,6 +143,7 @@ public class CheckIOMissionGetter {
 
     taskManager.setPublicationStatus(task, missionWrapper.isPublished);
     taskManager.setTaskId(task, missionWrapper.id);
+    taskManager.addInitialCodeForTask(task.getName(), missionWrapper.initialCode);
   }
 
 
@@ -217,5 +218,6 @@ public class CheckIOMissionGetter {
     public String description;
     public String slug;
     public String stationName;
+    public String initialCode;
   }
 }
