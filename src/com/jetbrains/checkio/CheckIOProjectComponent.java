@@ -15,6 +15,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.util.containers.hash.HashMap;
 import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
 import com.jetbrains.checkio.actions.CheckIORefreshFileAction;
 import com.jetbrains.checkio.actions.CheckIOShowHintAction;
@@ -36,7 +37,7 @@ import java.util.Map;
 public class CheckIOProjectComponent implements ProjectComponent {
   private final Project myProject;
   private CheckIOToolWindow myToolWindow;
-  private Map<Keymap, List<Pair<String, String>>> myDeletedShortcuts = new com.intellij.util.containers.hash.HashMap<>();
+  private Map<Keymap, List<Pair<String, String>>> myDeletedShortcuts = new HashMap<>();
 
   private CheckIOProjectComponent(Project project) {
     myProject = project;
@@ -48,6 +49,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
   public void projectOpened() {
     Platform.setImplicitExit(false);
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
+      new CheckIOUpdateProjectAction().updateProject(myProject);
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       myToolWindow = new CheckIOToolWindow(myProject);
       registerTaskToolWindow(course);
