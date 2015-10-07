@@ -32,11 +32,11 @@ public class CheckIOPublicationGetter {
     String publicationLink = "";
 
     final CheckIOTaskManager checkIOTaskManager = CheckIOTaskManager.getInstance(project);
-    final String token = checkIOTaskManager.getAccessToken();
+    final String token = checkIOTaskManager.getAccessTokenAndUpdateIfNeeded();
     try {
       final URI uri = new URIBuilder(CheckIOPublication.PUBLICATION_URL)
         .addParameter(CheckIOBundle.message("token.parameter.name"), token)
-        .addParameter(CheckIOConnectorBundle.message("interpreter.parameter.name"), CheckIOUtils.getInterpreter(task, project))
+        .addParameter(CheckIOConnectorBundle.message("interpreter.parameter.name"), CheckIOUtils.getInterpreterAsString(project))
         .addParameter(CheckIOConnectorBundle.message("next.parameter.name"), "")
         .build();
       publicationLink = uri.toString() + createAddPublicationLinkParameter(task.getName());

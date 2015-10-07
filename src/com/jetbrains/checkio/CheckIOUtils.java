@@ -11,6 +11,7 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -39,6 +40,7 @@ import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import com.jetbrains.python.psi.LanguageLevel;
+import com.jetbrains.python.sdk.PythonSdkType;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -225,19 +227,20 @@ public class CheckIOUtils {
     return MISSION_URL + taskName + PUBLICATION_SUFFIX;
   }
 
-  public static String getInterpreter(@NotNull final Task task, @NotNull final Project project) {
-    final Sdk sdk = StudyUtils.findSdk(task, project);
-    String runner = "";
-    if (sdk != null) {
-      String sdkName = sdk.getName();
-      if (sdkName.substring(7, sdkName.length()).startsWith("2")) {
-        runner = "python-27";
-      }
-      else {
-        runner = "python-3";
-      }
+  public static String getInterpreterAsString(@NotNull final Project project) {
+    final Sdk sdk = PythonSdkType.findPythonSdk(ModuleManager.getInstance(project).getModules()[0]);
+    if (sdk == null) {
+      LOG.warn("Project sdk is null");
+      return "";
     }
-
+    String runner;
+    final String sdkName = sdk.getName();
+    if (sdkName.substring(7, sdkName.length()).startsWith("2")) {
+      runner = "python-27";
+    }
+    else {
+      runner = "python-3";
+    }
     return runner;
   }
 

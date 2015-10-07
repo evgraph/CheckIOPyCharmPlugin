@@ -46,7 +46,8 @@ public class CheckIOMissionGetter {
 
   public static Course getMissionsAndUpdateCourse(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
-    final MissionWrapper[] missionWrappers = getMissions(manager.getAccessToken());
+    final String sdk = CheckIOUtils.getInterpreterAsString(project);
+    final MissionWrapper[] missionWrappers = getMissions(manager.getAccessTokenAndUpdateIfNeeded(), sdk);
     return getCourseForProjectAndUpdateCourseInfo(project, missionWrappers);
   }
 
@@ -75,11 +76,10 @@ public class CheckIOMissionGetter {
     return course;
   }
 
-  public static boolean isTokenUpToDate(@NotNull final String token) throws IOException {
+  public static boolean isTokenUpToDate(@NotNull final String token, @NotNull final String sdk) throws IOException {
     boolean hasUnauthorizedStatusCode = false;
     try {
-
-      final HttpGet request = makeMissionsRequest(token);
+      final HttpGet request = makeMissionsRequest(token, sdk);
       final HttpResponse response = requestMissions(request);
       hasUnauthorizedStatusCode = response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED;
     }
@@ -89,10 +89,10 @@ public class CheckIOMissionGetter {
     return !hasUnauthorizedStatusCode;
   }
 
-  public static MissionWrapper[] getMissions(@NotNull final String token) throws IOException {
+  public static MissionWrapper[] getMissions(@NotNull final String token, @NotNull final String sdk) throws IOException {
     MissionWrapper[] missionWrapper = new MissionWrapper[]{};
     try {
-      final HttpGet request = makeMissionsRequest(token);
+      final HttpGet request = makeMissionsRequest(token, sdk);
       LOG.info(CheckIOBundle.message("requesting.missions"));
       final HttpResponse response = requestMissions(request);
 
@@ -146,10 +146,11 @@ public class CheckIOMissionGetter {
   }
 
 
-  private static HttpGet makeMissionsRequest(@NotNull final String token) throws URISyntaxException {
+  private static HttpGet makeMissionsRequest(@NotNull final String token, @NotNull final String sdk) throws URISyntaxException {
     URI uri = new URIBuilder(CheckIOConnectorBundle.message
       ("missions.url", CheckIOConnectorBundle.message("api.url")))
       .addParameter(CheckIOConnectorBundle.message("token.parameter.name"), token)
+      .addParameter(CheckIOConnectorBundle.message("interpreter.parameter.name"), sdk)
       .build();
     return new HttpGet(uri);
   }
@@ -186,12 +187,12 @@ public class CheckIOMissionGetter {
     throws IOException {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    final String token = taskManager.getAccessToken();
+    final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
     assert token != null;
     int id = taskManager.getTaskId(task);
     StudyStatus status = StudyStatus.Unchecked;
     final MissionWrapper[] missionWrappers;
-    missionWrappers = getMissions(token);
+    missionWrappers = getMissions(token, CheckIOUtils.getInterpreterAsString(project));
     for (MissionWrapper missionWrapper : missionWrappers) {
       if (missionWrapper.id == id) {
         status = taskSolutionStatus.get(missionWrapper.isSolved);

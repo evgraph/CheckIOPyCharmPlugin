@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class CheckIOProjectGenerator extends PythonProjectGenerator implements DirectoryProjectGenerator {
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
   private static final File myCoursesDir = new File(PathManager.getConfigPath(), "courses");
+  private static final String defaultSdk = "python-3";
   private CheckIOMissionGetter.MissionWrapper[] myMissionWrappers;
   private CheckIOUser user;
   private String accessToken;
@@ -136,7 +137,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
       if (accessToken != null) {
         try {
           LOG.info("Getting missions");
-          myMissionWrappers = CheckIOMissionGetter.getMissions(accessToken);
+          myMissionWrappers = CheckIOMissionGetter.getMissions(accessToken, defaultSdk);
         }
         catch (IOException e) {
           LOG.warn(e.getMessage());

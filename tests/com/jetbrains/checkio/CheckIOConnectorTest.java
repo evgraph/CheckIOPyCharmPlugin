@@ -53,7 +53,7 @@ public class CheckIOConnectorTest extends Assert {
       );
     CheckIOMissionGetter.MissionWrapper[] actuals = new CheckIOMissionGetter.MissionWrapper[0];
     try {
-      actuals = CheckIOMissionGetter.getMissions("token");
+      actuals = CheckIOMissionGetter.getMissions("token", "python-27");
     }
     catch (IOException e) {
       e.printStackTrace();

@@ -58,7 +58,7 @@ public class CheckIOHintsInfoGetter {
   }
 
   private void requestHints() throws IOException {
-    final String token = CheckIOTaskManager.getInstance(myProject).getAccessToken();
+    final String token = CheckIOTaskManager.getInstance(myProject).getAccessTokenAndUpdateIfNeeded();
     final HintResponse hintResponse = requestHintsList(token, myTaskName);
     if (hintResponse != null && hintResponse.objects != null) {
       for (HintsWrapper wrapper : hintResponse.objects) {
@@ -78,7 +78,7 @@ public class CheckIOHintsInfoGetter {
   }
 
   private Hint getNextUnseenHint() throws IOException {
-    final String token = CheckIOTaskManager.getInstance(myProject).getAccessToken();
+    final String token = CheckIOTaskManager.getInstance(myProject).getAccessTokenAndUpdateIfNeeded();
     final HintResponse hintResponse = requestHintsList(token, myTaskName);
 
     if (hintResponse != null && hintResponse.objects != null) {
@@ -98,7 +98,7 @@ public class CheckIOHintsInfoGetter {
   }
 
   private Hint readNewHint() throws IOException {
-    final String token = CheckIOTaskManager.getInstance(myProject).getAccessToken();
+    final String token = CheckIOTaskManager.getInstance(myProject).getAccessTokenAndUpdateIfNeeded();
     if (myUnseenHint != null) {
       try {
         final URI hintUri = new URIBuilder(CheckIOConnectorBundle.message

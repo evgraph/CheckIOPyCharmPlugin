@@ -118,10 +118,10 @@ public class CheckIOTestResultsPanel extends JPanel {
     this.removeAll();
     final Project project = ProjectUtil.guessCurrentProject(this);
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final String token = taskManager.getAccessToken();
     final String url = getClass().getResource("/other/pycharm_api_test.html").toExternalForm();
     final String taskId = taskManager.getTaskId(task).toString();
-    final String interpreter = CheckIOUtils.getInterpreter(task, project);
+    final String interpreter = CheckIOUtils.getInterpreterAsString(project);
+    final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
 
     final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
     myBrowserWindow.addFormListener(documentListener);
