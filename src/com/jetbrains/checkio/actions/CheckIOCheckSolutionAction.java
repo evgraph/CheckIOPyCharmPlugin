@@ -116,7 +116,9 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       @Override
       public void onCancel() {
         studyManager.setStatus(task, statusBeforeCheck);
-        CheckIOProjectComponent.getInstance(project).getToolWindow().showTaskInfoPanel();
+        if (!project.isDisposed()) {
+          CheckIOProjectComponent.getInstance(project).getToolWindow().showTaskInfoPanel();
+        }
       }
 
       @Override

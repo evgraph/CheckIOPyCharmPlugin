@@ -67,7 +67,9 @@ public class CheckIOShowPublicationsAction extends AnAction {
 
       @Override
       public void onCancel() {
-        CheckIOProjectComponent.getInstance(project).getToolWindow().showTaskInfoPanel();
+        if (!project.isDisposed()) {
+          CheckIOProjectComponent.getInstance(project).getToolWindow().showTaskInfoPanel();
+        }
       }
 
       @Override

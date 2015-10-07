@@ -41,17 +41,19 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      update(project);
+      updateProject(project);
     }
     else {
       LOG.warn("Project is null");
     }
   }
 
-  private void update(@NotNull final Project project) {
-    final Task.Backgroundable updateTask = getUpdateTask(project);
-    myProcessIndicator = new BackgroundableProcessIndicator(updateTask);
-    ProgressManager.getInstance().runProcessWithProgressAsynchronously(updateTask, myProcessIndicator);
+  public void updateProject(@NotNull final Project project) {
+    if (!project.isDisposed()) {
+      final Task.Backgroundable updateTask = getUpdateTask(project);
+      myProcessIndicator = new BackgroundableProcessIndicator(updateTask);
+      ProgressManager.getInstance().runProcessWithProgressAsynchronously(updateTask, myProcessIndicator);
+    }
   }
 
 
@@ -60,7 +62,11 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
     return new Task.Backgroundable(project, CheckIOBundle.message("action.update.project.process.message"), false) {
       @Override
       public void onCancel() {
-        CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("action.update.project.cancel"), MessageType.WARNING.getPopupBackground(), project);
+        if (!project.isDisposed()) {
+          CheckIOUtils
+            .showOperationResultPopUp(CheckIOBundle.message("action.update.project.cancel"), MessageType.WARNING.getPopupBackground(),
+                                      project);
+        }
       }
 
       @Override
