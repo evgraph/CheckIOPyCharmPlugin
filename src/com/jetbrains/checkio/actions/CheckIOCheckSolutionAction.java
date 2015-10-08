@@ -63,10 +63,12 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   class MyProcessListener extends ProcessAdapter {
     private final Project myProject;
     private final Task myTask;
+    private final String myCode;
 
-    public MyProcessListener(@NotNull final Project project, @NotNull final Task task) {
+    public MyProcessListener(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
       myProject = project;
       myTask = task;
+      myCode = code;
     }
 
     @Override
@@ -75,7 +77,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         ApplicationManager.getApplication().invokeAndWait(
           () -> {
             ToolWindowManager.getInstance(myProject).getToolWindow(ToolWindowId.RUN).hide(null);
-            check(myProject, myTask);
+            check(myProject, myTask, myCode);
           }, ModalityState.defaultModalityState());
       }
       else {
@@ -86,16 +88,8 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     }
   }
 
-  private void check(@NotNull final Project project, @NotNull final Task task) {
-    CheckIOTaskToolWindowFactory toolWindowFactory =
-      (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
-    final Editor editor = StudyUtils.getSelectedEditor(project);
-    final String code;
+  private void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
 
-    if (!NullUtils.notNull(task, editor, toolWindowFactory) || (code = editor.getDocument().getText()).isEmpty()) {
-      CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("error.no.task"), MessageType.WARNING.getPopupBackground(), project);
-      return;
-    }
 
     try {
       CheckIOProjectComponent.getInstance(project).getToolWindow().checkAndShowResults(task, code);
@@ -245,9 +239,20 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     Project project = e.getProject();
     if (project != null) {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
+
       if (task != null) {
+        CheckIOTaskToolWindowFactory toolWindowFactory =
+          (CheckIOTaskToolWindowFactory)CheckIOUtils.getToolWindowFactoryById(CheckIOToolWindow.ID);
+        final Editor editor = StudyUtils.getSelectedEditor(project);
+        final String code;
+
+        if (!NullUtils.notNull(task, editor, toolWindowFactory) || (code = editor.getDocument().getText()).isEmpty()) {
+          CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("error.no.task"), MessageType.WARNING.getPopupBackground(), project);
+          return;
+        }
+
         final StudyRunAction runAction = new StudyRunAction();
-        runAction.addProcessListener(new MyProcessListener(project, task));
+        runAction.addProcessListener(new MyProcessListener(project, task, code));
         runAction.run(project);
       }
       else {
