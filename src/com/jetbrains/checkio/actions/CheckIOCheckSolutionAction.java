@@ -22,6 +22,7 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.NullUtils;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.checkio.*;
@@ -56,7 +57,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
   public CheckIOCheckSolutionAction() {
-    super("Check Task (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
+    super("Run And Check Task (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
           CheckIOBundle.message("action.description.check.current.task"), InteractiveLearningIcons.Resolve);
   }
 
@@ -74,7 +75,10 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     public void processTerminated(ProcessEvent event) {
       if (event.getExitCode() == 0) {
         ApplicationManager.getApplication().invokeAndWait(
-          () -> check(myProject, myTask), ModalityState.defaultModalityState());
+          () -> {
+            ToolWindowManager.getInstance(myProject).getToolWindow(ToolWindowId.RUN).hide(null);
+            check(myProject, myTask);
+          }, ModalityState.defaultModalityState());
       }
       else {
         StudyTaskManager.getInstance(myProject).setStatus(myTask, StudyStatus.Failed);
