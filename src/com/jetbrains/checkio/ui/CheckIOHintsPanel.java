@@ -15,6 +15,7 @@ import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.UIUtil;
+import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.python.PythonFileType;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
@@ -126,7 +127,7 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
 
   private JPanel createCloseLabelPanel() {
     final JLabel closeIconLabel = new JLabel(AllIcons.Actions.Close);
-    final JLabel titleLabel = new JLabel("Hints");
+    final JLabel titleLabel = new JLabel(CheckIOBundle.message("hints.panel.title"));
     final JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEtchedBorder());
     closeIconLabel.addMouseListener(new MouseAdapter() {
@@ -142,11 +143,11 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
   }
 
   private JLabel createContinueOnForumLabel() {
-    final JLabel moreHintsLabel = new JLabel(UIUtil.toHtml("<b> Continue on forum... </b>"));
+    final JLabel moreHintsLabel = new JLabel(UIUtil.toHtml(CheckIOBundle.message("b.continue.on.forum.b")));
     moreHintsLabel.setBorder(BorderFactory.createEtchedBorder(UIUtil.getLabelBackground(), UIUtil.getLabelBackground()));
     moreHintsLabel.addMouseListener(new HintsMouseListener());
     moreHintsLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    moreHintsLabel.setToolTipText("Click to open forum on web");
+    moreHintsLabel.setToolTipText(CheckIOBundle.message("click.to.open.forum.on.web"));
     moreHintsLabel.setForeground(UIUtil.getListSelectionBackground());
     return moreHintsLabel;
   }
