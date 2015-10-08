@@ -233,6 +233,11 @@ public class CheckIOUtils {
       LOG.warn("Project sdk is null");
       return "";
     }
+    return getFormattedSdkName(sdk);
+  }
+
+  @NotNull
+  public static String getFormattedSdkName(Sdk sdk) {
     String runner;
     final String sdkName = sdk.getName();
     if (sdkName.substring(7, sdkName.length()).startsWith("2")) {

@@ -12,6 +12,7 @@ import com.intellij.openapi.project.DumbModePermission;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -50,7 +51,6 @@ import java.util.concurrent.TimeUnit;
 public class CheckIOProjectGenerator extends PythonProjectGenerator implements DirectoryProjectGenerator {
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
   private static final File myCoursesDir = new File(PathManager.getConfigPath(), "courses");
-  private static final String defaultSdk = "python-3";
   private CheckIOMissionGetter.MissionWrapper[] myMissionWrappers;
   private CheckIOUser user;
   private String accessToken;
@@ -127,7 +127,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   }
 
 
-  private void authorizeUserAndGetMissions() {
+  private void authorizeUserAndGetMissions(@NotNull final Sdk sdk) {
     try {
       LOG.info("Starting authorization");
       final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
@@ -137,7 +137,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
       if (accessToken != null) {
         try {
           LOG.info("Getting missions");
-          myMissionWrappers = CheckIOMissionGetter.getMissions(accessToken, defaultSdk);
+          myMissionWrappers = CheckIOMissionGetter.getMissions(accessToken, CheckIOUtils.getFormattedSdkName(sdk));
         }
         catch (IOException e) {
           LOG.warn(e.getMessage());
@@ -154,14 +154,14 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
 
   @Nullable
   @Override
-  public BooleanFunction<PythonProjectGenerator> beforeProjectGenerated() {
+  public BooleanFunction<PythonProjectGenerator> beforeProjectGenerated(@NotNull final Sdk sdk) {
     final ProgressManager progressManager = ProgressManager.getInstance();
     final Project project = ProjectUtil.guessCurrentProject(extendBasePanel());
     try {
       try {
         return progressManager
           .runProcessWithProgressSynchronously((ThrowableComputable<BooleanFunction<PythonProjectGenerator>, IOException>)() -> {
-            final Future<?> future = SharedThreadPool.getInstance().executeOnPooledThread(this::authorizeUserAndGetMissions);
+            final Future<?> future = SharedThreadPool.getInstance().executeOnPooledThread(() -> authorizeUserAndGetMissions(sdk));
 
             while (!future.isDone()) {
               progressManager.getProgressIndicator().checkCanceled();
