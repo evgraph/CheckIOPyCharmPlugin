@@ -101,10 +101,6 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     return mySolutionsPanel;
   }
 
-  public CheckIOTestResultsPanel getTestResultsPanel() {
-    return myTestResultsPanel;
-  }
-
   public CheckIOHintsPanel getHintPanel() {
     return myHintPanel;
   }
@@ -121,9 +117,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
   }
 
+  public void showTestResultsPanel() {
+    myMyCardLayout.swipe(myContentPanel, TEST_RESULTS, JBCardLayout.SwipeDirection.AUTO);
+  }
+
   public void checkAndShowResults(@NotNull final Task task, @NotNull final String code) throws IOException {
     final JPanel buttonPanel = createButtonPanel();
-    myMyCardLayout.swipe(myContentPanel, TEST_RESULTS, JBCardLayout.SwipeDirection.AUTO);
     myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
   }
 
@@ -242,10 +241,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
-      if (myTaskInfoPanel != null) {
-        myTaskInfoPanel.setTaskText(task.getText());
-        showTaskToolWindow();
-      }
+      myTaskInfoPanel.setTaskText(task.getText());
+      showTaskToolWindow();
       if (shouldSwipe) {
         myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
       }

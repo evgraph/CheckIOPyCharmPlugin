@@ -32,7 +32,6 @@ import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
-import com.jetbrains.checkio.ui.CheckIOTestResultsPanel;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
@@ -49,7 +48,6 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
@@ -101,7 +99,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
     try {
       CheckIOProjectComponent.getInstance(project).getToolWindow().checkAndShowResults(task, code);
-      final Backgroundable checkTask = getCheckTask(task, project);
+      final Backgroundable checkTask = getCheckTask(task, code, project);
       myProcessIndicator = new BackgroundableProcessIndicator(checkTask);
       ProgressManager.getInstance().runProcessWithProgressAsynchronously(checkTask, myProcessIndicator);
     }
@@ -110,7 +108,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     }
   }
 
-  private static Backgroundable getCheckTask(@NotNull final Task task, @NotNull final Project project) {
+  private static Backgroundable getCheckTask(@NotNull final Task task, @NotNull final String code, @NotNull final Project project) {
     final String title = CheckIOBundle.message("action.checking.task");
     return new com.intellij.openapi.progress.Task.Backgroundable(project, title, true) {
       final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
@@ -132,31 +130,24 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        final CheckIOTestResultsPanel testResultsPanel = CheckIOProjectComponent.getInstance(project).getToolWindow().getTestResultsPanel();
         try {
-          TimeUnit.MILLISECONDS.sleep(1000);
-          while (testResultsPanel.isShowing()) {
+          String newCode = "";
+          while (!newCode.equals(code)) {
             indicator.checkCanceled();
-            StudyStatus status = CheckIOMissionGetter.getSolutionStatusAndSetInStudyManager(project, task);
-            if (status != statusBeforeCheck) {
-              if (status == StudyStatus.Solved) {
-                checkAchievements();
-                final HashMap<String, CheckIOPublication[]> publicationFiles =
-                  CheckIOPublicationGetter.getPublicationsForTaskAndCreatePublicationFiles(task);
-                CheckIOTaskManager.getInstance(myProject).setPublicationsForLastSolvedTask(task, publicationFiles);
-              }
-              ProjectView.getInstance(myProject).refresh();
-              break;
-            }
+            newCode = CheckIOMissionGetter.getSolutionCodeAndSetStatusInStudyManager(project, task);
           }
-          checkAchievements();
+          StudyStatus status = StudyTaskManager.getInstance(project).getStatus(task);
+          CheckIOProjectComponent.getInstance(project).getToolWindow().showTestResultsPanel();
+          if (status == StudyStatus.Solved) {
+            checkAchievements();
+            final HashMap<String, CheckIOPublication[]> publicationFiles =
+              CheckIOPublicationGetter.getPublicationsForTaskAndCreatePublicationFiles(task);
+            CheckIOTaskManager.getInstance(myProject).setPublicationsForLastSolvedTask(task, publicationFiles);
+          }
+          ProjectView.getInstance(myProject).refresh();
         }
-
         catch (IOException e) {
           CheckIOUtils.makeNoInternetConnectionNotifier(project);
-        }
-        catch (InterruptedException e) {
-          LOG.warn(e.getMessage());
         }
       }
 

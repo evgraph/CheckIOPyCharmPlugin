@@ -184,28 +184,30 @@ public class CheckIOMissionGetter {
   }
 
   //TODO: check was code updated to determine if task was checked. Code saving fix from checkio needed
-  public static StudyStatus getSolutionStatusAndSetInStudyManager(@NotNull final Project project, @NotNull final Task task)
+  public static String getSolutionCodeAndSetStatusInStudyManager(@NotNull final Project project, @NotNull final Task task)
     throws IOException {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
     final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
     assert token != null;
     int id = taskManager.getTaskId(task);
-    StudyStatus status = StudyStatus.Unchecked;
+
+    String newCode = "";
     final MissionWrapper[] missionWrappers;
     missionWrappers = getMissions(token, CheckIOUtils.getInterpreterAsString(project));
     for (MissionWrapper missionWrapper : missionWrappers) {
       if (missionWrapper.id == id) {
-        status = taskSolutionStatus.get(missionWrapper.isSolved);
+        StudyStatus status = taskSolutionStatus.get(missionWrapper.isSolved);
         final TaskFile taskFile = task.getTaskFile(CheckIOUtils.getTaskFileNameFromTask(task));
         if (taskFile != null) {
           taskFile.text = missionWrapper.code;
+          newCode = missionWrapper.code;
           studyManager.setStatus(task, status);
         }
         break;
       }
     }
-    return status;
+    return newCode;
   }
 
 
