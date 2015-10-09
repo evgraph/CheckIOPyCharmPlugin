@@ -11,7 +11,9 @@ public class CheckIOTaskInfoPanel extends JPanel {
   public CheckIOTaskInfoPanel(@NotNull final String taskText) {
     myBrowserWindow = new CheckIOBrowserWindow();
     myBrowserWindow.setShowProgress(false);
-    myBrowserWindow.setRefInNewBrowser(true);
+    myBrowserWindow.openLinkInNewWindow(true);
+    myBrowserWindow.addBackAndOpenButtons();
+
     setTaskText(taskText);
 
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));

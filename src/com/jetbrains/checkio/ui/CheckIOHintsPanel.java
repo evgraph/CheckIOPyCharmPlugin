@@ -174,6 +174,7 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
     editorPane.addHyperlinkListener(e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         browserWindow.setShowProgress(true);
+        browserWindow.addBackAndOpenButtons();
         browserWindow.load(e.getURL().toExternalForm());
         browserWindow.setVisible(true);
       }

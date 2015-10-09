@@ -49,14 +49,16 @@ public class CheckIOProjectComponent implements ProjectComponent {
   public void projectOpened() {
     Platform.setImplicitExit(false);
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
-      new CheckIOUpdateProjectAction().updateProject(myProject);
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
-      myToolWindow = new CheckIOToolWindow(myProject);
-      registerTaskToolWindow(course);
-      registerUserInfoToolWindow();
-      registerShortcuts(course);
-      CheckIOUtils.selectCurrentTask(myProject);
-      Disposer.register(myProject, myToolWindow);
+      if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.project.type"))) {
+        new CheckIOUpdateProjectAction().updateProject(myProject);
+        myToolWindow = new CheckIOToolWindow(myProject);
+        registerTaskToolWindow(course);
+        registerUserInfoToolWindow();
+        registerShortcuts(course);
+        CheckIOUtils.selectCurrentTask(myProject);
+        Disposer.register(myProject, myToolWindow);
+      }
     });
   }
 

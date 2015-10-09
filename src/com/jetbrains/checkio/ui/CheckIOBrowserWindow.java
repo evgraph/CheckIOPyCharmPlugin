@@ -53,7 +53,7 @@ public class CheckIOBrowserWindow extends JFrame {
     this.showProgress = showProgress;
   }
 
-  public void setRefInNewBrowser(boolean refInNewBrowser) {
+  public void openLinkInNewWindow(boolean refInNewBrowser) {
     this.refInNewBrowser = refInNewBrowser;
   }
 
@@ -88,7 +88,6 @@ public class CheckIOBrowserWindow extends JFrame {
       myWebComponent = new WebView();
       myEngine = myWebComponent.getEngine();
 
-      addBackAndOpenButtons();
       if (showProgress) {
         myProgressBar = makeProgressBarWithListener();
         myWebComponent.setVisible(false);
@@ -141,8 +140,7 @@ public class CheckIOBrowserWindow extends JFrame {
             final String href = ((Element)ev.getTarget()).getAttribute("href");
             ApplicationManager.getApplication().invokeLater(() -> {
               final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow();
-              checkIOBrowserWindow.addBackAndOpenButtons();
-              checkIOBrowserWindow.setRefInNewBrowser(false);
+              checkIOBrowserWindow.openLinkInNewWindow(false);
               checkIOBrowserWindow.setShowProgress(true);
               checkIOBrowserWindow.load(href);
               checkIOBrowserWindow.setVisible(true);
@@ -160,41 +158,45 @@ public class CheckIOBrowserWindow extends JFrame {
     });
   }
 
-  private void addBackAndOpenButtons() {
-    final JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+  public void addBackAndOpenButtons() {
+    ApplicationManager.getApplication().invokeLater(() -> {
 
-    final JButton backButton = new JButton(AllIcons.Actions.Back);
-    backButton.setEnabled(false);
-    backButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(-1)));
-    backButton.setToolTipText(CheckIOBundle.message("browser.action.back"));
+      final JPanel panel = new JPanel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
-    final JButton forwardButton = new JButton(AllIcons.Actions.Forward);
-    forwardButton.setEnabled(false);
-    forwardButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(1)));
-    forwardButton.setToolTipText(CheckIOBundle.message("browser.action.forward"));
+      final JButton backButton = new JButton(AllIcons.Actions.Back);
+      backButton.setEnabled(false);
+      backButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(-1)));
+      backButton.setToolTipText(CheckIOBundle.message("browser.action.back"));
 
-    final JButton openInBrowser = new JButton(AllIcons.Actions.Browser_externalJavaDoc);
-    openInBrowser.addActionListener(e -> BrowserUtil.browse(myEngine.getLocation()));
-    openInBrowser.setToolTipText(CheckIOBundle.message("browser.action.open.link"));
-    panel.setMaximumSize(new Dimension(40, getPanel().getHeight()));
-    panel.add(backButton);
-    panel.add(forwardButton);
-    panel.add(openInBrowser);
-    add(panel, BorderLayout.PAGE_START);
+      final JButton forwardButton = new JButton(AllIcons.Actions.Forward);
+      forwardButton.setEnabled(false);
+      forwardButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(1)));
+      forwardButton.setToolTipText(CheckIOBundle.message("browser.action.forward"));
 
-    Platform.runLater(() -> myEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
-      if (newState == Worker.State.SUCCEEDED) {
-        final WebHistory history = myEngine.getHistory();
-        boolean isGoBackAvailable = history.getCurrentIndex() > 0;
-        boolean isGoForwardAvailable = history.getCurrentIndex() < history.getEntries().size() - 1;
-        ApplicationManager.getApplication().invokeLater(() -> {
-          backButton.setEnabled(isGoBackAvailable);
-          forwardButton.setEnabled(isGoForwardAvailable);
-        });
-      }
-    }));
+      final JButton openInBrowser = new JButton(AllIcons.Actions.Browser_externalJavaDoc);
+      openInBrowser.addActionListener(e -> BrowserUtil.browse(myEngine.getLocation()));
+      openInBrowser.setToolTipText(CheckIOBundle.message("browser.action.open.link"));
+      panel.setMaximumSize(new Dimension(40, getPanel().getHeight()));
+      panel.add(backButton);
+      panel.add(forwardButton);
+      panel.add(openInBrowser);
+      add(panel, BorderLayout.PAGE_START);
+
+      Platform.runLater(() -> myEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
+        if (newState == Worker.State.SUCCEEDED) {
+          final WebHistory history = myEngine.getHistory();
+          boolean isGoBackAvailable = history.getCurrentIndex() > 0;
+          boolean isGoForwardAvailable = history.getCurrentIndex() < history.getEntries().size() - 1;
+          ApplicationManager.getApplication().invokeLater(() -> {
+            backButton.setEnabled(isGoBackAvailable);
+            forwardButton.setEnabled(isGoForwardAvailable);
+          });
+        }
+      }));
+    });
   }
+
 
   private ProgressBar makeProgressBarWithListener() {
     final ProgressBar progress = new ProgressBar();
