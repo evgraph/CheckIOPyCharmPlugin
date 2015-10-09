@@ -81,7 +81,6 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
 
   private ScrollablePanel getHintsPanel(@NotNull final List<String> hints) throws IOException {
     final ScrollablePanel panel = new ScrollablePanel(new GridBagLayout());
-    final CheckIOBrowserWindow browserWindow = new CheckIOBrowserWindow();
 
     final GridBagConstraints constraints = new GridBagConstraints();
     constraints.gridwidth = GridBagConstraints.RELATIVE;
@@ -96,7 +95,7 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
       final JBCardLayout cardLayout = new JBCardLayout();
       final JPanel contentPanel = new JPanel(cardLayout);
       final String hintWithoutCode = deleteCodePart(hint);
-      final JEditorPane editorPane = createHintTextEditorPane(browserWindow, hintWithoutCode);
+      final JEditorPane editorPane = createHintTextEditorPane(hintWithoutCode);
       final JPanel hintPanel = createHintPanel(editorPane, codePartFromDocument);
 
       contentPanel.add(new JPanel(), EMPTY_PANEL_ID);
@@ -166,13 +165,14 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  private static JEditorPane createHintTextEditorPane(CheckIOBrowserWindow browserWindow, String hint) {
+  private static JEditorPane createHintTextEditorPane(String hint) {
     final JEditorPane editorPane = new JEditorPane();
     editorPane.setEditorKit(JEditorPane.createEditorKitForContentType("text/html"));
     editorPane.setEditable(false);
     editorPane.setText(hint);
     editorPane.addHyperlinkListener(e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        final CheckIOBrowserWindow browserWindow = new CheckIOBrowserWindow();
         browserWindow.setShowProgress(true);
         browserWindow.addBackAndOpenButtons();
         browserWindow.load(e.getURL().toExternalForm());
