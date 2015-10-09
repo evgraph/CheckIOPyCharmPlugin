@@ -11,7 +11,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbModePermission;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -156,7 +156,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   @Override
   public BooleanFunction<PythonProjectGenerator> beforeProjectGenerated(@NotNull final Sdk sdk) {
     final ProgressManager progressManager = ProgressManager.getInstance();
-    final Project project = ProjectUtil.guessCurrentProject(extendBasePanel());
+    final Project project = ProjectManager.getInstance().getDefaultProject();
     try {
       try {
         return progressManager
