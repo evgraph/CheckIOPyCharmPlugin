@@ -41,7 +41,6 @@ import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import com.jetbrains.python.psi.LanguageLevel;
 import com.jetbrains.python.sdk.PythonSdkType;
-import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,12 +104,17 @@ public class CheckIOUtils {
     TaskFile taskFile = StudyUtils.getTaskFile(project, file);
     if (taskFile != null) {
       final Task task = taskFile.getTask();
-      boolean isStudyTaskFile = task.getName().equals(FilenameUtils.removeExtension(taskFile.name));
+      boolean isStudyTaskFile = task.getName().equals(removeExtension(taskFile.name));
       if (isStudyTaskFile) {
         return task;
       }
     }
     return null;
+  }
+
+  private static String removeExtension(String fileName) {
+    int lastIndex = fileName.lastIndexOf(".");
+    return lastIndex == -1 ? fileName : fileName.substring(0, lastIndex);
   }
 
   public static void showOperationResultPopUp(final String text,

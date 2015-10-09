@@ -7,7 +7,6 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -20,6 +19,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.apache.sanselan.util.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -240,7 +240,7 @@ public class CheckIOUserAuthorizer {
       try {
         final OutputStream os = httpServletResponse.getOutputStream();
 
-        os.write(IOUtils.toByteArray(getClass().getResourceAsStream("/style/authorizationPage.html")));
+        os.write(IOUtils.getInputStreamBytes(getClass().getResourceAsStream("/style/authorizationPage.html")));
         os.close();
         setTokensFirstTime(code);
       }
