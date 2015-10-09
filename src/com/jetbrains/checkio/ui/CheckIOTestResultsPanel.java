@@ -124,7 +124,7 @@ public class CheckIOTestResultsPanel extends JPanel {
     final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
 
     final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
-    myBrowserWindow.addFormListener(documentListener);
+    myBrowserWindow.addFormListenerWithRemoveListener(documentListener);
     myBrowserWindow.load(url);
 
     final JPanel buttonsPanel = combineButtonPanels(backButtonPanel, createPublishSolutionButton(task));

@@ -26,6 +26,8 @@ import org.w3c.dom.events.EventTarget;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.URL;
 
 public class CheckIOBrowserWindow extends JFrame {
@@ -35,7 +37,7 @@ public class CheckIOBrowserWindow extends JFrame {
   private StackPane myPane;
 
   private WebEngine myEngine;
-  private ProgressBar myProgressBar;
+  public ProgressBar myProgressBar;
   private ChangeListener<Document> myDocumentChangeListener;
   private boolean refInNewBrowser;
   private boolean showProgress = true;
@@ -62,13 +64,17 @@ public class CheckIOBrowserWindow extends JFrame {
       updateLafDarcula();
     }
     else {
-      Platform.runLater(() -> {
-        final URL scrollBarStyleUrl = getClass().getResource("/style/javaFXBrowserScrollBar.css");
-        myPane.getStylesheets().add(scrollBarStyleUrl.toExternalForm());
-        myEngine.setUserStyleSheetLocation(null);
-        myEngine.reload();
-      });
+      updateIntellijAndGTKLaf();
     }
+  }
+
+  private void updateIntellijAndGTKLaf() {
+    Platform.runLater(() -> {
+      final URL scrollBarStyleUrl = getClass().getResource("/style/javaFXBrowserScrollBar.css");
+      myPane.getStylesheets().add(scrollBarStyleUrl.toExternalForm());
+      myEngine.setUserStyleSheetLocation(null);
+      myEngine.reload();
+    });
   }
 
   private void updateLafDarcula() {
@@ -87,6 +93,7 @@ public class CheckIOBrowserWindow extends JFrame {
       myPane = new StackPane();
       myWebComponent = new WebView();
       myEngine = myWebComponent.getEngine();
+
 
       if (showProgress) {
         myProgressBar = makeProgressBarWithListener();
@@ -112,119 +119,142 @@ public class CheckIOBrowserWindow extends JFrame {
 
   public void load(@NotNull final String url) {
     Platform.runLater(() -> {
-      if (showProgress) {
-        myWebComponent.setVisible(false);
-      }
+      updateLookWithProgressBarIfNeeded();
       myEngine.load(url);
     });
   }
 
   public void loadContent(@NotNull final String content) {
     Platform.runLater(() -> {
-      if (showProgress) {
-        myWebComponent.setVisible(false);
-      }
+      updateLookWithProgressBarIfNeeded();
       myEngine.loadContent(content);
     });
+  }
+
+  private void updateLookWithProgressBarIfNeeded() {
+    if (showProgress) {
+      myProgressBar.setVisible(true);
+      myWebComponent.setVisible(false);
+    }
   }
 
   private void initHyperlinkListener() {
     myEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
       if (newState == Worker.State.SUCCEEDED) {
-        final EventListener listener = ev -> {
-          String domEventType = ev.getType();
-          if (domEventType.equals(EVENT_TYPE_CLICK)) {
-            myEngine.setJavaScriptEnabled(true);
-            myEngine.getLoadWorker().cancel();
+        final EventListener listener = makeHyperLinkListener();
 
-            final String href = ((Element)ev.getTarget()).getAttribute("href");
-            ApplicationManager.getApplication().invokeLater(() -> {
-              final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow();
-              checkIOBrowserWindow.openLinkInNewWindow(false);
-              checkIOBrowserWindow.setShowProgress(true);
-              checkIOBrowserWindow.load(href);
-              checkIOBrowserWindow.setVisible(true);
-            });
-            ev.preventDefault();
-          }
-        };
-
-        final Document doc = myEngine.getDocument();
-        final NodeList nodeList = doc.getElementsByTagName("a");
-        for (int i = 0; i < nodeList.getLength(); i++) {
-          ((EventTarget)nodeList.item(i)).addEventListener(EVENT_TYPE_CLICK, listener, false);
-        }
+        addListenerToAllHyperlinkItems(listener);
       }
     });
   }
 
+  private void addListenerToAllHyperlinkItems(EventListener listener) {
+    final Document doc = myEngine.getDocument();
+    final NodeList nodeList = doc.getElementsByTagName("a");
+    for (int i = 0; i < nodeList.getLength(); i++) {
+      ((EventTarget)nodeList.item(i)).addEventListener(EVENT_TYPE_CLICK, listener, false);
+    }
+  }
+
+  @NotNull
+  private EventListener makeHyperLinkListener() {
+    return ev -> {
+      String domEventType = ev.getType();
+      if (domEventType.equals(EVENT_TYPE_CLICK)) {
+        myEngine.setJavaScriptEnabled(true);
+        myEngine.getLoadWorker().cancel();
+
+        final String href = ((Element)ev.getTarget()).getAttribute("href");
+        final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow();
+        checkIOBrowserWindow.addBackAndOpenButtons();
+        checkIOBrowserWindow.openLinkInNewWindow(false);
+        checkIOBrowserWindow.setShowProgress(true);
+        checkIOBrowserWindow.load(href);
+        checkIOBrowserWindow.setVisible(true);
+
+        ev.preventDefault();
+      }
+    };
+  }
+
   public void addBackAndOpenButtons() {
     ApplicationManager.getApplication().invokeLater(() -> {
-
       final JPanel panel = new JPanel();
       panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
-      final JButton backButton = new JButton(AllIcons.Actions.Back);
-      backButton.setEnabled(false);
-      backButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(-1)));
-      backButton.setToolTipText(CheckIOBundle.message("browser.action.back"));
-
-      final JButton forwardButton = new JButton(AllIcons.Actions.Forward);
-      forwardButton.setEnabled(false);
-      forwardButton.addActionListener(e -> Platform.runLater(() -> myEngine.getHistory().go(1)));
-      forwardButton.setToolTipText(CheckIOBundle.message("browser.action.forward"));
-
+      final JButton backButton = makeGoButton(CheckIOBundle.message("browser.action.back"), AllIcons.Actions.Back, -1);
+      final JButton forwardButton = makeGoButton(CheckIOBundle.message("browser.action.forward"), AllIcons.Actions.Forward, 1);
       final JButton openInBrowser = new JButton(AllIcons.Actions.Browser_externalJavaDoc);
       openInBrowser.addActionListener(e -> BrowserUtil.browse(myEngine.getLocation()));
       openInBrowser.setToolTipText(CheckIOBundle.message("browser.action.open.link"));
+      addButtonsAvailabilityListeners(backButton, forwardButton);
+
       panel.setMaximumSize(new Dimension(40, getPanel().getHeight()));
       panel.add(backButton);
       panel.add(forwardButton);
       panel.add(openInBrowser);
-      add(panel, BorderLayout.PAGE_START);
 
-      Platform.runLater(() -> myEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
-        if (newState == Worker.State.SUCCEEDED) {
-          final WebHistory history = myEngine.getHistory();
-          boolean isGoBackAvailable = history.getCurrentIndex() > 0;
-          boolean isGoForwardAvailable = history.getCurrentIndex() < history.getEntries().size() - 1;
-          ApplicationManager.getApplication().invokeLater(() -> {
-            backButton.setEnabled(isGoBackAvailable);
-            forwardButton.setEnabled(isGoForwardAvailable);
-          });
-        }
-      }));
+      add(panel, BorderLayout.PAGE_START);
     });
+  }
+
+  private void addButtonsAvailabilityListeners(JButton backButton, JButton forwardButton) {
+    Platform.runLater(() -> myEngine.getLoadWorker().stateProperty().addListener((ov, oldState, newState) -> {
+      if (newState == Worker.State.SUCCEEDED) {
+        final WebHistory history = myEngine.getHistory();
+        boolean isGoBackAvailable = history.getCurrentIndex() > 0;
+        boolean isGoForwardAvailable = history.getCurrentIndex() < history.getEntries().size() - 1;
+        ApplicationManager.getApplication().invokeLater(() -> {
+          backButton.setEnabled(isGoBackAvailable);
+          forwardButton.setEnabled(isGoForwardAvailable);
+        });
+      }
+    }));
+  }
+
+  private JButton makeGoButton(@NotNull final String toolTipText, @NotNull final Icon icon, final int direction) {
+    final JButton button = new JButton(icon);
+    button.setEnabled(false);
+    button.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 1) {
+          Platform.runLater(() -> myEngine.getHistory().go(direction));
+        }
+      }
+    });
+    button.setToolTipText(toolTipText);
+    return button;
   }
 
 
   private ProgressBar makeProgressBarWithListener() {
     final ProgressBar progress = new ProgressBar();
-    progress.progressProperty().bind(myEngine.getLoadWorker().progressProperty());
+    progress.progressProperty().bind(myWebComponent.getEngine().getLoadWorker().progressProperty());
 
-    myEngine.getLoadWorker().stateProperty().addListener(
+    myWebComponent.getEngine().getLoadWorker().stateProperty().addListener(
       (ov, oldState, newState) -> {
-        if (!myEngine.getLocation().contains("http")) {
-          return;
-        }
-        if (newState == Worker.State.SUCCEEDED) {
-          if (myDocumentChangeListener != null) {
-            removeFormListener(myDocumentChangeListener);
-          }
+        if (myWebComponent.getEngine().getLocation().contains("http") && newState == Worker.State.SUCCEEDED) {
           myProgressBar.setVisible(false);
           myWebComponent.setVisible(true);
         }
       });
+
     return progress;
   }
 
-  public void addFormListener(ChangeListener<Document> listener) {
-    myDocumentChangeListener = listener;
-    Platform.runLater(() -> myEngine.documentProperty().addListener(listener));
-  }
 
-  private void removeFormListener(ChangeListener<Document> listener) {
-    myEngine.documentProperty().removeListener(listener);
+  public void addFormListenerWithRemoveListener(ChangeListener<Document> listener) {
+    myDocumentChangeListener = listener;
+    Platform.runLater(() -> {
+      myEngine.documentProperty().addListener(listener);
+      myEngine.getLoadWorker().stateProperty().addListener(
+        (ov, oldState, newState) -> {
+          if (myEngine.getLocation().contains("http") && newState == Worker.State.SUCCEEDED) {
+            myEngine.documentProperty().removeListener(myDocumentChangeListener);
+          }
+        });
+    });
   }
 
   public JFXPanel getPanel() {
