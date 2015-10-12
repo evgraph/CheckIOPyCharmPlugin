@@ -96,8 +96,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   @Override
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
     setParametersInTaskManager(project);
-    final Course course;
-    course = CheckIOMissionGetter.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
+    final Course course = CheckIOMissionGetter.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
     StudyTaskManager.getInstance(project).setCourse(course);
     DumbService.allowStartingDumbModeInside(DumbModePermission.MAY_START_BACKGROUND, () ->
       ApplicationManager.getApplication().runWriteAction(() -> {

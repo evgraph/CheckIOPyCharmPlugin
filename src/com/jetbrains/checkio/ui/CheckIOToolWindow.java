@@ -123,7 +123,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
   public void checkAndShowResults(@NotNull final Task task, @NotNull final String code) throws IOException {
     final JPanel buttonPanel = createButtonPanel();
-    myTestResultsPanel.testAndShowResults(buttonPanel, task, code);
+    myTestResultsPanel.updateTestPanel(buttonPanel, task, code);
   }
 
   public void setAndShowHintPanel(@NotNull final String forumLink, @NotNull final ArrayList<String> hints) throws IOException {

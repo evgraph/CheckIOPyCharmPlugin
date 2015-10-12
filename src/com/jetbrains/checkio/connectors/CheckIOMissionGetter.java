@@ -37,10 +37,6 @@ public class CheckIOMissionGetter {
     put(true, StudyStatus.Solved);
     put(false, StudyStatus.Unchecked);
   }};
-  private static final Map<Boolean, StudyStatus> taskSolutionStatus = new HashMap<Boolean, StudyStatus>() {{
-    put(true, StudyStatus.Solved);
-    put(false, StudyStatus.Failed);
-  }};
   private static HashMap<String, Lesson> lessonsByName;
 
 
@@ -183,37 +179,8 @@ public class CheckIOMissionGetter {
     return contentTypeString + text.body().html();
   }
 
-  //TODO: check was code updated to determine if task was checked. Code saving fix from checkio needed
-  public static String getSolutionCodeAndSetStatusInStudyManager(@NotNull final Project project, @NotNull final Task task)
-    throws IOException {
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
-    assert token != null;
-    int id = taskManager.getTaskId(task);
-
-    String newCode = "";
-    final MissionWrapper[] missionWrappers;
-    missionWrappers = getMissions(token, CheckIOUtils.getInterpreterAsString(project));
-    for (MissionWrapper missionWrapper : missionWrappers) {
-      if (missionWrapper.id == id) {
-        StudyStatus status = taskSolutionStatus.get(missionWrapper.isSolved);
-        final TaskFile taskFile = task.getTaskFile(CheckIOUtils.getTaskFileNameFromTask(task));
-        if (taskFile != null) {
-          taskFile.text = missionWrapper.code;
-          newCode = missionWrapper.code;
-          studyManager.setStatus(task, status);
-        }
-        break;
-      }
-    }
-    return newCode;
-  }
-
-
   public static class MissionWrapper {
     public boolean isPublished;
-    public int stationId;
     public String code;
     public boolean isSolved;
     public int id;

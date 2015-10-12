@@ -36,6 +36,35 @@ public class CheckIOTestResultsPanel extends JPanel {
     myBrowserWindow.setShowProgress(true);
   }
 
+  public void updateTestPanel(@NotNull final JPanel backButtonPanel, @NotNull final Task task, @NotNull final String code)
+    throws IOException {
+    this.removeAll();
+    configureBrowserAndLoadTestForm(task, code);
+    addPanelContent(backButtonPanel, task);
+  }
+
+  private void addPanelContent(@NotNull JPanel backButtonPanel, @NotNull Task task) {
+    final JPanel buttonsPanel = combineButtonPanels(backButtonPanel, createPublishSolutionButton(task));
+    setLayout(new BorderLayout());
+    add(buttonsPanel, BorderLayout.PAGE_START);
+    add(myBrowserWindow.getPanel());
+  }
+
+  private void configureBrowserAndLoadTestForm(@NotNull Task task, @NotNull String code) throws IOException {
+    final Project project = ProjectUtil.guessCurrentProject(this);
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    final String taskId = taskManager.getTaskId(task).toString();
+    final String interpreter = CheckIOUtils.getInterpreterAsString(project);
+    final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
+
+    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
+    myBrowserWindow.addFormListenerWithRemoveListener(documentListener);
+    myBrowserWindow.addCheckProcessFinishedListener(project, task);
+
+    final String url = getClass().getResource("/other/pycharm_api_test.html").toExternalForm();
+    myBrowserWindow.load(url);
+  }
+
   private static JPanel combineButtonPanels(@NotNull final JPanel backButtonPanel, @NotNull final JPanel publishButtonPanel) {
     final JPanel panel = new JPanel(new BorderLayout());
     panel.add(backButtonPanel, BorderLayout.PAGE_START);
@@ -111,26 +140,5 @@ public class CheckIOTestResultsPanel extends JPanel {
         }
       }
     };
-  }
-
-  public void testAndShowResults(@NotNull final JPanel backButtonPanel, @NotNull final Task task, @NotNull final String code)
-    throws IOException {
-    this.removeAll();
-    final Project project = ProjectUtil.guessCurrentProject(this);
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final String url = getClass().getResource("/other/pycharm_api_test.html").toExternalForm();
-    final String taskId = taskManager.getTaskId(task).toString();
-    final String interpreter = CheckIOUtils.getInterpreterAsString(project);
-    final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
-
-    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
-    myBrowserWindow.addFormListenerWithRemoveListener(documentListener);
-    myBrowserWindow.load(url);
-
-    final JPanel buttonsPanel = combineButtonPanels(backButtonPanel, createPublishSolutionButton(task));
-
-    setLayout(new BorderLayout());
-    add(buttonsPanel, BorderLayout.PAGE_START);
-    add(myBrowserWindow.getPanel());
   }
 }

@@ -12,9 +12,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task.Backgroundable;
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
@@ -60,12 +57,12 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   }
 
 
-  class MyProcessListener extends ProcessAdapter {
+  class RunProcessListener extends ProcessAdapter {
     private final Project myProject;
     private final Task myTask;
     private final String myCode;
 
-    public MyProcessListener(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
+    public RunProcessListener(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
       myProject = project;
       myTask = task;
       myCode = code;
@@ -78,91 +75,88 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
           () -> {
             ToolWindowManager.getInstance(myProject).getToolWindow(ToolWindowId.RUN).hide(null);
             check(myProject, myTask, myCode);
-          }, ModalityState.defaultModalityState());
+          },
+          ModalityState.defaultModalityState());
       }
       else {
         StudyTaskManager.getInstance(myProject).setStatus(myTask, StudyStatus.Failed);
         ProjectView.getInstance(myProject).refresh();
-        CheckIOUtils.showOperationResultPopUp("Local execution failed", MessageType.ERROR.getPopupBackground(), myProject);
+        CheckIOUtils
+          .showOperationResultPopUp(CheckIOBundle.message("run.error.message"), MessageType.ERROR.getPopupBackground(), myProject);
       }
     }
   }
 
-  private void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
-
-
+  private static void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
     try {
       CheckIOProjectComponent.getInstance(project).getToolWindow().checkAndShowResults(task, code);
-      final Backgroundable checkTask = getCheckTask(task, code, project);
-      myProcessIndicator = new BackgroundableProcessIndicator(checkTask);
-      ProgressManager.getInstance().runProcessWithProgressAsynchronously(checkTask, myProcessIndicator);
     }
     catch (IOException e) {
       CheckIOUtils.makeNoInternetConnectionNotifier(project);
     }
   }
 
-  private static Backgroundable getCheckTask(@NotNull final Task task, @NotNull final String code, @NotNull final Project project) {
-    final String title = CheckIOBundle.message("action.checking.task");
-    return new com.intellij.openapi.progress.Task.Backgroundable(project, title, true) {
-      final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-      final StudyStatus statusBeforeCheck = studyManager.getStatus(task);
+  public static class TestResultHandler {
+    private Project myProject;
+    private Task myTask;
 
+    public TestResultHandler(@NotNull final Project project, @NotNull final Task task) {
+      myProject = project;
+      myTask = task;
+    }
 
-      @Override
-      public void onCancel() {
-        studyManager.setStatus(task, statusBeforeCheck);
-        if (!project.isDisposed()) {
-          CheckIOProjectComponent.getInstance(project).getToolWindow().showTaskInfoPanel();
-        }
-      }
+    public void handleTestEvent(int result) {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        final com.intellij.openapi.progress.Task.Backgroundable checkTask = getCheckTask(result);
+        checkTask.queue();
+      });
+    }
 
-      @Override
-      public void onSuccess() {
-        ProjectView.getInstance(project).refresh();
-      }
-
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        try {
-          String newCode = "";
-          while (!newCode.equals(code)) {
-            indicator.checkCanceled();
-            newCode = CheckIOMissionGetter.getSolutionCodeAndSetStatusInStudyManager(project, task);
-          }
-          StudyStatus status = StudyTaskManager.getInstance(project).getStatus(task);
-          CheckIOProjectComponent.getInstance(project).getToolWindow().showTestResultsPanel();
-          if (status == StudyStatus.Solved) {
-            checkAchievements();
-            final HashMap<String, CheckIOPublication[]> publicationFiles =
-              CheckIOPublicationGetter.getPublicationsForTaskAndCreatePublicationFiles(task);
-            CheckIOTaskManager.getInstance(myProject).setPublicationsForLastSolvedTask(task, publicationFiles);
-          }
-          ProjectView.getInstance(myProject).refresh();
-        }
-        catch (IOException e) {
-          CheckIOUtils.makeNoInternetConnectionNotifier(project);
-        }
-      }
-
-      private void checkAchievements() throws IOException {
-        final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-        final CheckIOUser newUser = CheckIOUserAuthorizer.getInstance().getUser(taskManager.getAccessTokenAndUpdateIfNeeded());
-        final CheckIOUser oldUser = CheckIOTaskManager.getInstance(project).getUser();
-        if (newUser.getLevel() != oldUser.getLevel()) {
-          taskManager.setUser(newUser);
-          final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOUserInfoToolWindowFactory.ID);
-          if (toolWindow != null) {
-            ApplicationManager.getApplication()
-              .invokeAndWait(() -> new CheckIOUserInfoToolWindowFactory().createToolWindowContent(project, toolWindow),
-                             ModalityState.defaultModalityState());
+    private com.intellij.openapi.progress.Task.Backgroundable getCheckTask(int result) {
+      return new com.intellij.openapi.progress.Task.Backgroundable(myProject, CheckIOBundle.message("action.checking.task")) {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          setStatusAndShowResults(result);
+          if (result == 1) {
+            try {
+              CheckIOMissionGetter.getMissionsAndUpdateCourse(myProject);
+              checkAchievements(myProject);
+              final HashMap<String, CheckIOPublication[]> publicationFiles;
+              publicationFiles = CheckIOPublicationGetter.getPublicationsForTaskAndCreatePublicationFiles(myTask);
+              CheckIOTaskManager.getInstance(myProject).setPublicationsForLastSolvedTask(myTask, publicationFiles);
+            }
+            catch (IOException e) {
+              CheckIOUtils.makeNoInternetConnectionNotifier(myProject);
+            }
           }
         }
-        askToUpdateProject(project);
-      }
-    };
+      };
+    }
+
+    private void setStatusAndShowResults(int status) {
+      StudyStatus studyStatus = status == 1 ? StudyStatus.Solved : StudyStatus.Failed;
+
+      StudyTaskManager.getInstance(myProject).setStatus(myTask, studyStatus);
+      ProjectView.getInstance(myProject).refresh();
+      CheckIOProjectComponent.getInstance(myProject).getToolWindow().showTestResultsPanel();
+    }
   }
 
+  public static void checkAchievements(@NotNull final Project project) throws IOException {
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    final CheckIOUser newUser = CheckIOUserAuthorizer.getInstance().getUser(taskManager.getAccessTokenAndUpdateIfNeeded());
+    final CheckIOUser oldUser = CheckIOTaskManager.getInstance(project).getUser();
+    if (newUser.getLevel() != oldUser.getLevel()) {
+      taskManager.setUser(newUser);
+      final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOUserInfoToolWindowFactory.ID);
+      if (toolWindow != null) {
+        ApplicationManager.getApplication()
+          .invokeAndWait(() -> new CheckIOUserInfoToolWindowFactory().createToolWindowContent(project, toolWindow),
+                         ModalityState.defaultModalityState());
+      }
+    }
+    askToUpdateProject(project);
+  }
 
   private static void askToUpdateProject(@NotNull final Project project) {
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
@@ -252,7 +246,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         }
 
         final StudyRunAction runAction = new StudyRunAction();
-        runAction.addProcessListener(new MyProcessListener(project, task, code));
+        runAction.addProcessListener(new RunProcessListener(project, task, code));
         runAction.run(project);
       }
       else {

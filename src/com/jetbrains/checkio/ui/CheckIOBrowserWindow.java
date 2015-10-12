@@ -6,7 +6,10 @@ import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
+import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
+import com.jetbrains.edu.courseFormat.Task;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
@@ -17,6 +20,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
+import netscape.javascript.JSObject;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -243,6 +247,23 @@ public class CheckIOBrowserWindow extends JFrame {
     return progress;
   }
 
+  public void addCheckProcessFinishedListener(@NotNull final Project project, @NotNull final Task task) {
+    Platform.runLater(() -> {
+      final boolean[] visited = {false};
+      final ChangeListener<Worker.State> listener = (observable, oldValue, newValue) -> {
+        if (myEngine.getLocation().contains("http") && newValue == Worker.State.SUCCEEDED && !visited[0]) {
+          visited[0] = true;
+          final JSObject jsObject = (JSObject)myEngine.executeScript("window");
+          jsObject.setMember("java", new CheckIOCheckSolutionAction.TestResultHandler(project, task));
+
+          final String checkResultHandleScript = "window.addEventListener(\"checkio:checkDone\",function (e) " +
+                                                 "{java.handleTestEvent(e.detail.success)}, false);";
+          myEngine.executeScript(checkResultHandleScript);
+        }
+      };
+      myEngine.getLoadWorker().stateProperty().addListener(listener);
+    });
+  }
 
   public void addFormListenerWithRemoveListener(ChangeListener<Document> listener) {
     myDocumentChangeListener = listener;
