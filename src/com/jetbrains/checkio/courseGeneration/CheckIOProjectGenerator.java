@@ -14,6 +14,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
@@ -50,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CheckIOProjectGenerator extends PythonProjectGenerator implements DirectoryProjectGenerator {
   private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
-  private static final File myCoursesDir = new File(PathManager.getConfigPath(), "courses");
+  private static final File ourCourseDir = new File(PathManager.getConfigPath(), "courses");
   private CheckIOMissionGetter.MissionWrapper[] myMissionWrappers;
   private CheckIOUser user;
   private String accessToken;
@@ -100,13 +101,21 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
     StudyTaskManager.getInstance(project).setCourse(course);
     DumbService.allowStartingDumbModeInside(DumbModePermission.MAY_START_BACKGROUND, () ->
       ApplicationManager.getApplication().runWriteAction(() -> {
-        final File courseDirectory = new File(myCoursesDir, course.getName());
+        final File courseDirectory = new File(ourCourseDir, course.getName());
+        deleteCourseDirectoryIfExists(courseDirectory);
         course.setCourseDirectory(courseDirectory.getAbsolutePath());
+        FileUtil.delete(new File(ourCourseDir, course.getName()));
         new StudyProjectGenerator().flushCourse(course);
         course.initCourse(false);
         StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
         openFirstTask(course, project);
       }));
+  }
+
+  private void deleteCourseDirectoryIfExists(File courseDirectory) {
+    if (courseDirectory.exists()) {
+      FileUtil.delete(courseDirectory);
+    }
   }
 
   private static void openFirstTask(@NotNull final Course course, @NotNull final Project project) {
