@@ -3,7 +3,7 @@ package com.jetbrains.checkio.courseGeneration;
 import com.intellij.facet.ui.ValidationResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.DefaultLogger;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -13,6 +13,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -50,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 
 public class CheckIOProjectGenerator extends PythonProjectGenerator implements DirectoryProjectGenerator {
-  private static final DefaultLogger LOG = new DefaultLogger(CheckIOProjectGenerator.class.getName());
+  private static final Logger LOG = Logger.getInstance(CheckIOProjectGenerator.class.getName());
   private static final File ourCourseDir = new File(PathManager.getConfigPath(), "courses");
   private CheckIOMissionGetter.MissionWrapper[] myMissionWrappers;
   private CheckIOUser user;
@@ -112,7 +113,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
       }));
   }
 
-  private void deleteCourseDirectoryIfExists(File courseDirectory) {
+  private static void deleteCourseDirectoryIfExists(File courseDirectory) {
     if (courseDirectory.exists()) {
       FileUtil.delete(courseDirectory);
     }
@@ -155,7 +156,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
         LOG.warn("access token is null");
       }
     }
-    catch (Throwable throwable) {
+    catch (final IOException throwable) {
       LOG.warn(throwable.getMessage(), throwable);
     }
   }
@@ -165,34 +166,33 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   public BooleanFunction<PythonProjectGenerator> beforeProjectGenerated(@NotNull final Sdk sdk) {
     final ProgressManager progressManager = ProgressManager.getInstance();
     final Project project = ProjectManager.getInstance().getDefaultProject();
-    try {
-      try {
-        return progressManager
-          .runProcessWithProgressSynchronously((ThrowableComputable<BooleanFunction<PythonProjectGenerator>, IOException>)() -> {
-            final Future<?> future = SharedThreadPool.getInstance().executeOnPooledThread(() -> authorizeUserAndGetMissions(sdk));
-
-            while (!future.isDone()) {
-              progressManager.getProgressIndicator().checkCanceled();
-              try {
-                TimeUnit.MILLISECONDS.sleep(500);
-              }
-              catch (InterruptedException e) {
-                LOG.warn(e.getMessage());
-              }
-            }
-
-            if (user != null && myMissionWrappers != null) {
-              return generator -> true;
-            }
-            return generator -> false;
-          }, CheckIOBundle.message("project.generation.process.message"), true, project);
-      }
-      catch (IOException e) {
-        LOG.warn(e.getMessage());
-      }
-    }
-    catch (ProcessCanceledException ignore) {
+    if (!CheckIOUtils.checkConnection()) {
+      Messages.showWarningDialog("No internet connection", "CheckiO Is Unavailable");
       return generator -> false;
+    }
+    try {
+      return progressManager
+        .runProcessWithProgressSynchronously((ThrowableComputable<BooleanFunction<PythonProjectGenerator>, IOException>)() -> {
+          final Future<?> future = SharedThreadPool.getInstance().executeOnPooledThread(() -> authorizeUserAndGetMissions(sdk));
+
+          while (!future.isDone()) {
+            progressManager.getProgressIndicator().checkCanceled();
+            try {
+              TimeUnit.MILLISECONDS.sleep(500);
+            }
+            catch (final InterruptedException e) {
+              LOG.warn(e.getMessage());
+            }
+          }
+
+          if (user != null && myMissionWrappers != null) {
+            return generator -> true;
+          }
+          return generator -> false;
+        }, CheckIOBundle.message("project.generation.process.message"), true, project);
+    }
+    catch (IOException e) {
+      LOG.warn(e.getMessage());
     }
 
     return generator -> false;
@@ -207,8 +207,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   @NotNull
   @Override
   public ValidationResult validate(@NotNull String baseDirPath) {
-    boolean isConnected = CheckIOUtils.checkConnection();
-    return isConnected ? ValidationResult.OK : new ValidationResult(CheckIOBundle.message("project.generation.internet.connection.problems"));
+    return ValidationResult.OK;
   }
 
   @Nullable
