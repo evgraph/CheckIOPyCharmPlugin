@@ -27,7 +27,7 @@ import java.util.Map;
 )
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
   public String accessToken;
-  private String refreshToken;
+  public String refreshToken;
   private static Project ourProject;
 
   public UpdateProjectPolicy myUpdateProjectPolicy;
@@ -115,10 +115,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
 
   public void setAccessToken(String accessToken) {
     this.accessToken = accessToken;
-  }
-
-  public String getRefreshToken() {
-    return refreshToken;
   }
 
   public void setRefreshToken(String refreshToken) {
