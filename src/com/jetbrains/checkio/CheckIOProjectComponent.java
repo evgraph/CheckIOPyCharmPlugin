@@ -50,7 +50,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
     Platform.setImplicitExit(false);
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
-      if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.project.type"))) {
+      if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.course.type"))) {
         new CheckIOUpdateProjectAction().updateProject(myProject);
         myToolWindow = new CheckIOToolWindow(myProject);
         registerTaskToolWindow(course);
@@ -67,7 +67,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
   }
 
   private void registerTaskToolWindow(@Nullable final Course course) {
-    if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.project.type"))) {
+    if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.course.type"))) {
       registerToolWindowIfNeeded(CheckIOToolWindow.ID);
       final ToolWindow toolWindow = getToolWindowByID(CheckIOToolWindow.ID);
       if (toolWindow != null) {
@@ -101,7 +101,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
   }
 
   private void registerShortcuts(@Nullable final Course course) {
-    if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.project.type"))) {
+    if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.course.type"))) {
       addShortcut(CheckIOCheckSolutionAction.ACTION_ID, new String[]{CheckIOCheckSolutionAction.SHORTCUT});
       addShortcut(CheckIOUpdateProjectAction.ACTION_ID, new String[]{CheckIOUpdateProjectAction.SHORTCUT});
       addShortcut(CheckIORefreshFileAction.ACTION_ID, new String[] {CheckIORefreshFileAction.SHORTCUT});
