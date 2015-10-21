@@ -1,18 +1,21 @@
 <idea-plugin version="1">
   <id>checkio.pycharm.plugin</id>
-  <name>CheckIOPyCharmPlugin</name>
+  <name>CheckiO plugin for PyCharm Edu</name>
   <version>1.0</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <vendor url="https://www.jetbrains.com">JetBrains</vendor>
 
   <description><![CDATA[
-      CheckiO plugin for PyCharmEdu.<br>
-    ]]></description>
+      CheckiO plugin for PyCharmEdu.
+      <br>
+      <b>Requires Oracle Java 8</b>
+
+    ]]>
+  </description>
 
   <change-notes><![CDATA[
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>
     ]]>
   </change-notes>
+
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.python</depends>
   <depends>com.intellij.modules.platform</depends>
