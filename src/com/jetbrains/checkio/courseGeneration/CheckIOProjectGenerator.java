@@ -68,6 +68,11 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   }
 
 
+  @Override
+  public ValidationResult warningValidation(@Nullable Sdk sdk) {
+    return new ValidationResult(CheckIOBundle.message("project.panel.message"));
+  }
+
   private boolean checkIfUserOrAccessTokenIsNull() {
     if (user == null) {
       LOG.warn("User object is null");
@@ -208,12 +213,5 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   @Override
   public ValidationResult validate(@NotNull String baseDirPath) {
     return ValidationResult.OK;
-  }
-
-  @Nullable
-  @Override
-  public JPanel extendBasePanel() throws ProcessCanceledException {
-    CheckIONewProjectPanel settingsPanel = new CheckIONewProjectPanel();
-    return settingsPanel.getMainPanel();
   }
 }
