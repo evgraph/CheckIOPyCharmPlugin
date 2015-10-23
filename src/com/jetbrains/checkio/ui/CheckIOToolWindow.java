@@ -17,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.JBCardLayout;
+import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -50,12 +51,12 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private final CheckIOTestResultsPanel myTestResultsPanel;
   private final JBCardLayout myMyCardLayout;
   private final JPanel myContentPanel;
-  private final JSplitPane mySplitPane;
+  private final OnePixelSplitter mySplitPane;
 
   public CheckIOToolWindow(@NotNull final Project project) {
     super(true, true);
 
-    mySplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+    mySplitPane = new OnePixelSplitter(true);
 
     final JPanel toolbarPanel = createToolbarPanel();
     setToolbar(toolbarPanel);
@@ -75,7 +76,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myContentPanel.add(SOLUTIONS, mySolutionsPanel);
     myContentPanel.add(TEST_RESULTS, myTestResultsPanel);
 
-    mySplitPane.setTopComponent(myContentPanel);
+    mySplitPane.setFirstComponent(myContentPanel);
 
     setContent(mySplitPane);
 
@@ -106,7 +107,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   }
 
   public boolean isHintsVisible() {
-    return !(mySplitPane.getBottomComponent() == null);
+    return !(mySplitPane.getSecondComponent() == null);
   }
 
   public void showSolutionsPanel() {
@@ -134,13 +135,13 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     myContentPanel.setPreferredSize(new Dimension((int)myContentPanel.getPreferredSize().getWidth(),
                                                   myContentPanel.getHeight() - (int)preferredHintPanelHeight));
     if (myContentPanel.getPreferredSize().getHeight() / preferredHintPanelHeight < 1) {
-      mySplitPane.setDividerLocation(0.5);
+      mySplitPane.setProportion((float)0.5);
     }
-    mySplitPane.setBottomComponent(myHintPanel);
+    mySplitPane.setSecondComponent(myHintPanel);
   }
 
   public void hideHintPanel() {
-    mySplitPane.setBottomComponent(null);
+    mySplitPane.setSecondComponent(null);
   }
 
   @Override
