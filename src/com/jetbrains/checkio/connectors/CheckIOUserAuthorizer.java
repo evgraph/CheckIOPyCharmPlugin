@@ -15,6 +15,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
@@ -176,7 +177,7 @@ public class CheckIOUserAuthorizer {
       requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("refresh.token.parameter"), refreshToken));
 
       request.addHeader(CheckIOConnectorBundle.message("content.type.parameter"), CheckIOConnectorBundle.message("content.type.value"));
-      request.addHeader(CheckIOConnectorBundle.message("accept.parameter"), CheckIOConnectorBundle.message("application.type"));
+      request.addHeader(CheckIOConnectorBundle.message("accept.parameter"), ContentType.APPLICATION_JSON.getMimeType());
       request.setEntity(new UrlEncodedFormEntity(requestParameters));
     }
     catch (UnsupportedEncodingException e) {
@@ -199,7 +200,7 @@ public class CheckIOUserAuthorizer {
       requestParameters.add(new BasicNameValuePair(CheckIOConnectorBundle.message("redirect.uri.parameter"), REDIRECT_URI));
 
       request.addHeader(CheckIOConnectorBundle.message("content.type.parameter"), CheckIOConnectorBundle.message("content.type.value"));
-      request.addHeader(CheckIOConnectorBundle.message("accept.parameter"), CheckIOConnectorBundle.message("application.type"));
+      request.addHeader(CheckIOConnectorBundle.message("accept.parameter"), ContentType.APPLICATION_JSON.getMimeType());
       request.setEntity(new UrlEncodedFormEntity(requestParameters));
     }
     catch (UnsupportedEncodingException e) {
