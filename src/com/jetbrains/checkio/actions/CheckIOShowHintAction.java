@@ -11,8 +11,9 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.jetbrains.checkio.CheckIOBundle;
-import com.jetbrains.checkio.CheckIOProjectComponent;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.connectors.CheckIOHintsInfoGetter;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
@@ -44,9 +45,11 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
     if (project != null) {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       if (task != null) {
-        final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
-        if (toolWindow.isHintsVisible()) {
-          ApplicationManager.getApplication().invokeLater(() -> toolWindow.getHintPanel().showNewHint());
+        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
+        final CheckIOToolWindow checkIOToolWindow =
+          (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+        if (checkIOToolWindow.isHintsVisible()) {
+          ApplicationManager.getApplication().invokeLater(() -> checkIOToolWindow.getHintPanel().showNewHint());
         }
         else {
           final com.intellij.openapi.progress.Task.Backgroundable hintsTask = getDownloadHintsTask(project, task);
@@ -65,23 +68,25 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
 
   private static com.intellij.openapi.progress.Task.Backgroundable getDownloadHintsTask(@NotNull final Project project,
                                                                                         @NotNull final Task task) {
-    return new com.intellij.openapi.progress.Task.Backgroundable(project, "Downloading hints") {
+    final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
+    final CheckIOToolWindow checkIOToolWindow =
+      (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+
+    return new com.intellij.openapi.progress.Task.Backgroundable(project, "Downloading Hints") {
       @Override
       public void onCancel() {
-        final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
-        toolWindow.hideHintPanel();
+        checkIOToolWindow.hideHintPanel();
       }
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         try {
-          final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
           final CheckIOHintsInfoGetter checkIOHintsInfoGetter = new CheckIOHintsInfoGetter(task.getName(), project);
           final ArrayList<String> hints = checkIOHintsInfoGetter.getHintStrings();
           final String forumLink = CheckIOUtils.getForumLink(task, project);
           ApplicationManager.getApplication().invokeAndWait(() -> {
             try {
-              toolWindow.setAndShowHintPanel(forumLink, hints);
+              checkIOToolWindow.setAndShowHintPanel(forumLink, hints);
             }
             catch (IOException e) {
               ApplicationManager.getApplication().invokeLater(() -> CheckIOUtils.showOperationResultPopUp(
@@ -108,10 +113,14 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
   public void update(AnActionEvent e) {
     super.update(e);
     final Project project = e.getProject();
+
     if (project != null) {
-      final CheckIOToolWindow toolWindow = CheckIOProjectComponent.getInstance(project).getToolWindow();
-      if (toolWindow.isHintsVisible()) {
-        final boolean shouldEnablePresentation = toolWindow.getHintPanel().hasUnseenHints();
+
+      final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
+      final CheckIOToolWindow checkIOToolWindow =
+        (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+      if (checkIOToolWindow.isHintsVisible()) {
+        final boolean shouldEnablePresentation = checkIOToolWindow.getHintPanel().hasUnseenHints();
         if (!shouldEnablePresentation) {
           e.getPresentation().setEnabled(false);
         }

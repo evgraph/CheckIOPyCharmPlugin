@@ -22,7 +22,10 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.ui.OptionsDialog;
-import com.jetbrains.checkio.*;
+import com.jetbrains.checkio.CheckIOBundle;
+import com.jetbrains.checkio.CheckIOTaskManager;
+import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.UpdateProjectPolicy;
 import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
@@ -89,7 +92,11 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
   private static void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
     try {
-      CheckIOProjectComponent.getInstance(project).getToolWindow().checkAndShowResults(task, code);
+
+      final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
+      final CheckIOToolWindow checkIOToolWindow =
+        (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+      checkIOToolWindow.checkAndShowResults(task, code);
     }
     catch (IOException e) {
       CheckIOUtils.makeNoInternetConnectionNotifier(project);
@@ -138,7 +145,11 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
       StudyTaskManager.getInstance(myProject).setStatus(myTask, studyStatus);
       ProjectView.getInstance(myProject).refresh();
-      CheckIOProjectComponent.getInstance(myProject).getToolWindow().showTestResultsPanel();
+
+      final ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(CheckIOToolWindow.ID);
+      final CheckIOToolWindow checkIOToolWindow =
+        (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+      checkIOToolWindow.showTestResultsPanel();
     }
   }
 
