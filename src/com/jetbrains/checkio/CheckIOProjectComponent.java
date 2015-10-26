@@ -9,7 +9,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindow;
@@ -36,7 +35,6 @@ import java.util.Map;
 
 public class CheckIOProjectComponent implements ProjectComponent {
   private final Project myProject;
-  private CheckIOToolWindow myToolWindow;
   private Map<Keymap, List<Pair<String, String>>> myDeletedShortcuts = new HashMap<>();
 
   private CheckIOProjectComponent(Project project) {
@@ -52,18 +50,12 @@ public class CheckIOProjectComponent implements ProjectComponent {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.course.type"))) {
         new CheckIOUpdateProjectAction().updateProject(myProject);
-        myToolWindow = new CheckIOToolWindow(myProject);
         registerTaskToolWindow(course);
         registerUserInfoToolWindow();
         registerShortcuts(course);
         CheckIOUtils.selectCurrentTask(myProject);
-        Disposer.register(myProject, myToolWindow);
       }
     });
-  }
-
-  public CheckIOToolWindow getToolWindow() {
-    return myToolWindow;
   }
 
   private void registerTaskToolWindow(@Nullable final Course course) {
