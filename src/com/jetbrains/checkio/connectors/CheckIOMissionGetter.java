@@ -120,6 +120,7 @@ public class CheckIOMissionGetter {
     taskFile.name = name;
     taskFile.text = missionWrapper.code;
     taskFile.setIndex(0);
+    taskFile.setHighlightErrors(true);
     task.addTaskFile(taskFile);
     return task;
   }
