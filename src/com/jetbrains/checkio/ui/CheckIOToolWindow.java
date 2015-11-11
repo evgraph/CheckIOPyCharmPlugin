@@ -2,10 +2,7 @@ package com.jetbrains.checkio.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -36,6 +33,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProvider, Disposable {
@@ -194,6 +192,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+      stopCheckingProcess();
       if (isHintsVisible()) {
         hideHintPanel();
       }
@@ -216,6 +215,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
         final Task task = CheckIOUtils.getTaskFromVirtualFile(myProject, newFile);
         boolean isStudyFile = task != null;
         if (isStudyFile) {
+          stopCheckingProcess();
           boolean shouldSwipeToTaskDescription = !isPublicationFileOfSelectedTaskFile(oldFile, task);
           setTaskInfoPanelAndSwipeIfNeeded(task, shouldSwipeToTaskDescription);
 
@@ -225,6 +225,15 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
           return;
         }
         setTaskInfoTextForNonStudyFiles();
+      }
+    }
+
+    private void stopCheckingProcess() {
+      final List<AnAction> actions = getActions(true);
+      for (AnAction action : actions) {
+        if (action instanceof CheckIOCheckSolutionAction) {
+          ((CheckIOCheckSolutionAction)action).cancelCheckingProcessProgressDisplaying();
+        }
       }
     }
 

@@ -12,6 +12,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
@@ -48,10 +50,12 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   public static final String ACTION_ID = "CheckIOCheckSolutionAction";
   public static final String SHORTCUT = "ctrl alt pressed ENTER";
+  private volatile boolean checkInProgress = false;
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
   public CheckIOCheckSolutionAction() {
@@ -77,6 +81,8 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         ApplicationManager.getApplication().invokeAndWait(
           () -> {
             ToolWindowManager.getInstance(myProject).getToolWindow(ToolWindowId.RUN).hide(null);
+            checkInProgress = true;
+            startCheckingProcessProgressDisplaying(myProject);
             check(myProject, myTask, myCode);
           },
           ModalityState.defaultModalityState());
@@ -90,20 +96,48 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     }
   }
 
-  private static void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
+  private void startCheckingProcessProgressDisplaying(@NotNull final Project project) {
+    com.intellij.openapi.progress.Task.Backgroundable progressTask =
+      new com.intellij.openapi.progress.Task.Backgroundable(project, CheckIOBundle.message("action.checking.task"), true) {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          while (checkInProgress) {
+            indicator.checkCanceled();
+            try {
+              TimeUnit.SECONDS.sleep(1);
+            }
+            catch (InterruptedException e) {
+              LOG.warn(e.getMessage());
+            }
+          }
+        }
+      };
+    myProcessIndicator = new BackgroundableProcessIndicator(progressTask);
+    ProgressManager.getInstance().runProcessWithProgressAsynchronously(progressTask, myProcessIndicator);
+  }
+
+  public void cancelCheckingProcessProgressDisplaying() {
+    ProgressManager.canceled(myProcessIndicator);
+  }
+
+  private void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
     try {
 
       final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
-      final CheckIOToolWindow checkIOToolWindow =
-        (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+      final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
       checkIOToolWindow.checkAndShowResults(task, code);
     }
     catch (IOException e) {
+      checkInProgress = false;
       CheckIOUtils.makeNoInternetConnectionNotifier(project);
     }
   }
 
-  public static class TestResultHandler {
+  public TestResultHandler createTestResultHandler(@NotNull final Project project, @NotNull final Task task) {
+    return new TestResultHandler(project, task);
+  }
+
+  public class TestResultHandler {
     private Project myProject;
     private Task myTask;
 
@@ -112,10 +146,12 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       myTask = task;
     }
 
+    // Used in JavaScript listener for test complete event
     public void handleTestEvent(int result) {
       ApplicationManager.getApplication().invokeLater(() -> {
         final com.intellij.openapi.progress.Task.Backgroundable checkTask = getCheckTask(result);
         checkTask.queue();
+        checkInProgress = false;
       });
     }
 
@@ -146,9 +182,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       StudyTaskManager.getInstance(myProject).setStatus(myTask, studyStatus);
       ProjectView.getInstance(myProject).refresh();
 
-      final ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(CheckIOToolWindow.ID);
-      final CheckIOToolWindow checkIOToolWindow =
-        (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+      final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(myProject);
       checkIOToolWindow.showTestResultsPanel();
     }
   }

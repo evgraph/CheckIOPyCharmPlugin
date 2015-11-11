@@ -14,7 +14,7 @@ import javax.swing.*;
 
 
 public abstract class CheckIOTaskAction extends DumbAwareAction {
-  protected BackgroundableProcessIndicator myProcessIndicator;
+  protected volatile BackgroundableProcessIndicator myProcessIndicator;
   protected CheckIOTaskAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
     super(text, description, icon);
   }

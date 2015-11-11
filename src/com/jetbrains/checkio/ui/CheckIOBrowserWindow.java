@@ -5,9 +5,11 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
+import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
 import com.jetbrains.edu.courseFormat.Task;
 import javafx.application.Platform;
@@ -33,6 +35,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
+import java.util.List;
 
 public class CheckIOBrowserWindow extends JFrame {
   private static final String EVENT_TYPE_CLICK = "click";
@@ -254,7 +257,9 @@ public class CheckIOBrowserWindow extends JFrame {
         if (myEngine.getLocation().contains("http") && newValue == Worker.State.SUCCEEDED && !visited[0]) {
           visited[0] = true;
           final JSObject jsObject = (JSObject)myEngine.executeScript("window");
-          jsObject.setMember("java", new CheckIOCheckSolutionAction.TestResultHandler(project, task));
+
+          CheckIOCheckSolutionAction checkSolutionAction = getCheckSolutionTaskAction(project);
+          jsObject.setMember("java", checkSolutionAction.createTestResultHandler(project, task));
 
           final String checkResultHandleScript = "window.addEventListener(\"checkio:checkDone\",function (e) " +
                                                  "{java.handleTestEvent(e.detail.success)}, false);";
@@ -263,6 +268,18 @@ public class CheckIOBrowserWindow extends JFrame {
       };
       myEngine.getLoadWorker().stateProperty().addListener(listener);
     });
+  }
+
+  private static CheckIOCheckSolutionAction getCheckSolutionTaskAction(@NotNull final Project project) {
+    final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
+    final List<AnAction> actions = checkIOToolWindow.getActions(true);
+    CheckIOCheckSolutionAction checkSolutionAction = null;
+    for (AnAction action : actions) {
+      if (action instanceof CheckIOCheckSolutionAction) {
+        checkSolutionAction = (CheckIOCheckSolutionAction)action;
+      }
+    }
+    return checkSolutionAction;
   }
 
   public void addFormListenerWithRemoveListener(ChangeListener<Document> listener) {
