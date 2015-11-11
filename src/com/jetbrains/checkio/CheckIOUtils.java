@@ -21,6 +21,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowEP;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -284,5 +285,10 @@ public class CheckIOUtils {
                                                        CheckIOBundle.message("project.generation.internet.connection.problems"),
                                                        NotificationType.ERROR);
     notification.notify(project);
+  }
+
+  public static CheckIOToolWindow getToolWindow(@NotNull Project project) {
+    final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
+    return (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
   }
 }

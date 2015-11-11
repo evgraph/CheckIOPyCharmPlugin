@@ -14,8 +14,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -69,9 +67,7 @@ public class CheckIOShowPublicationsAction extends AnAction {
       @Override
       public void onCancel() {
         if (!project.isDisposed()) {
-          final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
-          final CheckIOToolWindow checkIOToolWindow =
-            (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+          final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
           checkIOToolWindow.showTaskInfoPanel();
         }
       }
@@ -101,9 +97,7 @@ public class CheckIOShowPublicationsAction extends AnAction {
       private void showPublicationsInToolWindowByCategory(@NotNull final HashMap<String, CheckIOPublication[]> publications)
         throws IllegalStateException {
 
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
-        final CheckIOToolWindow checkIOToolWindow =
-          (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+        final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
         final CheckIOPublicationsPanel solutionsPanel = checkIOToolWindow.getSolutionsPanel();
         solutionsPanel.update(publications, checkIOToolWindow.createButtonPanel());
         checkIOToolWindow.showSolutionsPanel();

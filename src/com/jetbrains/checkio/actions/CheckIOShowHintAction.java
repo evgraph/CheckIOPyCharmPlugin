@@ -45,9 +45,7 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
     if (project != null) {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       if (task != null) {
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
-        final CheckIOToolWindow checkIOToolWindow =
-          (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+        final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
         if (checkIOToolWindow.isHintsVisible()) {
           ApplicationManager.getApplication().invokeLater(() -> checkIOToolWindow.getHintPanel().showNewHint());
         }
