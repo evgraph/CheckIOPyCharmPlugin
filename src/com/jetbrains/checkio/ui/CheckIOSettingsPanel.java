@@ -5,7 +5,7 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.EnumComboBoxModel;
 import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.UpdateProjectPolicy;
+import com.jetbrains.checkio.CheckIOUpdateProjectPolicy;
 
 import javax.swing.*;
 
@@ -19,11 +19,11 @@ public class CheckIOSettingsPanel {
     final Project project = ProjectUtil.guessCurrentProject(myPanel);
     final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
     myUpdateProjectComboBox.setSelectedItem(manager.getUpdateProjectPolicy());
-    myUpdateProjectComboBox.addItemListener(e -> manager.setUpdateProjectPolicy((UpdateProjectPolicy)e.getItem()));
+    myUpdateProjectComboBox.addItemListener(e -> manager.setUpdateProjectPolicy((CheckIOUpdateProjectPolicy)e.getItem()));
   }
 
   private void createUIComponents() {
-    final EnumComboBoxModel<UpdateProjectPolicy> comboBoxModel = new EnumComboBoxModel<>(UpdateProjectPolicy.class);
+    final EnumComboBoxModel<CheckIOUpdateProjectPolicy> comboBoxModel = new EnumComboBoxModel<>(CheckIOUpdateProjectPolicy.class);
     myUpdateProjectComboBox = new ComboBox(comboBoxModel);
   }
 
