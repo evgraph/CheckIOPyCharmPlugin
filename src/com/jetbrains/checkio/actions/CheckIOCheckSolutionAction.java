@@ -117,7 +117,9 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   }
 
   public void cancelCheckingProcessProgressDisplaying() {
-    ProgressManager.canceled(myProcessIndicator);
+    if (myProcessIndicator != null) {
+      ProgressManager.canceled(myProcessIndicator);
+    }
   }
 
   private void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
@@ -187,7 +189,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     }
   }
 
-  public static void checkAchievements(@NotNull final Project project) throws IOException {
+  private static void checkAchievements(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final CheckIOUser newUser = CheckIOUserAuthorizer.getInstance().getUser(taskManager.getAccessTokenAndUpdateIfNeeded());
     final CheckIOUser oldUser = CheckIOTaskManager.getInstance(project).getUser();

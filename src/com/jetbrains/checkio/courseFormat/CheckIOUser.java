@@ -43,10 +43,7 @@ public class CheckIOUser {
 
     CheckIOUser user = (CheckIOUser)o;
 
-    if (!username.equals(user.username)) return false;
-    if (id != user.id) return false;
-
-    return true;
+    return username.equals(user.username) && id == user.id;
   }
 
   @Override

@@ -25,7 +25,7 @@ import java.util.Collections;
 
 
 public class CheckIOHintsInfoGetter {
-  public final ArrayList<Hint> mySeenHints = new ArrayList<>();
+  private final ArrayList<Hint> mySeenHints = new ArrayList<>();
   private final String myTaskName;
   private final Project myProject;
   private Hint myUnseenHint;

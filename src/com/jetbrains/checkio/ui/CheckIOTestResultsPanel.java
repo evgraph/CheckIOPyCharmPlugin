@@ -27,7 +27,7 @@ import java.awt.*;
 import java.io.IOException;
 
 
-public class CheckIOTestResultsPanel extends JPanel {
+class CheckIOTestResultsPanel extends JPanel {
   private static final Logger LOG = Logger.getInstance(CheckIOTestResultsPanel.class);
   private final CheckIOBrowserWindow myBrowserWindow;
 

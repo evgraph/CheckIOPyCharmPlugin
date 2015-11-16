@@ -8,6 +8,7 @@ import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
+import com.jetbrains.checkio.ui.CheckIOLanguage;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,14 +39,23 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public HashMap<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
   public HashMap<String, String> myInitialCodeForTask = new HashMap<>();
 
+
+  public CheckIOLanguage myLanguage;
+
   private CheckIOTaskManager() {
-    if (myUpdateProjectPolicy == null) {
-      myUpdateProjectPolicy = CheckIOUpdateProjectPolicy.Ask;
-    }
+    myUpdateProjectPolicy = myUpdateProjectPolicy == null ? CheckIOUpdateProjectPolicy.Ask : myUpdateProjectPolicy;
   }
 
   public CheckIOUpdateProjectPolicy getUpdateProjectPolicy() {
     return myUpdateProjectPolicy;
+  }
+
+  public CheckIOLanguage getLanguage() {
+    return myLanguage;
+  }
+
+  public void setLanguage(CheckIOLanguage language) {
+    myLanguage = language;
   }
 
   public void setUpdateProjectPolicy(@NotNull final CheckIOUpdateProjectPolicy updateProjectPolicy) {

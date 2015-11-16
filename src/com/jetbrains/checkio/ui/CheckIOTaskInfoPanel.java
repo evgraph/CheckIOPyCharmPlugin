@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class CheckIOTaskInfoPanel extends JPanel {
+class CheckIOTaskInfoPanel extends JPanel {
   private final CheckIOBrowserWindow myBrowserWindow;
 
 
