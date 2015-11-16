@@ -230,11 +230,9 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
 
     private void stopCheckingProcess() {
       final List<AnAction> actions = getActions(true);
-      for (AnAction action : actions) {
-        if (action instanceof CheckIOCheckSolutionAction) {
-          ((CheckIOCheckSolutionAction)action).cancelCheckingProcessProgressDisplaying();
-        }
-      }
+      actions.stream().filter(action -> action instanceof CheckIOCheckSolutionAction).forEach(action -> {
+        ((CheckIOCheckSolutionAction)action).cancelCheckingProcessProgressDisplaying();
+      });
     }
 
     private boolean isPublicationFileOfSelectedTaskFile(@Nullable final VirtualFile oldFile, @NotNull final Task task) {

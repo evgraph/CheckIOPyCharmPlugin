@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+@SuppressWarnings("ALL")
 public class CheckIOMissionGetter {
 
   private static final Logger LOG = Logger.getInstance(CheckIOMissionGetter.class.getName());
@@ -91,8 +92,8 @@ public class CheckIOMissionGetter {
   public static MissionWrapper[] getMissions(@NotNull final CheckIOLanguage language, @NotNull final String token, @NotNull final String sdk) throws IOException {
     MissionWrapper[] missionWrapper = new MissionWrapper[]{};
     try {
-      String langugeString = CheckIOLanguageBundle.message(language.toString().toLowerCase());
-      final HttpGet request = makeMissionsRequest(langugeString, token, sdk);
+      String languageString = CheckIOLanguageBundle.message(language.toString().toLowerCase());
+      final HttpGet request = makeMissionsRequest(languageString, token, sdk);
       LOG.info(CheckIOBundle.message("requesting.missions"));
       final HttpResponse response = requestMissions(request);
 
@@ -185,6 +186,7 @@ public class CheckIOMissionGetter {
     return contentTypeString + text.body().html();
   }
 
+  @SuppressWarnings("unused")
   public static class MissionWrapper {
     public boolean isPublished;
     public String code;

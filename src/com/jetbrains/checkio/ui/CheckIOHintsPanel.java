@@ -79,7 +79,7 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
     setPreferredSize(getPreferredSize());
   }
 
-  private ScrollablePanel getHintsPanel(@NotNull final List<String> hints) throws IOException {
+  private ScrollablePanel getHintsPanel(@NotNull final List<String> hints) {
     final ScrollablePanel panel = new ScrollablePanel(new GridBagLayout());
 
     final GridBagConstraints constraints = new GridBagConstraints();

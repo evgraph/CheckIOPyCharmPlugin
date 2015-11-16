@@ -37,7 +37,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public HashMap<String, Boolean> myPublicationStatusMap = new HashMap<>();
   public Task myLastSolvedTask;
   public HashMap<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
-  public HashMap<String, String> myInitialCodeForTask = new HashMap<>();
+  public final HashMap<String, String> myInitialCodeForTask = new HashMap<>();
 
 
   public CheckIOLanguage myLanguage;

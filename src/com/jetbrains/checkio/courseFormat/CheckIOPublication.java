@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
+@SuppressWarnings("unused")
 public class CheckIOPublication {
   public static final String PUBLICATION_URL = "http://www.checkio.org/oauth/authorize-token/";
   private final static String MISSION_PARAMETER_NAME = "mission";

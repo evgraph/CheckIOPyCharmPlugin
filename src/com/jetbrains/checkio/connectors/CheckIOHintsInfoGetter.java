@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 
 public class CheckIOHintsInfoGetter {
@@ -32,7 +33,7 @@ public class CheckIOHintsInfoGetter {
   private static final Logger LOG = Logger.getInstance(CheckIOHintsInfoGetter.class);
 
   private static class HintResponse {
-    public HintsWrapper[] objects;
+    @SuppressWarnings("unused") public HintsWrapper[] objects;
   }
 
   private static class HintsWrapper {
@@ -52,7 +53,7 @@ public class CheckIOHintsInfoGetter {
   }
 
 
-  public CheckIOHintsInfoGetter(@NotNull final String taskName, @NotNull final Project project) throws IOException {
+  public CheckIOHintsInfoGetter(@NotNull final String taskName, @NotNull final Project project) {
     myTaskName = taskName;
     myProject = project;
   }
@@ -90,11 +91,7 @@ public class CheckIOHintsInfoGetter {
 
   public ArrayList<String> getHintStrings() throws IOException {
     requestHints();
-    final ArrayList<String> hintStrings = new ArrayList<>();
-    for (Hint hint : mySeenHints) {
-      hintStrings.add(hint.answer);
-    }
-    return hintStrings;
+    return mySeenHints.stream().map(hint -> hint.answer).collect(Collectors.toCollection(ArrayList::new));
   }
 
   private Hint readNewHint() throws IOException {
