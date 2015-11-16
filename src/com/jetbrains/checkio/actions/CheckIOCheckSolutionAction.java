@@ -27,7 +27,7 @@ import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
-import com.jetbrains.checkio.UpdateProjectPolicy;
+import com.jetbrains.checkio.CheckIOUpdateProjectPolicy;
 import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
@@ -228,7 +228,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
                   .doNotAsk(option).show() != Messages.YES) {
               return;
             }
-            if (!(taskManager.getUpdateProjectPolicy() == UpdateProjectPolicy.Always)) {
+            if (!(taskManager.getUpdateProjectPolicy() == CheckIOUpdateProjectPolicy.Always)) {
               return;
             }
 
@@ -247,12 +247,12 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     return new DialogWrapper.DoNotAskOption() {
       @Override
       public boolean isToBeShown() {
-        return taskManager.getUpdateProjectPolicy() == UpdateProjectPolicy.Ask;
+        return taskManager.getUpdateProjectPolicy() == CheckIOUpdateProjectPolicy.Ask;
       }
 
       @Override
       public void setToBeShown(boolean value, int exitCode) {
-        taskManager.setUpdateProjectPolicy(exitCode == Messages.YES ? UpdateProjectPolicy.Always : UpdateProjectPolicy.Never);
+        taskManager.setUpdateProjectPolicy(exitCode == Messages.YES ? CheckIOUpdateProjectPolicy.Always : CheckIOUpdateProjectPolicy.Never);
       }
 
       @Override

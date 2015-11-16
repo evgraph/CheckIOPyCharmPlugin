@@ -1,5 +1,5 @@
 package com.jetbrains.checkio;
 
-public enum UpdateProjectPolicy {
+public enum CheckIOUpdateProjectPolicy {
   Always, Never, Ask
 }

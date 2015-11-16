@@ -30,7 +30,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public String refreshToken;
   private static Project ourProject;
 
-  public UpdateProjectPolicy myUpdateProjectPolicy;
+  public CheckIOUpdateProjectPolicy myUpdateProjectPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   public CheckIOUser myUser;
   public HashMap<String, Boolean> myPublicationStatusMap = new HashMap<>();
@@ -40,15 +40,15 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
 
   private CheckIOTaskManager() {
     if (myUpdateProjectPolicy == null) {
-      myUpdateProjectPolicy = UpdateProjectPolicy.Ask;
+      myUpdateProjectPolicy = CheckIOUpdateProjectPolicy.Ask;
     }
   }
 
-  public UpdateProjectPolicy getUpdateProjectPolicy() {
+  public CheckIOUpdateProjectPolicy getUpdateProjectPolicy() {
     return myUpdateProjectPolicy;
   }
 
-  public void setUpdateProjectPolicy(@NotNull final UpdateProjectPolicy updateProjectPolicy) {
+  public void setUpdateProjectPolicy(@NotNull final CheckIOUpdateProjectPolicy updateProjectPolicy) {
     this.myUpdateProjectPolicy = updateProjectPolicy;
   }
 
