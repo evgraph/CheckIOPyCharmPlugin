@@ -37,14 +37,14 @@ import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.util.List;
 
-public class CheckIOBrowserWindow extends JFrame {
+class CheckIOBrowserWindow extends JFrame {
   private static final String EVENT_TYPE_CLICK = "click";
   private JFXPanel myPanel;
   private WebView myWebComponent;
   private StackPane myPane;
 
   private WebEngine myEngine;
-  public ProgressBar myProgressBar;
+  private ProgressBar myProgressBar;
   private ChangeListener<Document> myDocumentChangeListener;
   private boolean refInNewBrowser;
   private boolean showProgress = true;
@@ -170,16 +170,18 @@ public class CheckIOBrowserWindow extends JFrame {
       if (domEventType.equals(EVENT_TYPE_CLICK)) {
         myEngine.setJavaScriptEnabled(true);
         myEngine.getLoadWorker().cancel();
-
-        final String href = ((Element)ev.getTarget()).getAttribute("href");
-        final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow();
-        checkIOBrowserWindow.addBackAndOpenButtons();
-        checkIOBrowserWindow.openLinkInNewWindow(false);
-        checkIOBrowserWindow.setShowProgress(true);
-        checkIOBrowserWindow.load(href);
-        checkIOBrowserWindow.setVisible(true);
-
         ev.preventDefault();
+
+        ApplicationManager.getApplication().invokeLater(() -> {
+          final String href = ((Element)ev.getTarget()).getAttribute("href");
+          final CheckIOBrowserWindow checkIOBrowserWindow = new CheckIOBrowserWindow();
+          checkIOBrowserWindow.addBackAndOpenButtons();
+          checkIOBrowserWindow.openLinkInNewWindow(false);
+          checkIOBrowserWindow.setShowProgress(true);
+          checkIOBrowserWindow.load(href);
+          checkIOBrowserWindow.setVisible(true);
+        });
+
       }
     };
   }
