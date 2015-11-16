@@ -28,7 +28,6 @@ import java.io.IOException;
 
 
 class CheckIOTestResultsPanel extends JPanel {
-  private static final Logger LOG = Logger.getInstance(CheckIOTestResultsPanel.class);
   private final CheckIOBrowserWindow myBrowserWindow;
 
   public CheckIOTestResultsPanel() {

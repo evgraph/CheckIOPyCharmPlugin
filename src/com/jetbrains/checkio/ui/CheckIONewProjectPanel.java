@@ -9,7 +9,7 @@ import javax.swing.*;
 public class CheckIONewProjectPanel {
   private JLabel myLanguageLabel;
   private JComboBox myLanguageComboBox;
-  private JPanel myPanel;
+  @SuppressWarnings("unused") private JPanel myPanel;
 
   private void createUIComponents() {
     EnumComboBoxModel<CheckIOLanguage> comboBoxModel = new EnumComboBoxModel<>(CheckIOLanguage.class);

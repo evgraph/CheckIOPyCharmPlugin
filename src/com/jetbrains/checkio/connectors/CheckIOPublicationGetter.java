@@ -25,7 +25,7 @@ import java.util.HashMap;
 
 public class CheckIOPublicationGetter {
   private static final String DEFAULT_PUBLICATION_PAGE_NUMBER = "1";
-  private static int displayedPublicationNumber = 10;
+  private static final int displayedPublicationNumber = 10;
   private static final Logger LOG = Logger.getInstance(CheckIOPublication.class);
 
   public static String getAddPublicationLink(@NotNull final Project project, @NotNull final Task task) throws IOException {
@@ -132,6 +132,7 @@ public class CheckIOPublicationGetter {
   }
 
   private static class PublicationCategoryWrapper {
+    @SuppressWarnings("unused")
     static class PublicationCategory {
       int id;
       int PublicationCount;
@@ -145,6 +146,7 @@ public class CheckIOPublicationGetter {
     CheckIOPublication[] objects;
   }
 
+  @SuppressWarnings("unused")
   static class PublicationWrapper {
     private String code;
     private String category;

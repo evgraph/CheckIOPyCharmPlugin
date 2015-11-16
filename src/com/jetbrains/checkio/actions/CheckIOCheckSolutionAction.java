@@ -124,8 +124,6 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
   private void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
     try {
-
-      final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
       final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
       checkIOToolWindow.checkAndShowResults(task, code);
     }
@@ -140,8 +138,8 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   }
 
   public class TestResultHandler {
-    private Project myProject;
-    private Task myTask;
+    private final Project myProject;
+    private final Task myTask;
 
     public TestResultHandler(@NotNull final Project project, @NotNull final Task task) {
       myProject = project;

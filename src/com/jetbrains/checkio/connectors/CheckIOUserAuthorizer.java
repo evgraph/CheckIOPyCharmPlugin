@@ -91,7 +91,7 @@ public class CheckIOUserAuthorizer {
     getAndSetTokens(request);
   }
 
-  public void setTokensFirstTime(@Nullable final String code) throws IOException {
+  private void setTokensFirstTime(@Nullable final String code) throws IOException {
     if (code != null) {
       final HttpUriRequest request = makeAccessTokenRequest(code);
       getAndSetTokens(request);
@@ -101,7 +101,7 @@ public class CheckIOUserAuthorizer {
     }
   }
 
-  public void startServer() {
+  private void startServer() {
     myServer = new Server(ourPort);
     MyContextHandler contextHandler = new MyContextHandler();
     getServer().setHandler(contextHandler);
@@ -220,7 +220,7 @@ public class CheckIOUserAuthorizer {
     }
   }
 
-  public Server getServer() {
+  private Server getServer() {
     return myServer;
   }
 

@@ -35,13 +35,11 @@ import java.util.Map;
 
 public class CheckIOProjectComponent implements ProjectComponent {
   private final Project myProject;
-  private Map<Keymap, List<Pair<String, String>>> myDeletedShortcuts = new HashMap<>();
+  private final Map<Keymap, List<Pair<String, String>>> myDeletedShortcuts = new HashMap<>();
 
   private CheckIOProjectComponent(Project project) {
     myProject = project;
   }
-
-
 
   @Override
   public void projectOpened() {

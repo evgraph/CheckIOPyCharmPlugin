@@ -10,7 +10,7 @@ import com.jetbrains.checkio.CheckIOUpdateProjectPolicy;
 import javax.swing.*;
 
 
-public class CheckIOSettingsPanel {
+class CheckIOSettingsPanel {
   public JPanel myPanel;
   private JComboBox myUpdateProjectComboBox;
   private JLabel myLanguageLabel;
