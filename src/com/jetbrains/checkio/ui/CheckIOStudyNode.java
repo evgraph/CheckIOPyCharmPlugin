@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 
 
-public class CheckIOStudyNode extends StudyDirectoryNode {
+class CheckIOStudyNode extends StudyDirectoryNode {
   public CheckIOStudyNode(@NotNull Project project,
                           PsiDirectory value,
                           ViewSettings viewSettings) {

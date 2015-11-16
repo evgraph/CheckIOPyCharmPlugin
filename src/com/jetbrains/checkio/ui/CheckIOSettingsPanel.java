@@ -13,18 +13,25 @@ import javax.swing.*;
 public class CheckIOSettingsPanel {
   public JPanel myPanel;
   private JComboBox myUpdateProjectComboBox;
-  private JLabel myLabel;
+  private JLabel myLanguageLabel;
+  private JComboBox myLanguageComboBox;
 
   public CheckIOSettingsPanel() {
     final Project project = ProjectUtil.guessCurrentProject(myPanel);
     final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
+
     myUpdateProjectComboBox.setSelectedItem(manager.getUpdateProjectPolicy());
     myUpdateProjectComboBox.addItemListener(e -> manager.setUpdateProjectPolicy((CheckIOUpdateProjectPolicy)e.getItem()));
+
+    myLanguageComboBox.setSelectedItem(manager.getLanguage());
+    myLanguageComboBox.addItemListener(e -> manager.setLanguage((CheckIOLanguage)e.getItem()));
   }
 
   private void createUIComponents() {
-    final EnumComboBoxModel<CheckIOUpdateProjectPolicy> comboBoxModel = new EnumComboBoxModel<>(CheckIOUpdateProjectPolicy.class);
-    myUpdateProjectComboBox = new ComboBox(comboBoxModel);
+    final EnumComboBoxModel<CheckIOUpdateProjectPolicy> updateComboBoxModel = new EnumComboBoxModel<>(CheckIOUpdateProjectPolicy.class);
+    myUpdateProjectComboBox = new ComboBox(updateComboBoxModel);
+    EnumComboBoxModel<CheckIOLanguage> languagesEnumComboBoxModel = new EnumComboBoxModel<>(CheckIOLanguage.class);
+    myLanguageComboBox = new ComboBox(languagesEnumComboBoxModel);
   }
 
 

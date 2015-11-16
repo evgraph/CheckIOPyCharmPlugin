@@ -28,6 +28,7 @@ import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOIcons;
+import com.jetbrains.checkio.ui.CheckIONewProjectPanel;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
@@ -57,6 +58,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   private CheckIOUser user;
   private String accessToken;
   private String refreshToken;
+  private CheckIONewProjectPanel myProjectPanel;
 
   private void setParametersInTaskManager(@NotNull Project project) {
     if (!checkIfUserOrAccessTokenIsNull()) {
@@ -105,6 +107,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
     setParametersInTaskManager(project);
     final Course course = CheckIOMissionGetter.getCourseForProjectAndUpdateCourseInfo(project, myMissionWrappers);
     StudyTaskManager.getInstance(project).setCourse(course);
+    CheckIOTaskManager.getInstance(project).setLanguage(myProjectPanel.getSelectedLanguage());
     DumbService.allowStartingDumbModeInside(DumbModePermission.MAY_START_BACKGROUND, () ->
       ApplicationManager.getApplication().runWriteAction(() -> {
         final File courseDirectory = new File(ourCourseDir, course.getName());
@@ -141,6 +144,13 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   }
 
 
+  @Nullable
+  @Override
+  public JPanel extendBasePanel() throws ProcessCanceledException {
+    myProjectPanel = new CheckIONewProjectPanel();
+    return myProjectPanel.getMainPanel();
+  }
+
   private void authorizeUserAndGetMissions(@NotNull final Sdk sdk) {
     try {
       LOG.info("Starting authorization");
@@ -151,7 +161,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
       if (accessToken != null) {
         try {
           LOG.info("Getting missions");
-          myMissionWrappers = CheckIOMissionGetter.getMissions(accessToken, CheckIOUtils.getFormattedSdkName(sdk));
+          myMissionWrappers = CheckIOMissionGetter.getMissions(myProjectPanel.getSelectedLanguage(), accessToken, CheckIOUtils.getFormattedSdkName(sdk));
         }
         catch (IOException e) {
           LOG.warn(e.getMessage());

@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.ui.CheckIOLanguage;
 import com.jetbrains.edu.courseFormat.*;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.python.PythonLanguage;
@@ -43,7 +44,8 @@ public class CheckIOMissionGetter {
   public static Course getMissionsAndUpdateCourse(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
     final String sdk = CheckIOUtils.getInterpreterAsString(project);
-    final MissionWrapper[] missionWrappers = getMissions(manager.getAccessTokenAndUpdateIfNeeded(), sdk);
+    final CheckIOLanguage language = CheckIOTaskManager.getInstance(project).getLanguage();
+    final MissionWrapper[] missionWrappers = getMissions(language, manager.getAccessTokenAndUpdateIfNeeded(), sdk);
     return getCourseForProjectAndUpdateCourseInfo(project, missionWrappers);
   }
 
@@ -75,7 +77,8 @@ public class CheckIOMissionGetter {
   public static boolean isTokenUpToDate(@NotNull final String token, @NotNull final String sdk) throws IOException {
     boolean hasUnauthorizedStatusCode = false;
     try {
-      final HttpGet request = makeMissionsRequest(token, sdk);
+      final HttpGet request = makeMissionsRequest(CheckIOLanguageBundle.message(CheckIOLanguage.English.toString().toLowerCase()),
+                                                  token, sdk);
       final HttpResponse response = requestMissions(request);
       hasUnauthorizedStatusCode = response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED;
     }
@@ -85,10 +88,11 @@ public class CheckIOMissionGetter {
     return !hasUnauthorizedStatusCode;
   }
 
-  public static MissionWrapper[] getMissions(@NotNull final String token, @NotNull final String sdk) throws IOException {
+  public static MissionWrapper[] getMissions(@NotNull final CheckIOLanguage language, @NotNull final String token, @NotNull final String sdk) throws IOException {
     MissionWrapper[] missionWrapper = new MissionWrapper[]{};
     try {
-      final HttpGet request = makeMissionsRequest(token, sdk);
+      String langugeString = CheckIOLanguageBundle.message(language.toString().toLowerCase());
+      final HttpGet request = makeMissionsRequest(langugeString, token, sdk);
       LOG.info(CheckIOBundle.message("requesting.missions"));
       final HttpResponse response = requestMissions(request);
 
@@ -144,11 +148,12 @@ public class CheckIOMissionGetter {
   }
 
 
-  private static HttpGet makeMissionsRequest(@NotNull final String token, @NotNull final String sdk) throws URISyntaxException {
+  private static HttpGet makeMissionsRequest(@NotNull final String language, @NotNull final String token, @NotNull final String sdk) throws URISyntaxException {
     URI uri = new URIBuilder(CheckIOConnectorBundle.message
       ("missions.url", CheckIOConnectorBundle.message("api.url")))
       .addParameter(CheckIOConnectorBundle.message("token.parameter.name"), token)
       .addParameter(CheckIOConnectorBundle.message("interpreter.parameter.name"), sdk)
+      .addParameter("language", language)
       .build();
     return new HttpGet(uri);
   }
