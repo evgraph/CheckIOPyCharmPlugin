@@ -34,10 +34,10 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public CheckIOUpdateProjectPolicy myUpdateProjectPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   public CheckIOUser myUser;
-  public HashMap<String, Boolean> myPublicationStatusMap = new HashMap<>();
+  public Map<String, Boolean> myPublicationStatusMap = new HashMap<>();
+  public final Map<String, String> myInitialCodeForTask = new HashMap<>();
   public Task myLastSolvedTask;
-  public HashMap<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
-  public final HashMap<String, String> myInitialCodeForTask = new HashMap<>();
+  public Map<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
 
 
   public CheckIOLanguage myLanguage;
@@ -141,7 +141,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     myPublicationsForLastSolvedTask = publications;
   }
 
-  public HashMap<String, CheckIOPublication[]> getPublicationsForLastSolvedTask(@NotNull final Task task) {
+  public Map<String, CheckIOPublication[]> getPublicationsForLastSolvedTask(@NotNull final Task task) {
     if (myLastSolvedTask == task) {
       return myPublicationsForLastSolvedTask;
     }

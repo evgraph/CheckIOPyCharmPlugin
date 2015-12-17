@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Map;
 
 
 public class CheckIOShowPublicationsAction extends AnAction {
@@ -62,7 +62,7 @@ public class CheckIOShowPublicationsAction extends AnAction {
                                                                                         @NotNull final Task task) {
     return new com.intellij.openapi.progress.Task.Backgroundable(project,
                                                                  CheckIOBundle.message("action.show.publication.downloading.message"), true) {
-      private HashMap<String, CheckIOPublication[]> myPublications;
+      private Map<String, CheckIOPublication[]> myPublications;
 
       @Override
       public void onCancel() {
@@ -94,7 +94,7 @@ public class CheckIOShowPublicationsAction extends AnAction {
         }
       }
 
-      private void showPublicationsInToolWindowByCategory(@NotNull final HashMap<String, CheckIOPublication[]> publications)
+      private void showPublicationsInToolWindowByCategory(@NotNull final Map<String, CheckIOPublication[]> publications)
         throws IllegalStateException {
 
         final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
@@ -105,9 +105,9 @@ public class CheckIOShowPublicationsAction extends AnAction {
     };
   }
 
-  private static HashMap<String, CheckIOPublication[]> tryToGetPublicationsFromCache(@NotNull final Project project,
-                                                                                     @NotNull final Task task) throws IOException {
-    final HashMap<String, CheckIOPublication[]> publicationsForLastSolvedTask =
+  private static Map<String, CheckIOPublication[]> tryToGetPublicationsFromCache(@NotNull final Project project,
+                                                                                 @NotNull final Task task) throws IOException {
+    final Map<String, CheckIOPublication[]> publicationsForLastSolvedTask =
       CheckIOTaskManager.getInstance(project).getPublicationsForLastSolvedTask(task);
     if (publicationsForLastSolvedTask == null) {
       return CheckIOPublicationGetter.getPublicationsForTaskAndCreatePublicationFiles(task);
