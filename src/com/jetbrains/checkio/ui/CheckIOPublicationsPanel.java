@@ -36,13 +36,14 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class CheckIOPublicationsPanel extends JPanel {
   private static final Logger LOG = Logger.getInstance(CheckIOPublicationsPanel.class);
   private final Project myProject;
-  private HashMap<String, CheckIOPublication[]> myCategoryArrayListHashMap;
+  private Map<String, CheckIOPublication[]> myCategoryArrayListHashMap;
   private PublicationInfoPanel publicationInfoPanel;
   private JScrollPane mySolutionTreePanel;
   private JPanel myButtonPanel;
@@ -53,7 +54,7 @@ public class CheckIOPublicationsPanel extends JPanel {
     myProject = project;
   }
 
-  public void update(@NotNull final HashMap<String, CheckIOPublication[]> publicationsByCategory,
+  public void update(@NotNull final Map<String, CheckIOPublication[]> publicationsByCategory,
                      @NotNull final JPanel buttonPanel) throws IllegalStateException {
     this.removeAll();
     setLayout(new BorderLayout());
