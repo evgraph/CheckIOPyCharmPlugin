@@ -8,7 +8,6 @@ import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
-import com.jetbrains.checkio.ui.CheckIOLanguage;
 import com.jetbrains.edu.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,8 +29,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public String accessToken;
   public String refreshToken;
   private static Project ourProject;
-
-  public CheckIOUpdateProjectPolicy myUpdateProjectPolicy;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   public CheckIOUser myUser;
   public Map<String, Boolean> myPublicationStatusMap = new HashMap<>();
@@ -39,28 +36,7 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   public Task myLastSolvedTask;
   public Map<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
 
-
-  public CheckIOLanguage myLanguage;
-
-  private CheckIOTaskManager() {
-    myUpdateProjectPolicy = myUpdateProjectPolicy == null ? CheckIOUpdateProjectPolicy.Ask : myUpdateProjectPolicy;
-  }
-
-  public CheckIOUpdateProjectPolicy getUpdateProjectPolicy() {
-    return myUpdateProjectPolicy;
-  }
-
-  public CheckIOLanguage getLanguage() {
-    return myLanguage;
-  }
-
-  public void setLanguage(CheckIOLanguage language) {
-    myLanguage = language;
-  }
-
-  public void setUpdateProjectPolicy(@NotNull final CheckIOUpdateProjectPolicy updateProjectPolicy) {
-    this.myUpdateProjectPolicy = updateProjectPolicy;
-  }
+  private CheckIOTaskManager() { }
 
   public static CheckIOTaskManager getInstance(@NotNull final Project project) {
     ourProject = project;

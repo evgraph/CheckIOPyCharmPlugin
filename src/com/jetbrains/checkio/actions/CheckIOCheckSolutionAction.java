@@ -33,6 +33,7 @@ import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
+import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
@@ -147,19 +148,21 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     }
 
     // Used in JavaScript listener for test complete event
+    @SuppressWarnings("unused")
     public void handleTestEvent(int result) {
       ApplicationManager.getApplication().invokeLater(() -> {
-        final com.intellij.openapi.progress.Task.Backgroundable checkTask = getCheckTask(result);
-        checkTask.queue();
         checkInProgress = false;
+        setStatusAndShowResults(result);
+        com.intellij.openapi.progress.Task.Backgroundable task = getAfterCheckTask(result);
+        ProgressManager.getInstance().run(task);
       });
     }
 
-    private com.intellij.openapi.progress.Task.Backgroundable getCheckTask(int result) {
-      return new com.intellij.openapi.progress.Task.Backgroundable(myProject, CheckIOBundle.message("action.checking.task")) {
+    private com.intellij.openapi.progress.Task.Backgroundable getAfterCheckTask(final int result) {
+      return new com.intellij.openapi.progress.Task.Backgroundable(myProject, CheckIOBundle.message("updating.task.info")) {
+
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
-          setStatusAndShowResults(result);
           if (result == 1) {
             try {
               CheckIOMissionGetter.getMissionsAndUpdateCourse(myProject);
@@ -228,7 +231,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
                   .doNotAsk(option).show() != Messages.YES) {
               return;
             }
-            if (!(taskManager.getUpdateProjectPolicy() == CheckIOUpdateProjectPolicy.Always)) {
+            if (!(CheckIOSettings.getInstance().getProjectPolicy() == CheckIOUpdateProjectPolicy.Always)) {
               return;
             }
 
@@ -247,12 +250,13 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     return new DialogWrapper.DoNotAskOption() {
       @Override
       public boolean isToBeShown() {
-        return taskManager.getUpdateProjectPolicy() == CheckIOUpdateProjectPolicy.Ask;
+        return CheckIOSettings.getInstance().getProjectPolicy() == CheckIOUpdateProjectPolicy.Ask;
       }
 
       @Override
       public void setToBeShown(boolean value, int exitCode) {
-        taskManager.setUpdateProjectPolicy(exitCode == Messages.YES ? CheckIOUpdateProjectPolicy.Always : CheckIOUpdateProjectPolicy.Never);
+        CheckIOSettings.getInstance().setProjectPolicy(exitCode == Messages.YES ?
+                                                       CheckIOUpdateProjectPolicy.Always : CheckIOUpdateProjectPolicy.Never);
       }
 
       @Override
