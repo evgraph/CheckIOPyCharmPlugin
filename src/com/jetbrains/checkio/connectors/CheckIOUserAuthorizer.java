@@ -10,13 +10,13 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -54,6 +54,7 @@ public class CheckIOUserAuthorizer {
 
   private CheckIOUserAuthorizer() {
     loadProperties();
+
   }
 
   public static CheckIOUserAuthorizer getInstance() {
@@ -69,10 +70,10 @@ public class CheckIOUserAuthorizer {
     return authorizer;
   }
 
-  public CheckIOUser authorizeAndGetUser() throws IOException {
+  public CheckIOUser authorizeAndGetUser(String proxyIp, String proxyPort) throws IOException {
     try {
       if (getServer() == null || !getServer().isRunning()) {
-        startServer();
+        startServer(proxyIp, proxyPort);
         LOG.info("Server started");
       }
       openAuthorizationPage();
@@ -83,27 +84,29 @@ public class CheckIOUserAuthorizer {
       LOG.warn(e.getMessage());
     }
 
-    return getUser(getAccessToken());
+    return getUser(getAccessToken(), proxyIp, proxyPort);
   }
 
   public void setTokensFromRefreshToken(@NotNull final String refreshToken) throws IOException {
-    final HttpUriRequest request = makeRefreshTokenRequest(refreshToken);
-    getAndSetTokens(request);
+    final HttpPost request = makeRefreshTokenRequest(refreshToken);
+    getAndSetTokens(request, CheckIOConnectorsUtil.getRequestConfig());
   }
 
-  private void setTokensFirstTime(@Nullable final String code) throws IOException {
+  private void setTokensFirstTime(@Nullable final String code,
+                                  @NotNull final String proxyIp,
+                                  @NotNull final String proxyCode) throws IOException {
     if (code != null) {
-      final HttpUriRequest request = makeAccessTokenRequest(code);
-      getAndSetTokens(request);
+      final HttpPost request = makeAccessTokenRequest(code);
+      getAndSetTokens(request, CheckIOConnectorsUtil.getRequestConfig(proxyIp, proxyCode));
     }
     else {
       throw new IOException("Code is null");
     }
   }
 
-  private void startServer() {
+  private void startServer(@NotNull final  String proxyIp, @NotNull final String proxyPort) {
     myServer = new Server(ourPort);
-    MyContextHandler contextHandler = new MyContextHandler();
+    MyContextHandler contextHandler = new MyContextHandler(proxyIp, proxyPort);
     getServer().setHandler(contextHandler);
     try {
       getServer().start();
@@ -131,21 +134,36 @@ public class CheckIOUserAuthorizer {
     }
   }
 
-  public CheckIOUser getUser(@NotNull final String accessToken) throws IOException {
+  public CheckIOUser getUser(@NotNull final String accessToken) {
+    RequestConfig config = CheckIOConnectorsUtil.getRequestConfig();
+    return getUser(config, accessToken);
+  }
+
+  public CheckIOUser getUser(@NotNull final String accessToken,
+                             @NotNull final String proxyIp,
+                             @NotNull final String proxyPort) throws IOException {
+    RequestConfig config = CheckIOConnectorsUtil.getRequestConfig(proxyIp, proxyPort);
+    return getUser(config, accessToken);
+  }
+
+
+  private CheckIOUser getUser(@NotNull final RequestConfig config, @NotNull final String accessToken) {
     CheckIOUser user = new CheckIOUser();
     try {
+
       final URI uri = new URIBuilder(CheckIOConnectorBundle.message("userinfo.url", CheckIOConnectorBundle.message("checkio.url")))
         .addParameter(CheckIOConnectorBundle.message("access.token.parameter"), accessToken)
         .build();
-      final HttpUriRequest request = new HttpGet(uri);
-      final CloseableHttpClient client = HttpClientBuilder.create().build();
-      final HttpResponse response = client.execute(request);
-      final HttpEntity entity = response.getEntity();
-      final String userInfo = EntityUtils.toString(entity);
-      final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-      user = gson.fromJson(userInfo, CheckIOUser.class);
+      final HttpGet request = new HttpGet(uri);
+      final HttpResponse response = executeRequestWithConfig(request, config);
+      if (response != null) {
+        final HttpEntity entity = response.getEntity();
+        final String userInfo = EntityUtils.toString(entity);
+        final Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        user = gson.fromJson(userInfo, CheckIOUser.class);
+      }
     }
-    catch (URISyntaxException e) {
+    catch (URISyntaxException | IOException e) {
       LOG.warn(e.getMessage());
     }
     return user;
@@ -164,7 +182,7 @@ public class CheckIOUserAuthorizer {
     }
   }
 
-  private static HttpUriRequest makeRefreshTokenRequest(@NotNull final String refreshToken) {
+  private static HttpPost makeRefreshTokenRequest(@NotNull final String refreshToken) {
     final HttpPost request = new HttpPost(CheckIOConnectorBundle.message("token.url", CheckIOConnectorBundle.message("checkio.url")));
     try {
       final List<NameValuePair> requestParameters = new ArrayList<>();
@@ -186,7 +204,7 @@ public class CheckIOUserAuthorizer {
     return request;
   }
 
-  private static HttpUriRequest makeAccessTokenRequest(@NotNull final String code) {
+  private static HttpPost makeAccessTokenRequest(@NotNull final String code) {
     final HttpPost request = new HttpPost(CheckIOConnectorBundle.message("token.url", CheckIOConnectorBundle.message("checkio.url")));
     try {
       final List<NameValuePair> requestParameters = new ArrayList<>();
@@ -209,11 +227,10 @@ public class CheckIOUserAuthorizer {
     return request;
   }
 
-  private void getAndSetTokens(@NotNull final HttpUriRequest request) throws IOException {
-    final CloseableHttpClient client = HttpClientBuilder.create().build();
-    final HttpResponse response = client.execute(request);
+  private void getAndSetTokens(@NotNull final HttpRequestBase request, RequestConfig config) throws IOException {
+    final HttpResponse response = executeRequestWithConfig(request, config);
 
-    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+    if (response != null && response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
       JSONObject jsonObject = new JSONObject(EntityUtils.toString(response.getEntity()));
       myAccessToken = jsonObject.getString(CheckIOConnectorBundle.message("access.token.parameter"));
       myRefreshToken = jsonObject.getString(CheckIOConnectorBundle.message("refresh.token.parameter"));
@@ -232,7 +249,27 @@ public class CheckIOUserAuthorizer {
     return myRefreshToken;
   }
 
+  @Nullable
+  private HttpResponse executeRequestWithConfig(@NotNull final HttpRequestBase request, @NotNull final RequestConfig config) {
+    request.setConfig(config);
+    try {
+      return HttpClientBuilder.create().build().execute(request);
+    }
+    catch (IOException e) {
+      LOG.warn(e.getMessage());
+    }
+    return null;
+  }
+
   private class MyContextHandler extends AbstractHandler {
+    private final String myProxyIp;
+    private final String myProxyPort;
+
+    public MyContextHandler(String proxyIp, String proxyPort) {
+      myProxyIp = proxyIp;
+      myProxyPort = proxyPort;
+    }
+
     @Override
     public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
       LOG.info("Handling auth response");
@@ -243,7 +280,7 @@ public class CheckIOUserAuthorizer {
 
         os.write(IOUtils.getInputStreamBytes(getClass().getResourceAsStream("/style/authorizationPage.html")));
         os.close();
-        setTokensFirstTime(code);
+        setTokensFirstTime(code, myProxyIp, myProxyPort);
       }
       catch (IOException e) {
         stopServerInNewThread();

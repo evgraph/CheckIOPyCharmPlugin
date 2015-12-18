@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
+import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.ui.CheckIOLanguage;
@@ -13,9 +14,9 @@ import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.python.PythonLanguage;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-@SuppressWarnings("ALL")
 public class CheckIOMissionGetter {
 
   private static final Logger LOG = Logger.getInstance(CheckIOMissionGetter.class.getName());
@@ -44,9 +44,11 @@ public class CheckIOMissionGetter {
 
   public static Course getMissionsAndUpdateCourse(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
+    final CheckIOSettings settings = CheckIOSettings.getInstance();
     final String sdk = CheckIOUtils.getInterpreterAsString(project);
-    final CheckIOLanguage language = CheckIOTaskManager.getInstance(project).getLanguage();
-    final MissionWrapper[] missionWrappers = getMissions(language, manager.getAccessTokenAndUpdateIfNeeded(), sdk);
+    final CheckIOLanguage language = settings.getLanguage();
+    final MissionWrapper[] missionWrappers = getMissions(settings.getProxyIp(), settings.getProxyPort(),
+                                                         language, manager.getAccessTokenAndUpdateIfNeeded(), sdk);
     return getCourseForProjectAndUpdateCourseInfo(project, missionWrappers);
   }
 
@@ -75,12 +77,13 @@ public class CheckIOMissionGetter {
     return course;
   }
 
-  public static boolean isTokenUpToDate(@NotNull final String token, @NotNull final String sdk) throws IOException {
+  public static boolean isTokenUpToDate(@NotNull final String token,
+                                        @NotNull final String sdk) throws IOException {
     boolean hasUnauthorizedStatusCode = false;
     try {
-      final HttpGet request = makeMissionsRequest(CheckIOLanguageBundle.message(CheckIOLanguage.English.toString().toLowerCase()),
-                                                  token, sdk);
-      final HttpResponse response = requestMissions(request);
+      CheckIOSettings settings = CheckIOSettings.getInstance();
+      final HttpGet request = makeMissionsRequest(settings.getLanguage().toString(), token, sdk);
+      final HttpResponse response = requestMissions(CheckIOConnectorsUtil.getRequestConfig(), request);
       hasUnauthorizedStatusCode = response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED;
     }
     catch (URISyntaxException e) {
@@ -89,13 +92,15 @@ public class CheckIOMissionGetter {
     return !hasUnauthorizedStatusCode;
   }
 
-  public static MissionWrapper[] getMissions(@NotNull final CheckIOLanguage language, @NotNull final String token, @NotNull final String sdk) throws IOException {
+  public static MissionWrapper[] getMissions(@NotNull final String proxyIp, @NotNull final String proxyPort,
+                                             @NotNull final CheckIOLanguage language, @NotNull final String token,
+                                             @NotNull final String sdk) throws IOException {
     MissionWrapper[] missionWrapper = new MissionWrapper[]{};
     try {
-      String languageString = CheckIOLanguageBundle.message(language.toString().toLowerCase());
+      final String languageString = CheckIOLanguageBundle.message(language.toString().toLowerCase());
       final HttpGet request = makeMissionsRequest(languageString, token, sdk);
       LOG.info(CheckIOBundle.message("requesting.missions"));
-      final HttpResponse response = requestMissions(request);
+      final HttpResponse response = requestMissions(CheckIOConnectorsUtil.getRequestConfig(proxyIp, proxyPort), request);
 
       String missions = EntityUtils.toString(response.getEntity());
       final Gson gson = new GsonBuilder().create();
@@ -149,28 +154,33 @@ public class CheckIOMissionGetter {
   }
 
 
-  private static HttpGet makeMissionsRequest(@NotNull final String language, @NotNull final String token, @NotNull final String sdk) throws URISyntaxException {
+  private static HttpGet makeMissionsRequest( @NotNull final String language,
+                                             @NotNull final String token,
+                                             @NotNull final String sdk) throws URISyntaxException {
     URI uri = new URIBuilder(CheckIOConnectorBundle.message
       ("missions.url", CheckIOConnectorBundle.message("api.url")))
       .addParameter(CheckIOConnectorBundle.message("token.parameter.name"), token)
       .addParameter(CheckIOConnectorBundle.message("interpreter.parameter.name"), sdk)
       .addParameter("language", language)
       .build();
+
     return new HttpGet(uri);
   }
 
 
-  private static HttpResponse requestMissions(@NotNull final HttpGet request) throws IOException {
-    final CloseableHttpClient client = HttpClientBuilder.create().build();
-    return client.execute(request);
+  private static HttpResponse requestMissions(@NotNull final RequestConfig config, @NotNull final HttpGet request) throws IOException {
+    request.setConfig(config);
+    return HttpClientBuilder.create().build().execute(request);
   }
 
+  @NotNull
   private static Task createTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
     final Task task = new Task(missionWrapper.slug);
     task.setText(getDocumentTextWithoutCodeBlock(missionWrapper.description));
     return task;
   }
 
+  @NotNull
   private static String getDocumentTextWithoutCodeBlock(@NotNull final String taskHtml) {
     final String contentTypeString = "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" /> \n";
 
