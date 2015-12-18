@@ -5,16 +5,16 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ArrayUtil;
 import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,25 +37,21 @@ public class CheckIOHintsInfoGetter {
   }
 
   private static class HintsWrapper {
-    public String slug;
     public Hint[] hints;
     public int id;
     public int totalHintsCount;
-    public CheckIOUser author;
   }
 
   private static class Hint {
     String answer;
-    String question;
-    boolean isRead;
     int id;
-    int step;
   }
 
 
   public CheckIOHintsInfoGetter(@NotNull final String taskName, @NotNull final Project project) {
     myTaskName = taskName;
     myProject = project;
+
   }
 
   private void requestHints() throws IOException {
@@ -63,7 +59,7 @@ public class CheckIOHintsInfoGetter {
     final HintResponse hintResponse = requestHintsList(token, myTaskName);
     if (hintResponse != null && hintResponse.objects != null) {
       for (HintsWrapper wrapper : hintResponse.objects) {
-        Collections.addAll(mySeenHints, Arrays.copyOfRange(wrapper.hints, 0, wrapper.hints.length - 1));
+        Collections.addAll(mySeenHints, Arrays.copyOfRange(wrapper.hints, 0, Math.max(wrapper.hints.length - 1, 0)));
         myUnseenHint = ArrayUtil.getLastElement(wrapper.hints);
         readRemainingHints(wrapper);
       }
@@ -94,6 +90,7 @@ public class CheckIOHintsInfoGetter {
     return mySeenHints.stream().map(hint -> hint.answer).collect(Collectors.toCollection(ArrayList::new));
   }
 
+  @Nullable
   private Hint readNewHint() throws IOException {
     final String token = CheckIOTaskManager.getInstance(myProject).getAccessTokenAndUpdateIfNeeded();
     if (myUnseenHint != null) {
@@ -105,10 +102,11 @@ public class CheckIOHintsInfoGetter {
           .build();
         final HttpPut httpPut = new HttpPut(hintUri);
         httpPut.setEntity(new StringEntity(new GsonBuilder().create().toJson(myUnseenHint)));
-        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-        final CloseableHttpResponse response = httpClient.execute(httpPut);
-        String entity = EntityUtils.toString(response.getEntity());
-        return new GsonBuilder().create().fromJson(entity, Hint.class);
+        CloseableHttpResponse response = executeRequest(httpPut);
+        if (response != null) {
+          String entity = EntityUtils.toString(response.getEntity());
+          return new GsonBuilder().create().fromJson(entity, Hint.class);
+        }
       }
       catch (URISyntaxException e) {
         LOG.warn(e.getMessage());
@@ -118,20 +116,35 @@ public class CheckIOHintsInfoGetter {
   }
 
 
-  private static HintResponse requestHintsList(@NotNull final String token, @NotNull final String taskName) throws IOException {
+  private HintResponse requestHintsList(@NotNull final String token, @NotNull final String taskName) throws IOException {
     try {
       URI hintListUri = new URIBuilder(CheckIOConnectorBundle.message
         ("hints.url", CheckIOConnectorBundle.message("api.url")))
         .addParameter(CheckIOConnectorBundle.message("task.slug.parameter.name"), taskName)
         .addParameter(CheckIOConnectorBundle.message("token.parameter.name"), token)
         .build();
+
       final HttpGet request = new HttpGet(hintListUri);
-      final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-      CloseableHttpResponse httpResponse = httpClient.execute(request);
-      String entity = EntityUtils.toString(httpResponse.getEntity());
-      return new GsonBuilder().create().fromJson(entity, HintResponse.class);
+      CloseableHttpResponse httpResponse = executeRequest(request);
+      if (httpResponse != null) {
+        String entity = EntityUtils.toString(httpResponse.getEntity());
+        return new GsonBuilder().create().fromJson(entity, HintResponse.class);
+      }
     }
     catch (URISyntaxException e) {
+      LOG.warn(e.getMessage());
+    }
+    return null;
+  }
+
+  @Nullable
+  private CloseableHttpResponse executeRequest(HttpRequestBase request) {
+    request.setConfig(CheckIOConnectorsUtil.getRequestConfig());
+
+    try {
+      return HttpClientBuilder.create().build().execute(request);
+    }
+    catch (IOException e) {
       LOG.warn(e.getMessage());
     }
     return null;

@@ -10,11 +10,12 @@ import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.edu.courseFormat.Task;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -73,9 +74,12 @@ public class CheckIOPublicationGetter {
           .addParameter(CheckIOConnectorBundle.message("page.parameter.name"), DEFAULT_PUBLICATION_PAGE_NUMBER)
           .build();
         final HttpGet publicationByCategoryRequest = new HttpGet(publicationUrl);
-        final CheckIOPublication[] publications = getPublicationByCategory(publicationByCategoryRequest);
-        final CheckIOPublication[] publicationsSubset = subsetPublications(publications);
-        myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
+        CloseableHttpResponse httpResponse = executeRequestWithConfig(publicationByCategoryRequest);
+        if (httpResponse != null) {
+          final CheckIOPublication[] publications = getPublicationByCategory(httpResponse);
+          final CheckIOPublication[] publicationsSubset = subsetPublications(publications);
+          myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
+        }
       }
     }
     catch (URISyntaxException e) {
@@ -89,26 +93,28 @@ public class CheckIOPublicationGetter {
     return Arrays.copyOfRange(publications, 0, displayedPublicationNumber);
   }
 
+  @NotNull
   private static PublicationCategoryWrapper getAvailablePublicationsCategories(@NotNull final HttpGet request) throws IOException {
-    final CloseableHttpClient client = HttpClientBuilder.create().build();
-    final CloseableHttpResponse httpResponse = client.execute(request);
-    final String entity = EntityUtils.toString(httpResponse.getEntity());
+    CloseableHttpResponse httpResponse = executeRequestWithConfig(request);
+    if (httpResponse != null) {
+      final String entity = EntityUtils.toString(httpResponse.getEntity());
 
-    return new GsonBuilder().create().fromJson(entity, PublicationCategoryWrapper.class);
+      return new GsonBuilder().create().fromJson(entity, PublicationCategoryWrapper.class);
+    }
+    return new PublicationCategoryWrapper();
   }
 
-  private static CheckIOPublication[] getPublicationByCategory(@NotNull final HttpGet request) throws IOException {
-    final CloseableHttpClient client = HttpClientBuilder.create().build();
-    final CloseableHttpResponse response;
-    PublicationsByCategoryWrapper publicationByCategoryWrapper;
-    response = client.execute(request);
+  @NotNull
+  private static CheckIOPublication[] getPublicationByCategory(@NotNull final CloseableHttpResponse response) throws IOException {
+
     final String entity = EntityUtils.toString(response.getEntity());
-    publicationByCategoryWrapper = new GsonBuilder().create().fromJson(entity, PublicationsByCategoryWrapper.class);
+    PublicationsByCategoryWrapper publicationByCategoryWrapper = new GsonBuilder().create().fromJson(entity, PublicationsByCategoryWrapper.class);
 
     return publicationByCategoryWrapper.objects;
   }
 
-  public static void setPublicationCodeAndCategoryFromRequest(@NotNull final String token, @NotNull final CheckIOPublication publication)
+  public static void setPublicationCodeAndCategoryFromRequest(@NotNull final String token,
+                                                              @NotNull final CheckIOPublication publication)
     throws IOException {
     try {
       URI uri = new URIBuilder(
@@ -116,19 +122,32 @@ public class CheckIOPublicationGetter {
         .addParameter(CheckIOConnectorBundle.message("token.parameter.name"), token)
         .build();
       final HttpGet request = new HttpGet(uri);
-      final CloseableHttpClient client = HttpClientBuilder.create().build();
-      final CloseableHttpResponse httpResponse = client.execute(request);
-      final String entity = EntityUtils.toString(httpResponse.getEntity());
-      final PublicationWrapper
-        publicationWrapper = new GsonBuilder().create().fromJson(entity, PublicationWrapper.class);
-      final String code = publicationWrapper.code == null ? "" : publicationWrapper.code;
-      final String category = publicationWrapper.category == null ? "" : publicationWrapper.category;
-      publication.setCode(code);
-      publication.setCategory(category);
+      CloseableHttpResponse httpResponse = executeRequestWithConfig(request);
+      if (httpResponse != null) {
+        final String entity = EntityUtils.toString(httpResponse.getEntity());
+        final PublicationWrapper
+          publicationWrapper = new GsonBuilder().create().fromJson(entity, PublicationWrapper.class);
+        final String code = publicationWrapper.code == null ? "" : publicationWrapper.code;
+        final String category = publicationWrapper.category == null ? "" : publicationWrapper.category;
+        publication.setCode(code);
+        publication.setCategory(category);
+      }
     }
     catch (URISyntaxException e) {
       LOG.warn(e.getMessage());
     }
+  }
+
+  @Nullable
+  private static CloseableHttpResponse executeRequestWithConfig(@NotNull final HttpRequestBase request) {
+    request.setConfig(CheckIOConnectorsUtil.getRequestConfig());
+    try {
+      return HttpClientBuilder.create().build().execute(request);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   private static class PublicationCategoryWrapper {
@@ -139,11 +158,11 @@ public class CheckIOPublicationGetter {
       String slug;
     }
 
-    PublicationCategory[] objects;
+    PublicationCategory[] objects = new PublicationCategory[]{};
   }
 
   private static class PublicationsByCategoryWrapper {
-    CheckIOPublication[] objects;
+    CheckIOPublication[] objects = new CheckIOPublication[]{};
   }
 
   @SuppressWarnings("unused")
