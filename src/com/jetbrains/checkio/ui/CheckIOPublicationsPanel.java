@@ -252,8 +252,10 @@ public class CheckIOPublicationsPanel extends JPanel {
   private class MyTreeSelectionListener implements TreeSelectionListener {
     @Override
     public void valueChanged(TreeSelectionEvent e) {
-      final com.intellij.openapi.progress.Task.Backgroundable task = getLoadingSolutionTask(e);
-      ProgressManager.getInstance().run(task);
+      if (e.isAddedPath()) {
+        final com.intellij.openapi.progress.Task.Backgroundable task = getLoadingSolutionTask(e);
+        ProgressManager.getInstance().run(task);
+      }
     }
 
     @NotNull

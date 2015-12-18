@@ -71,7 +71,9 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
 
       @Override
       public void onSuccess() {
-        ProjectView.getInstance(project).refresh();
+        if (!project.isDisposed()) {
+          ProjectView.getInstance(project).refresh();
+        }
       }
 
       @Override
