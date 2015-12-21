@@ -123,16 +123,14 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   }
 
   private void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
-    ApplicationManager.getApplication().executeOnPooledThread(()-> {
-      try {
-        final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
-        checkIOToolWindow.checkAndShowResults(task, code);
-      }
-      catch (IOException e) {
-        checkInProgress = false;
-        CheckIOUtils.makeNoInternetConnectionNotifier(project);
-      }
-    });
+    try {
+      final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
+      checkIOToolWindow.checkAndShowResults(task, code);
+    }
+    catch (IOException e) {
+      checkInProgress = false;
+      CheckIOUtils.makeNoInternetConnectionNotifier(project);
+    }
   }
 
   public TestResultHandler createTestResultHandler(@NotNull final Project project, @NotNull final Task task) {
