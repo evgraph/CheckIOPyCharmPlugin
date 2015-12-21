@@ -30,7 +30,7 @@ import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.checkio.ui.CheckIONewProjectPanel;
-import com.jetbrains.checkio.ui.ProjectGeneratorSettingsPanel;
+import com.jetbrains.checkio.ui.CheckIOProjectGeneratorSettingsPanel;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
@@ -61,7 +61,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   private String accessToken;
   private String refreshToken;
   private CheckIONewProjectPanel myProjectPanel;
-  private ProjectGeneratorSettingsPanel mySettingsPanel;
+  private CheckIOProjectGeneratorSettingsPanel mySettingsPanel;
 
   private void setParametersInTaskManager(@NotNull Project project) {
     if (!checkIfUserOrAccessTokenIsNull()) {
@@ -160,7 +160,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   @Nullable
   @Override
   public JComponent getSettingsPanel(File baseDir) throws ProcessCanceledException {
-    mySettingsPanel= new ProjectGeneratorSettingsPanel();
+    mySettingsPanel= new CheckIOProjectGeneratorSettingsPanel();
     return mySettingsPanel.myPanel;
   }
 

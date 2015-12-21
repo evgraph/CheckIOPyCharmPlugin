@@ -7,7 +7,6 @@ import javax.swing.*;
 
 
 public class CheckIONewProjectPanel {
-  private JLabel myLanguageLabel;
   private JComboBox myLanguageComboBox;
   @SuppressWarnings("unused") private JPanel myPanel;
 

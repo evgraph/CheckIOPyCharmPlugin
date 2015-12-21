@@ -3,7 +3,8 @@ package com.jetbrains.checkio.ui;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.NullUtils;
@@ -39,7 +40,9 @@ class CheckIOTestResultsPanel extends JPanel {
     throws IOException {
     this.removeAll();
     configureBrowserAndLoadTestForm(task, code);
-    addPanelContent(backButtonPanel, task);
+    ApplicationManager.getApplication().invokeAndWait(()->{
+      addPanelContent(backButtonPanel, task);
+    }, ModalityState.defaultModalityState());
   }
 
   private void addPanelContent(@NotNull JPanel backButtonPanel, @NotNull Task task) {
@@ -54,9 +57,8 @@ class CheckIOTestResultsPanel extends JPanel {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String taskId = taskManager.getTaskId(task).toString();
     final String interpreter = CheckIOUtils.getInterpreterAsString(project);
-    final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
 
-    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
+    final ChangeListener<Document> documentListener = createDocumentListener(taskManager, taskId, interpreter, code);
     myBrowserWindow.addFormListenerWithRemoveListener(documentListener);
     myBrowserWindow.addCheckProcessFinishedListener(project, task);
 
@@ -80,7 +82,7 @@ class CheckIOTestResultsPanel extends JPanel {
     return JBUI.Panels.simplePanel(actionToolBar.getComponent());
   }
 
-  private static ChangeListener<Document> createDocumentListener(@NotNull String token,
+  private static ChangeListener<Document> createDocumentListener(@NotNull CheckIOTaskManager taskManager,
                                                                  @NotNull String taskId,
                                                                  @NotNull String interpreter,
                                                                  @NotNull String code) {
@@ -128,12 +130,29 @@ class CheckIOTestResultsPanel extends JPanel {
             }
 
             if (NullUtils.notNull(tokenElement, taskIdElement, interpreterElement, codeElement)) {
-              tokenElement.setValue(token);
-              taskIdElement.setValue(taskId);
-              interpreterElement.setValue(interpreter);
-              codeElement.setValue(code);
+              final HTMLInputElement finalTokenElement = tokenElement;
+              final HTMLInputElement finalTaskIdElement = taskIdElement;
+              final HTMLInputElement finalInterpreterElement = interpreterElement;
+              final HTMLTextAreaElement finalCodeElement = codeElement;
+              ApplicationManager.getApplication().executeOnPooledThread(()->{
+                String token = null;
+                try {
+                  token = taskManager.getAccessTokenAndUpdateIfNeeded();
+                }
+                catch (IOException e) {
+                  //
+                }
+                //noinspection ConstantConditions
+                finalTokenElement.setValue(token);
+                //noinspection ConstantConditions
+                finalTaskIdElement.setValue(taskId);
+                //noinspection ConstantConditions
+                finalInterpreterElement.setValue(interpreter);
+                //noinspection ConstantConditions
+                finalCodeElement.setValue(code);
 
-              form.submit();
+                form.submit();
+              });
             }
           }
         }

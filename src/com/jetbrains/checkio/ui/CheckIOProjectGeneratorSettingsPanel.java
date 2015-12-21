@@ -8,11 +8,11 @@ import javax.swing.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class ProjectGeneratorSettingsPanel {
+public class CheckIOProjectGeneratorSettingsPanel {
   public JPanel myPanel;
   private JTextField myProxyPortTextField;
   private JTextField myProxyIpTextField;
-  private static final Logger LOG = DefaultLogger.getInstance(ProjectGeneratorSettingsPanel.class);
+  private static final Logger LOG = DefaultLogger.getInstance(CheckIOProjectGeneratorSettingsPanel.class);
 
   @NotNull
   public String getProxyIp() {

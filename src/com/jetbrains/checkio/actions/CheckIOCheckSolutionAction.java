@@ -23,7 +23,6 @@ import com.intellij.openapi.util.NullUtils;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.util.ui.OptionsDialog;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -124,14 +123,16 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
   }
 
   private void check(@NotNull final Project project, @NotNull final Task task, @NotNull final String code) {
-    try {
-      final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
-      checkIOToolWindow.checkAndShowResults(task, code);
-    }
-    catch (IOException e) {
-      checkInProgress = false;
-      CheckIOUtils.makeNoInternetConnectionNotifier(project);
-    }
+    ApplicationManager.getApplication().executeOnPooledThread(()-> {
+      try {
+        final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(project);
+        checkIOToolWindow.checkAndShowResults(task, code);
+      }
+      catch (IOException e) {
+        checkInProgress = false;
+        CheckIOUtils.makeNoInternetConnectionNotifier(project);
+      }
+    });
   }
 
   public TestResultHandler createTestResultHandler(@NotNull final Project project, @NotNull final Task task) {
@@ -220,7 +221,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
       final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
       if (unlockedStationsNumber > 0) {
-        DialogWrapper.DoNotAskOption option = createDoNotAskOption(taskManager);
+        DialogWrapper.DoNotAskOption option = createDoNotAskOption();
 
         ApplicationManager.getApplication().invokeLater(() -> {
           if (option.isToBeShown()) {
@@ -246,7 +247,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     }
   }
 
-  private static OptionsDialog.DoNotAskOption createDoNotAskOption(@NotNull final CheckIOTaskManager taskManager) {
+  private static DialogWrapper.DoNotAskOption createDoNotAskOption() {
     return new DialogWrapper.DoNotAskOption() {
       @Override
       public boolean isToBeShown() {
