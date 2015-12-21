@@ -1,5 +1,6 @@
 package com.jetbrains.checkio.settings;
 
+import com.google.common.net.InetAddresses;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
@@ -10,18 +11,14 @@ import com.jetbrains.checkio.ui.CheckIOLanguage;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
-import javax.swing.text.MaskFormatter;
-import java.text.ParseException;
 
 
 class CheckIOSettingsPanel {
   public JPanel myPanel;
   private JComboBox myUpdateProjectComboBox;
-  private JLabel myUpdatуProjectPolicy;
   private JComboBox myLanguageComboBox;
-  private JLabel proxyIpLabel;
-  private JFormattedTextField myProxyIpTextField;
-  private JFormattedTextField myProxyPortTextField;
+  private JTextField myProxyIpTextField;
+  private JTextField myProxyPortTextField;
   private boolean myCredentialsModified;
   private static final Logger LOG = DefaultLogger.getInstance(CheckIOSettingsPanel.class);
 
@@ -36,31 +33,22 @@ class CheckIOSettingsPanel {
     myLanguageComboBox.setSelectedItem(CheckIOSettings.getInstance().getLanguage());
     myLanguageComboBox.addItemListener(e -> myCredentialsModified = true);
 
-    try {
-      MaskFormatter ipMask = new MaskFormatter("###.###.###.###");
-      myProxyIpTextField = new JFormattedTextField(ipMask);
-      myProxyIpTextField.setText(CheckIOSettings.getInstance().getProxyIp());
-      MaskFormatter portMask = new MaskFormatter("####");
-      myProxyPortTextField = new JFormattedTextField(portMask);
-      myProxyPortTextField.setText(CheckIOSettings.getInstance().getProxyPort());
+    myProxyIpTextField = new JTextField(CheckIOSettings.getInstance().getProxyIp());
+    myProxyPortTextField = new JTextField(CheckIOSettings.getInstance().getProxyPort());
 
-      myProxyIpTextField.getDocument().addDocumentListener(new DocumentAdapter() {
-        @Override
-        protected void textChanged(DocumentEvent event) {
-          myCredentialsModified = true;
-        }
-      });
+    myProxyIpTextField.getDocument().addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent event) {
+        myCredentialsModified = true;
+      }
+    });
 
-      myProxyPortTextField.getDocument().addDocumentListener(new DocumentAdapter() {
-        @Override
-        protected void textChanged(DocumentEvent event) {
-          myCredentialsModified = true;
-        }
-      });
-    }
-    catch (ParseException e) {
-      LOG.warn(e.getMessage());
-    }
+    myProxyPortTextField.getDocument().addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent event) {
+        myCredentialsModified = true;
+      }
+    });
   }
 
   public void apply() {
@@ -68,10 +56,38 @@ class CheckIOSettingsPanel {
       CheckIOSettings settings = CheckIOSettings.getInstance();
       settings.setProjectPolicy((CheckIOUpdateProjectPolicy)myUpdateProjectComboBox.getSelectedItem());
       settings.setLanguage((CheckIOLanguage)myLanguageComboBox.getSelectedItem());
-      settings.setProxyIp(myProxyIpTextField.getText());
-      settings.setProxyPort(myProxyPortTextField.getText());
+      String ip = myProxyIpTextField.getText();
+      String port = myProxyPortTextField.getText();
+      if (isValidIp(ip) && isValidPort(port)) {
+        settings.setProxyIp(ip);
+        settings.setProxyPort(port);
+      }
     }
     resetCredentialsModification();
+  }
+
+  private boolean isValidIp(String text) {
+    try {
+      //noinspection ResultOfMethodCallIgnored
+      InetAddresses.forString(text);
+      return true;
+    }
+    catch (IllegalArgumentException e) {
+      //ignore
+    }
+    return false;
+  }
+
+  private boolean isValidPort(String text) {
+    try {
+      //noinspection ResultOfMethodCallIgnored
+      Integer.parseInt(text);
+      return text.length() > 0 && text.length() <= 5;
+    }
+    catch (NumberFormatException e) {
+      LOG.warn(e.getMessage());
+    }
+    return false;
   }
 
 
