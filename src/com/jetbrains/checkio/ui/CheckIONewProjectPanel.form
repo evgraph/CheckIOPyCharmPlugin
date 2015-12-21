@@ -8,11 +8,12 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="f7715" class="javax.swing.JLabel" binding="myLanguageLabel">
+      <component id="f7715" class="javax.swing.JLabel">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
+          <labelFor value="2c476"/>
           <text value="Language"/>
         </properties>
       </component>
