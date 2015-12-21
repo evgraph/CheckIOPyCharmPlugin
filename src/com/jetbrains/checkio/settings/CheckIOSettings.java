@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 @State(
   name = "CheckIOSettings",
   storages = {@Storage(
-    file = StoragePathMacros.APP_CONFIG + "/stepic_settings.xml")})
+    file = StoragePathMacros.APP_CONFIG + "/checkio_settings.xml")})
 
 public class CheckIOSettings implements PersistentStateComponent<CheckIOSettings.State> {
 
