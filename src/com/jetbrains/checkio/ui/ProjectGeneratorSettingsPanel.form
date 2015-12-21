@@ -8,12 +8,13 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="ad829" class="javax.swing.JLabel" binding="myIpLabel">
+      <component id="ad829" class="javax.swing.JLabel">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Host"/>
+          <labelFor value="52502"/>
+          <text value="&amp;Host"/>
         </properties>
       </component>
       <vspacer id="5c3d3">
@@ -21,12 +22,13 @@
           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
-      <component id="ab9b" class="javax.swing.JLabel" binding="myPortlabel">
+      <component id="ab9b" class="javax.swing.JLabel">
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Port"/>
+          <labelFor value="d0b05"/>
+          <text value="&amp;Port"/>
         </properties>
       </component>
       <component id="d68c6" class="javax.swing.JLabel">
@@ -37,7 +39,7 @@
           <text value="Proxy settings"/>
         </properties>
       </component>
-      <component id="bfe1b" class="javax.swing.JFormattedTextField" binding="myProxyIpTextField" custom-create="true">
+      <component id="52502" class="javax.swing.JTextField" binding="myProxyIpTextField">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
@@ -45,7 +47,7 @@
         </constraints>
         <properties/>
       </component>
-      <component id="8da98" class="javax.swing.JFormattedTextField" binding="myProxyPortTextField" custom-create="true">
+      <component id="d0b05" class="javax.swing.JTextField" binding="myProxyPortTextField">
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>

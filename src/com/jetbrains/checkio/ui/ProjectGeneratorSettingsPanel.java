@@ -5,38 +5,47 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.text.MaskFormatter;
-import java.text.ParseException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ProjectGeneratorSettingsPanel {
   public JPanel myPanel;
-  private JLabel myIpLabel;
-  private JLabel myPortlabel;
-  private JFormattedTextField myProxyIpTextField;
-  private JFormattedTextField myProxyPortTextField;
+  private JTextField myProxyPortTextField;
+  private JTextField myProxyIpTextField;
   private static final Logger LOG = DefaultLogger.getInstance(ProjectGeneratorSettingsPanel.class);
-
-  private void createUIComponents() {
-    try {
-      MaskFormatter ipMask = new MaskFormatter("###.###.###.###");
-      myProxyIpTextField = new JFormattedTextField(ipMask);
-
-      MaskFormatter portMask = new MaskFormatter("####");
-      myProxyPortTextField = new JFormattedTextField(portMask);
-    }
-    catch (ParseException e) {
-      LOG.warn(e.getMessage());
-    }
-  }
 
   @NotNull
   public String getProxyIp() {
     String text = myProxyIpTextField.getText();
-    return text.startsWith(" ") ? "" : text;
+    return isValidIp(text) ? text : "";
   }
 
   public String getProxyPort() {
     String text = myProxyPortTextField.getText();
-    return text.startsWith(" ") ? "" : text;
+    return isValidIp(text)? text : "";
+  }
+
+  private boolean isValidIp(String text) {
+    try {
+      //noinspection ResultOfMethodCallIgnored
+      InetAddress.getByName(text);
+      return true;
+    }
+    catch (UnknownHostException e) {
+      LOG.info(e.getMessage());
+    }
+    return false;
+  }
+
+  private boolean isValidPort(@NotNull final String text) {
+    try {
+      //noinspection ResultOfMethodCallIgnored
+      Integer.parseInt(text);
+      return text.length() > 0 && text.length() <=5;
+    }
+    catch (NumberFormatException e) {
+      LOG.info(e.getMessage());
+    }
+    return false;
   }
 }
