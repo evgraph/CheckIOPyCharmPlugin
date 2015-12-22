@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
@@ -36,12 +37,14 @@ public class CheckIOHintsInfoGetter {
     @SuppressWarnings("unused") public HintsWrapper[] objects;
   }
 
+  @SuppressWarnings("unused")
   private static class HintsWrapper {
     public Hint[] hints;
     public int id;
     public int totalHintsCount;
   }
 
+  @SuppressWarnings("unused")
   private static class Hint {
     String answer;
     int id;
@@ -139,10 +142,12 @@ public class CheckIOHintsInfoGetter {
 
   @Nullable
   private CloseableHttpResponse executeRequest(HttpRequestBase request) {
-    request.setConfig(CheckIOConnectorsUtil.getRequestConfig());
-
     try {
-      return HttpClientBuilder.create().build().execute(request);
+      CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+      if (CheckIOConnectorsUtil.isProxyUrl(request.getURI())) {
+        httpClient = CheckIOConnectorsUtil.getConfiguredClient();
+      }
+      return httpClient.execute(request);
     }
     catch (IOException e) {
       LOG.warn(e.getMessage());

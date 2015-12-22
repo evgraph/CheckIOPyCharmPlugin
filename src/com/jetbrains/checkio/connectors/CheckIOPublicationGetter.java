@@ -12,6 +12,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
@@ -140,9 +141,12 @@ public class CheckIOPublicationGetter {
 
   @Nullable
   private static CloseableHttpResponse executeRequestWithConfig(@NotNull final HttpRequestBase request) {
-    request.setConfig(CheckIOConnectorsUtil.getRequestConfig());
     try {
-      return HttpClientBuilder.create().build().execute(request);
+      CloseableHttpClient client = HttpClientBuilder.create().build();
+      if (CheckIOConnectorsUtil.isProxyUrl(request.getURI())) {
+        client = CheckIOConnectorsUtil.getConfiguredClient();
+      }
+      return client.execute(request);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -158,11 +162,11 @@ public class CheckIOPublicationGetter {
       String slug;
     }
 
-    PublicationCategory[] objects = new PublicationCategory[]{};
+    final PublicationCategory[] objects = new PublicationCategory[]{};
   }
 
   private static class PublicationsByCategoryWrapper {
-    CheckIOPublication[] objects = new CheckIOPublication[]{};
+    final CheckIOPublication[] objects = new CheckIOPublication[]{};
   }
 
   @SuppressWarnings("unused")

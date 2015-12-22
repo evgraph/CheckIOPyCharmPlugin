@@ -22,15 +22,14 @@ import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.platform.DirectoryProjectGenerator;
 import com.intellij.util.BooleanFunction;
 import com.jetbrains.checkio.CheckIOBundle;
-import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
+import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.checkio.ui.CheckIONewProjectPanel;
-import com.jetbrains.checkio.ui.CheckIOProjectGeneratorSettingsPanel;
 import com.jetbrains.edu.courseFormat.Course;
 import com.jetbrains.edu.courseFormat.Lesson;
 import com.jetbrains.edu.courseFormat.Task;
@@ -61,17 +60,13 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
   private String accessToken;
   private String refreshToken;
   private CheckIONewProjectPanel myProjectPanel;
-  private CheckIOProjectGeneratorSettingsPanel mySettingsPanel;
 
   private void setParametersInTaskManager(@NotNull Project project) {
     if (!checkIfUserOrAccessTokenIsNull()) {
       final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-      CheckIOSettings settings = CheckIOSettings.getInstance();
       taskManager.setUser(user);
       taskManager.setAccessToken(accessToken);
       taskManager.setRefreshToken(refreshToken);
-      settings.setProxyIp(mySettingsPanel.getProxyIp());
-      settings.setProxyPort(mySettingsPanel.getProxyPort());
     }
   }
 
@@ -157,40 +152,24 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
     return myProjectPanel.getMainPanel();
   }
 
-  @Nullable
-  @Override
-  public JComponent getSettingsPanel(File baseDir) throws ProcessCanceledException {
-    mySettingsPanel= new CheckIOProjectGeneratorSettingsPanel();
-    return mySettingsPanel.myPanel;
-  }
-
   private void authorizeUserAndGetMissions(@NotNull final Sdk sdk) {
-    try {
-      LOG.info("Starting authorization");
-      final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
-      final String ip = mySettingsPanel.getProxyIp();
-      final String port = mySettingsPanel.getProxyPort();
-      user = authorizer.authorizeAndGetUser(ip, port);
-      accessToken = authorizer.getAccessToken();
-      refreshToken = authorizer.getRefreshToken();
-      if (accessToken != null) {
-        try {
-          LOG.info("Getting missions");
-          myMissionWrappers = CheckIOMissionGetter.getMissions(ip,
-                                                               port,
-                                                               myProjectPanel.getSelectedLanguage(),
-                                                               accessToken, CheckIOUtils.getFormattedSdkName(sdk));
-        }
-        catch (IOException e) {
-          LOG.warn(e.getMessage());
-        }
+    LOG.info("Starting authorization");
+    final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
+    user = authorizer.authorizeAndGetUser();
+    accessToken = authorizer.getAccessToken();
+    refreshToken = authorizer.getRefreshToken();
+    if (accessToken != null) {
+      try {
+        LOG.info("Getting missions");
+        myMissionWrappers = CheckIOMissionGetter.getMissions(myProjectPanel.getSelectedLanguage(),
+                                                             accessToken, CheckIOUtils.getFormattedSdkName(sdk));
       }
-      else {
-        LOG.warn("access token is null");
+      catch (IOException e) {
+        LOG.warn(e.getMessage());
       }
     }
-    catch (final IOException throwable) {
-      LOG.warn(throwable.getMessage(), throwable);
+    else {
+      LOG.warn("access token is null");
     }
   }
 

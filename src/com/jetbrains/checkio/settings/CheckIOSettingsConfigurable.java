@@ -12,7 +12,7 @@ import javax.swing.*;
 
 public class CheckIOSettingsConfigurable implements SearchableConfigurable {
   private CheckIOSettingsPanel mySettingsPanel;
-  public static final String ID = "com.jetbrains.checkio.settings.CheckIOSettingsConfigurable";
+  private static final String ID = "com.jetbrains.checkio.settings.CheckIOSettingsConfigurable";
 
   @NotNull
   @Override
