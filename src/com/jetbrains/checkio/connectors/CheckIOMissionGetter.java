@@ -5,21 +5,22 @@ import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
-import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
+import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.ui.CheckIOLanguage;
 import com.jetbrains.edu.courseFormat.*;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.python.PythonLanguage;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -45,10 +46,10 @@ public class CheckIOMissionGetter {
   public static Course getMissionsAndUpdateCourse(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager manager = CheckIOTaskManager.getInstance(project);
     final CheckIOSettings settings = CheckIOSettings.getInstance();
+
     final String sdk = CheckIOUtils.getInterpreterAsString(project);
     final CheckIOLanguage language = settings.getLanguage();
-    final MissionWrapper[] missionWrappers = getMissions(settings.getProxyIp(), settings.getProxyPort(),
-                                                         language, manager.getAccessTokenAndUpdateIfNeeded(), sdk);
+    final MissionWrapper[] missionWrappers = getMissions(language, manager.getAccessTokenAndUpdateIfNeeded(), sdk);
     return getCourseForProjectAndUpdateCourseInfo(project, missionWrappers);
   }
 
@@ -83,8 +84,10 @@ public class CheckIOMissionGetter {
     try {
       CheckIOSettings settings = CheckIOSettings.getInstance();
       final HttpGet request = makeMissionsRequest(settings.getLanguage().toString(), token, sdk);
-      final HttpResponse response = requestMissions(CheckIOConnectorsUtil.getRequestConfig(), request);
-      hasUnauthorizedStatusCode = response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED;
+      final HttpResponse response = requestMissions(request);
+      if (response != null) {
+        hasUnauthorizedStatusCode = response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED;
+      }
     }
     catch (URISyntaxException e) {
       LOG.warn(e.getMessage());
@@ -92,19 +95,19 @@ public class CheckIOMissionGetter {
     return !hasUnauthorizedStatusCode;
   }
 
-  public static MissionWrapper[] getMissions(@NotNull final String proxyIp, @NotNull final String proxyPort,
-                                             @NotNull final CheckIOLanguage language, @NotNull final String token,
+  public static MissionWrapper[] getMissions(@NotNull final CheckIOLanguage language, @NotNull final String token,
                                              @NotNull final String sdk) throws IOException {
     MissionWrapper[] missionWrapper = new MissionWrapper[]{};
     try {
       final String languageString = CheckIOLanguageBundle.message(language.toString().toLowerCase());
       final HttpGet request = makeMissionsRequest(languageString, token, sdk);
       LOG.info(CheckIOBundle.message("requesting.missions"));
-      final HttpResponse response = requestMissions(CheckIOConnectorsUtil.getRequestConfig(proxyIp, proxyPort), request);
-
-      String missions = EntityUtils.toString(response.getEntity());
-      final Gson gson = new GsonBuilder().create();
-      missionWrapper = gson.fromJson(missions, MissionWrapper[].class);
+      final HttpResponse response = requestMissions(request);
+      if (response != null) {
+        String missions = EntityUtils.toString(response.getEntity());
+        final Gson gson = new GsonBuilder().create();
+        missionWrapper = gson.fromJson(missions, MissionWrapper[].class);
+      }
     }
     catch (URISyntaxException e) {
       LOG.warn(e.getMessage());
@@ -167,10 +170,13 @@ public class CheckIOMissionGetter {
     return new HttpGet(uri);
   }
 
-
-  private static HttpResponse requestMissions(@NotNull final RequestConfig config, @NotNull final HttpGet request) throws IOException {
-    request.setConfig(config);
-    return HttpClientBuilder.create().build().execute(request);
+  @Nullable
+  private static HttpResponse requestMissions(@NotNull final HttpGet request) throws IOException {
+    CloseableHttpClient client = HttpClientBuilder.create().build();
+    if (CheckIOConnectorsUtil.isProxyUrl(request.getURI())) {
+      client = CheckIOConnectorsUtil.getConfiguredClient();
+    }
+    return client.execute(request);
   }
 
   @NotNull

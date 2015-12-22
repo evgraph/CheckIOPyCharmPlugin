@@ -57,7 +57,7 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
     showNewHint();
   }
 
-  private void createHintPanel() throws IOException {
+  private void createHintPanel() {
     setLayout(new GridBagLayout());
     myHintsPanel = getHintsPanel(myHints);
     JPanel closeButtonPanel = createCloseLabelPanel();

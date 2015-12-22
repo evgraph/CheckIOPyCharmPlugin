@@ -20,8 +20,6 @@ public class CheckIOSettings implements PersistentStateComponent<CheckIOSettings
   public static class State {
     @NotNull public CheckIOUpdateProjectPolicy PROJECT_POLICY = CheckIOUpdateProjectPolicy.Ask;
     @NotNull public CheckIOLanguage LANGUAGE = CheckIOLanguage.English;
-    @NotNull public String PROXY_IP = "";
-    @NotNull public String PROXY_PORT = "";
   }
 
   public static CheckIOSettings getInstance() {
@@ -36,25 +34,6 @@ public class CheckIOSettings implements PersistentStateComponent<CheckIOSettings
   @Override
   public void loadState(State state) {
     myState = state;
-  }
-
-
-  @NotNull
-  public String getProxyPort() {
-    return myState.PROXY_PORT;
-  }
-
-  public void setProxyPort(@NotNull String proxyPort) {
-    myState.PROXY_PORT = proxyPort;
-  }
-
-  @NotNull
-  public String getProxyIp() {
-    return myState.PROXY_IP;
-  }
-
-  public void setProxyIp(@NotNull String proxyIp) {
-    myState.PROXY_IP = proxyIp;
   }
 
   @NotNull

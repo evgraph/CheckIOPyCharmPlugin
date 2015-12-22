@@ -207,7 +207,6 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
   private static void askToUpdateProject(@NotNull final Project project) {
     final StudyTaskManager studyTaskManager = StudyTaskManager.getInstance(project);
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final Course oldCourse = studyTaskManager.getCourse();
     final Course newCourse;
     try {
@@ -288,6 +287,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
         final Editor editor = StudyUtils.getSelectedEditor(project);
         final String code;
 
+        //noinspection ConstantConditions
         if (!NullUtils.notNull(task, editor, toolWindowFactory) || (code = editor.getDocument().getText()).isEmpty()) {
           CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("error.no.task"), MessageType.WARNING.getPopupBackground(), project);
           return;
