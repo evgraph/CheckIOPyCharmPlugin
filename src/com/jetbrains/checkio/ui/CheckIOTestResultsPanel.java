@@ -11,7 +11,7 @@ import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.CheckIoPublishSolutionAction;
 import com.jetbrains.checkio.connectors.CheckIOConnectorBundle;
-import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.learning.courseFormat.Task;
 import javafx.beans.value.ChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;

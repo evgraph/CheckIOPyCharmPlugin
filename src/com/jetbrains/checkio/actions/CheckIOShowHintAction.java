@@ -17,7 +17,7 @@ import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.connectors.CheckIOHintsInfoGetter;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
-import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.learning.courseFormat.Task;
 import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
 
