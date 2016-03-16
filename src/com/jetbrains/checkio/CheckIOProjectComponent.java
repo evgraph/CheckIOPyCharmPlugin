@@ -21,7 +21,7 @@ import com.jetbrains.checkio.actions.CheckIOShowHintAction;
 import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
-import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.learning.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;

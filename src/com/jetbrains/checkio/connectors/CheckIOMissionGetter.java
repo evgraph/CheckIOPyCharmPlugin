@@ -9,7 +9,7 @@ import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.ui.CheckIOLanguage;
-import com.jetbrains.edu.courseFormat.*;
+import com.jetbrains.edu.learning.courseFormat.*;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.python.PythonLanguage;
 import org.apache.commons.httpclient.HttpStatus;

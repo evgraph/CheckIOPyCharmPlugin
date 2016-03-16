@@ -19,7 +19,7 @@ import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.*;
-import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.learning.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.actions.StudyNextStudyTaskAction;
 import com.jetbrains.edu.learning.actions.StudyPreviousStudyTaskAction;
@@ -235,10 +235,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private boolean isPublicationFileOfSelectedTaskFile(@Nullable final VirtualFile oldFile, @NotNull final Task task) {
-      if (oldFile != null && CheckIOUtils.isPublicationFile(oldFile)) {
-        return task.getName().equals(publicationTaskName(oldFile));
-      }
-      return false;
+      return oldFile != null && CheckIOUtils.isPublicationFile(oldFile) && task.getName().equals(publicationTaskName(oldFile));
     }
 
     private String publicationTaskName(@NotNull final VirtualFile file) {

@@ -22,7 +22,7 @@ import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
-import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.learning.courseFormat.Task;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 

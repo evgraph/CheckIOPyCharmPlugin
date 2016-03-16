@@ -8,7 +8,7 @@ import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
-import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.learning.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+@SuppressWarnings("WeakerAccess")
 @State(
   name = "CheckIOTaskManager",
   storages = {

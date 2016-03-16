@@ -11,7 +11,7 @@ import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
-import com.jetbrains.edu.courseFormat.Task;
+import com.jetbrains.edu.learning.courseFormat.Task;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;

@@ -6,11 +6,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.JBColor;
 import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.edu.courseFormat.StudyStatus;
-import com.jetbrains.edu.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.courseFormat.StudyStatus;
+import com.jetbrains.edu.learning.courseFormat.Task;
 import com.jetbrains.edu.learning.projectView.StudyDirectoryNode;
-import icons.EducationalIcons;
 import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +28,7 @@ class CheckIOStudyNode extends StudyDirectoryNode {
     StudyStatus taskStatus = StudyTaskManager.getInstance(myProject).getStatus(task);
     switch (taskStatus) {
       case Unchecked: {
-        updatePresentation(data, additionalName, JBColor.BLACK, EducationalIcons.Task);
+        updatePresentation(data, additionalName, JBColor.BLACK, InteractiveLearningIcons.Task);
         break;
       }
       case Solved: {

@@ -9,7 +9,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.courseFormat.CheckIOUser;
-import com.jetbrains.edu.courseFormat.Course;
+import com.jetbrains.edu.learning.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
 
