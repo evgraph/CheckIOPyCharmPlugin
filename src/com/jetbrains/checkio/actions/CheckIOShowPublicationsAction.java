@@ -34,6 +34,7 @@ import java.util.Map;
 
 public class CheckIOShowPublicationsAction extends AnAction {
   private static final Logger LOG = Logger.getInstance(CheckIOShowPublicationsAction.class);
+  private static final String ACTION_ID = "CheckIOShowSolutionsAction";
   private static final String SHORTCUT = "ctrl shift pressed H";
 
   public CheckIOShowPublicationsAction() {

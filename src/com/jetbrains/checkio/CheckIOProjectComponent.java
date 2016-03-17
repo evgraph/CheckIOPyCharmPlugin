@@ -19,6 +19,7 @@ import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
 import com.jetbrains.checkio.actions.CheckIORefreshFileAction;
 import com.jetbrains.checkio.actions.CheckIOShowHintAction;
 import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
+import com.jetbrains.checkio.connectors.CheckIOConnectorsUtil;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
 import com.jetbrains.edu.courseFormat.Course;
@@ -44,6 +45,7 @@ public class CheckIOProjectComponent implements ProjectComponent {
   @Override
   public void projectOpened() {
     Platform.setImplicitExit(false);
+    CheckIOConnectorsUtil.addCertificate();
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
       final Course course = StudyTaskManager.getInstance(myProject).getCourse();
       if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.course.type"))) {

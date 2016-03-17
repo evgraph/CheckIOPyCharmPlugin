@@ -17,7 +17,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -172,7 +171,7 @@ public class CheckIOMissionGetter {
 
   @Nullable
   private static HttpResponse requestMissions(@NotNull final HttpGet request) throws IOException {
-    CloseableHttpClient client = HttpClientBuilder.create().build();
+    CloseableHttpClient client = CheckIOConnectorsUtil.createClient();
     if (CheckIOConnectorsUtil.isProxyUrl(request.getURI())) {
       client = CheckIOConnectorsUtil.getConfiguredClient();
     }

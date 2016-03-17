@@ -27,7 +27,9 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.net.ssl.CertificateManager;
 import com.jetbrains.checkio.connectors.CheckIOConnectorBundle;
+import com.jetbrains.checkio.connectors.CheckIOConnectorsUtil;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
@@ -42,13 +44,14 @@ import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import com.jetbrains.python.psi.LanguageLevel;
 import com.jetbrains.python.sdk.PythonSdkType;
+import org.apache.commons.httpclient.HttpStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 
@@ -262,14 +265,17 @@ public class CheckIOUtils {
   public static boolean checkConnection() {
     boolean result = false;
     try {
-      URL urlToPing = new URL ("http://www.checkio.org");
-      HttpURLConnection connection = (HttpURLConnection)urlToPing.openConnection();
+      CheckIOConnectorsUtil.addCertificate();
+      URL urlToPing = new URL (CheckIOConnectorBundle.message("checkio.url"));
+      HttpsURLConnection connection = (HttpsURLConnection)urlToPing.openConnection();
+      connection.setSSLSocketFactory(CertificateManager.getInstance().getSslContext().getSocketFactory());
+      
 
       connection.setRequestMethod("GET");
       connection.connect();
 
       int code = connection.getResponseCode();
-      if (code == 200) {
+      if (code == HttpStatus.SC_OK) {
         result = true;
       }
     }
