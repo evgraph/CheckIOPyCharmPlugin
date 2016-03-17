@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.JBColor;
 import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import com.jetbrains.edu.learning.courseFormat.Task;
 import com.jetbrains.edu.learning.projectView.StudyDirectoryNode;
@@ -25,7 +24,7 @@ class CheckIOStudyNode extends StudyDirectoryNode {
 
   @Override
   protected void setStudyAttributes(Task task, PresentationData data, String additionalName) {
-    StudyStatus taskStatus = StudyTaskManager.getInstance(myProject).getStatus(task);
+    StudyStatus taskStatus = task.getStatus();
     switch (taskStatus) {
       case Unchecked: {
         updatePresentation(data, additionalName, JBColor.BLACK, InteractiveLearningIcons.Task);

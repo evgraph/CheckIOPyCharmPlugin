@@ -20,6 +20,7 @@ import com.jetbrains.edu.learning.courseFormat.Course;
 import com.jetbrains.edu.learning.courseFormat.Lesson;
 import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -27,8 +28,8 @@ import java.util.List;
 
 
 public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
-  public static final String ACTION_ID = "CheckIOCheckSolutionAction";
-  public static final String SHORTCUT = "ctrl shift pressed D";
+  private static final String ACTION_ID = "CheckIOCheckSolutionAction";
+  private static final String SHORTCUT = "ctrl shift pressed D";
   private static final Logger LOG = Logger.getInstance(CheckIOUpdateProjectAction.class);
 
   public CheckIOUpdateProjectAction() {
@@ -113,5 +114,17 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
       CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("action.update.project.success"), MessageType.INFO.getPopupBackground(),
                                             project);
     }
+  }
+
+  @NotNull
+  @Override
+  public String getActionId() {
+    return ACTION_ID;
+  }
+
+  @Nullable
+  @Override
+  public String[] getShortcuts() {
+    return new String[]{SHORTCUT};
   }
 }

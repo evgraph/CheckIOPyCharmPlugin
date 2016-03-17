@@ -1,6 +1,5 @@
 package com.jetbrains.checkio.actions;
 
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -22,18 +21,20 @@ import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.checkio.ui.CheckIOPublicationsPanel;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
+import com.jetbrains.edu.learning.actions.StudyToolbarAction;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import com.jetbrains.edu.learning.courseFormat.Task;
-import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.util.Map;
 
 
-public class CheckIOShowPublicationsAction extends AnAction {
+public class CheckIOShowPublicationsAction extends StudyToolbarAction {
   private static final Logger LOG = Logger.getInstance(CheckIOShowPublicationsAction.class);
+  private static final String ACTION_ID = "CheckIOShowSolutionsAction";
   private static final String SHORTCUT = "ctrl shift pressed H";
 
   public CheckIOShowPublicationsAction() {
@@ -144,11 +145,23 @@ public class CheckIOShowPublicationsAction extends AnAction {
     if (project != null) {
       final Task task = CheckIOUtils.getTaskFromSelectedEditor(project);
       if (task != null) {
-        StudyStatus status = StudyTaskManager.getInstance(project).getStatus(task);
+        StudyStatus status = task.getStatus();
         presentation.setEnabled(status == StudyStatus.Solved);
         return;
       }
     }
     presentation.setEnabled(false);
+  }
+
+  @NotNull
+  @Override
+  public String getActionId() {
+    return ACTION_ID;
+  }
+
+  @Nullable
+  @Override
+  public String[] getShortcuts() {
+    return new String[]{SHORTCUT};
   }
 }

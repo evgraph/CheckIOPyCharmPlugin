@@ -16,13 +16,15 @@ import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.edu.learning.courseFormat.Task;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 
 public class CheckIORefreshFileAction extends CheckIOTaskAction {
-  public static final String ACTION_ID = "CheckIORefreshTaskAction";
-  public static final String SHORTCUT = "ctrl shift pressed X";
+  private static final String ACTION_ID = "CheckIORefreshTaskAction";
+  private static final String SHORTCUT = "ctrl shift pressed X";
   private static final Logger LOG = Logger.getInstance(CheckIORefreshFileAction.class);
 
   public CheckIORefreshFileAction() {
@@ -53,6 +55,18 @@ public class CheckIORefreshFileAction extends CheckIOTaskAction {
         ProjectView.getInstance(project).refresh();
       });
     }
+  }
+
+  @NotNull
+  @Override
+  public String getActionId() {
+    return ACTION_ID;
+  }
+
+  @Nullable
+  @Override
+  public String[] getShortcuts() {
+    return new String[]{SHORTCUT};
   }
 }
 
