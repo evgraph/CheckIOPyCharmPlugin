@@ -28,15 +28,13 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.jetbrains.checkio.connectors.CheckIOConnectorBundle;
+import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.core.EduNames;
-import com.jetbrains.edu.learning.courseFormat.Course;
-import com.jetbrains.edu.learning.courseFormat.Lesson;
-import com.jetbrains.edu.learning.courseFormat.Task;
-import com.jetbrains.edu.learning.courseFormat.TaskFile;
+import com.jetbrains.edu.learning.courseFormat.*;
 import com.jetbrains.edu.learning.courseGeneration.StudyGenerator;
 import com.jetbrains.edu.learning.courseGeneration.StudyProjectGenerator;
 import com.jetbrains.edu.learning.editor.StudyEditor;
@@ -290,5 +288,22 @@ public class CheckIOUtils {
   public static CheckIOToolWindow getToolWindow(@NotNull Project project) {
     final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(CheckIOToolWindow.ID);
     return (CheckIOToolWindow)toolWindow.getContentManager().getContents()[0].getComponent();
+  }
+
+  public static void setTaskInfoInTaskManager(@NotNull final Project project, @NotNull final Task task,
+                                               @NotNull final CheckIOMissionGetter.MissionWrapper missionWrapper) {
+    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    final StudyStatus oldStatus = task.getStatus();
+    final StudyStatus newStatus = missionWrapper.isSolved ? StudyStatus.Solved : StudyStatus.Unchecked;
+    if (oldStatus == StudyStatus.Failed && newStatus == StudyStatus.Unchecked) {
+      task.setStatus(StudyStatus.Failed);
+    }
+    else {
+      task.setStatus(newStatus);
+    }
+
+    taskManager.setPublicationStatus(task, missionWrapper.isPublished);
+    taskManager.setTaskId(task, missionWrapper.id);
+    taskManager.addInitialCodeForTask(task.getName(), missionWrapper.initialCode);
   }
 }

@@ -33,7 +33,7 @@ public class CheckIOUserInfoToolWindowFactory implements ToolWindowFactory {
     List<Task> tasks = lesson.getTaskList();
 
     for (Task task : tasks) {
-      if (taskManager.getStatus(task) == StudyStatus.Solved) {
+      if (task.getStatus() == StudyStatus.Solved) {
         solved++;
       }
     }

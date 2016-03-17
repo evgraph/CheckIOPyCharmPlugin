@@ -1,7 +1,6 @@
 package com.jetbrains.checkio;
 
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.ex.KeymapManagerEx;
@@ -15,21 +14,17 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.containers.hash.HashMap;
-import com.jetbrains.checkio.actions.CheckIOCheckSolutionAction;
-import com.jetbrains.checkio.actions.CheckIORefreshFileAction;
-import com.jetbrains.checkio.actions.CheckIOShowHintAction;
 import com.jetbrains.checkio.actions.CheckIOUpdateProjectAction;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
-import com.jetbrains.edu.learning.courseFormat.Course;
 import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.courseFormat.Course;
 import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +45,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
         new CheckIOUpdateProjectAction().updateProject(myProject);
         registerTaskToolWindow(course);
         registerUserInfoToolWindow();
-        registerShortcuts(course);
         CheckIOUtils.selectCurrentTask(myProject);
       }
     });
@@ -88,35 +82,6 @@ public class CheckIOProjectComponent implements ProjectComponent {
   private ToolWindow getToolWindowByID(@NotNull final String id) {
     final ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
     return toolWindowManager.getToolWindow(id);
-  }
-
-  private void registerShortcuts(@Nullable final Course course) {
-    if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.course.type"))) {
-      addShortcut(CheckIOCheckSolutionAction.ACTION_ID, new String[]{CheckIOCheckSolutionAction.SHORTCUT});
-      addShortcut(CheckIOUpdateProjectAction.ACTION_ID, new String[]{CheckIOUpdateProjectAction.SHORTCUT});
-      addShortcut(CheckIORefreshFileAction.ACTION_ID, new String[] {CheckIORefreshFileAction.SHORTCUT});
-      addShortcut(CheckIOShowHintAction.ACTION_ID, new String[]{CheckIOShowHintAction.SHORTCUT});
-    }
-  }
-
-  private void addShortcut(@NotNull final String actionIdString, @NotNull final String[] shortcuts) {
-    KeymapManagerEx keymapManager = KeymapManagerEx.getInstanceEx();
-    for (Keymap keymap : keymapManager.getAllKeymaps()) {
-      List<Pair<String, String>> pairs = myDeletedShortcuts.get(keymap);
-      if (pairs == null) {
-        pairs = new ArrayList<>();
-        myDeletedShortcuts.put(keymap, pairs);
-      }
-      for (String shortcutString : shortcuts) {
-        Shortcut studyActionShortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(shortcutString), null);
-        String[] actionsIds = keymap.getActionIds(studyActionShortcut);
-        for (String actionId : actionsIds) {
-          pairs.add(Pair.create(actionId, shortcutString));
-          keymap.removeShortcut(actionId, studyActionShortcut);
-        }
-        keymap.addShortcut(actionIdString, studyActionShortcut);
-      }
-    }
   }
 
   public static CheckIOProjectComponent getInstance(@NotNull final Project project) {

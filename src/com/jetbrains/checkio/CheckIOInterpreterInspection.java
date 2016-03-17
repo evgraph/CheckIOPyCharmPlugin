@@ -23,8 +23,6 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.text.MessageFormat;
-
 
 public class CheckIOInterpreterInspection extends PyInspection {
 
@@ -61,9 +59,9 @@ public class CheckIOInterpreterInspection extends PyInspection {
             final Sdk sdk = PythonSdkType.findPythonSdk(module);
             final LanguageLevel projectLanguageLevel = PythonSdkType.getLanguageLevelForSdk(sdk);
             if (projectLanguageLevel.isPy3K() != publicationLanguageLevel.isPy3K()) {
-              registerProblem(node, MessageFormat
-                .format(CheckIOBundle.message("inspection.language.level.mismatch.text", projectLanguageLevel, publicationLanguageLevel),
-                        new ConfigureInterpreterFix()));
+              String level = publicationLanguageLevel.isPy3K() ? "3" : "2.7";
+              registerProblem(node, CheckIOBundle.message("inspection.language.level.mismatch.text", projectLanguageLevel, level),
+                        new ConfigureInterpreterFix());
             }
           }
         }

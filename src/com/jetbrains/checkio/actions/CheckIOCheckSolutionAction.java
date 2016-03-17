@@ -45,6 +45,7 @@ import com.jetbrains.edu.learning.StudyUtils;
 import com.jetbrains.edu.learning.actions.StudyRunAction;
 import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -53,14 +54,26 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
-  public static final String ACTION_ID = "CheckIOCheckSolutionAction";
-  public static final String SHORTCUT = "ctrl alt pressed ENTER";
+  private static final String ACTION_ID = "CheckIOCheckSolutionAction";
+  private static final String SHORTCUT = "ctrl alt pressed ENTER";
   private volatile boolean checkInProgress = false;
   private static final Logger LOG = Logger.getInstance(CheckIOCheckSolutionAction.class);
 
   public CheckIOCheckSolutionAction() {
     super("Run And Check Task (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
           CheckIOBundle.message("action.description.check.current.task"), InteractiveLearningIcons.Resolve);
+  }
+
+  @NotNull
+  @Override
+  public String getActionId() {
+    return ACTION_ID;
+  }
+
+  @Nullable
+  @Override
+  public String[] getShortcuts() {
+    return new String[] {SHORTCUT};
   }
 
 

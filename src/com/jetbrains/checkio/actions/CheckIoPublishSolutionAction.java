@@ -11,7 +11,6 @@ import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import com.jetbrains.edu.learning.courseFormat.Task;
-import com.jetbrains.edu.learning.StudyTaskManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -49,7 +48,7 @@ public class CheckIoPublishSolutionAction extends DumbAwareAction {
   public void update(AnActionEvent e) {
     final Project project = e.getProject();
     if (project != null && myTask != null) {
-      final StudyStatus status = StudyTaskManager.getInstance(project).getStatus(myTask);
+      final StudyStatus status = myTask.getStatus();
       final boolean isPublished = CheckIOTaskManager.getInstance(project).isPublished(myTask);
       if (status == StudyStatus.Solved && !isPublished) {
         e.getPresentation().setEnabled(true);

@@ -20,14 +20,15 @@ import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.edu.learning.courseFormat.Task;
 import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class CheckIOShowHintAction extends CheckIOTaskAction {
-  public static final String ACTION_ID = "CheckIOShowHintAction";
-  public static final String SHORTCUT = "ctrl pressed 7";
+  private static final String ACTION_ID = "CheckIOShowHintAction";
+  private static final String SHORTCUT = "ctrl pressed 7";
   private static final Logger LOG = Logger.getInstance(CheckIOShowHintAction.class);
 
   public CheckIOShowHintAction() {
@@ -124,5 +125,17 @@ public class CheckIOShowHintAction extends CheckIOTaskAction {
         }
       }
     }
+  }
+
+  @NotNull
+  @Override
+  public String getActionId() {
+    return ACTION_ID;
+  }
+
+  @Nullable
+  @Override
+  public String[] getShortcuts() {
+    return new String[]{SHORTCUT};
   }
 }

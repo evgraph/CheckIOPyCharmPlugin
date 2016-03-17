@@ -10,7 +10,6 @@ import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.ui.CheckIOLanguage;
 import com.jetbrains.edu.learning.courseFormat.*;
-import com.jetbrains.edu.learning.StudyTaskManager;
 import com.jetbrains.python.PythonLanguage;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpResponse;
@@ -62,7 +61,7 @@ public class CheckIOMissionGetter {
       final Lesson lesson = getLessonOrCreateIfDoesntExist(course, missionWrapper.stationName);
       final Task task = getTaskFromMission(missionWrapper);
       lesson.addTask(task);
-      setTaskInfoInTaskManager(project, task, missionWrapper);
+      CheckIOUtils.setTaskInfoInTaskManager(project, task, missionWrapper);
     }
 
     return course;
@@ -136,24 +135,6 @@ public class CheckIOMissionGetter {
     taskFile.setHighlightErrors(true);
     task.addTaskFile(taskFile);
     return task;
-  }
-
-  private static void setTaskInfoInTaskManager(@NotNull final Project project, @NotNull final Task task,
-                                               @NotNull final MissionWrapper missionWrapper) {
-    final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
-    final StudyStatus oldStatus = studyManager.getStatus(task);
-    final StudyStatus newStatus = taskSolutionStatusForProjectCreation.get(missionWrapper.isSolved);
-    if (oldStatus == StudyStatus.Failed && newStatus == StudyStatus.Unchecked) {
-      studyManager.setStatus(task, StudyStatus.Failed);
-    }
-    else {
-      studyManager.setStatus(task, newStatus);
-    }
-
-    taskManager.setPublicationStatus(task, missionWrapper.isPublished);
-    taskManager.setTaskId(task, missionWrapper.id);
-    taskManager.addInitialCodeForTask(task.getName(), missionWrapper.initialCode);
   }
 
 
