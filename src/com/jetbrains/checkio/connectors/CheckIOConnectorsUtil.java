@@ -1,6 +1,10 @@
 package com.jetbrains.checkio.connectors;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.ssl.CertificateManager;
+import com.intellij.util.net.ssl.CertificateUtil;
+import com.intellij.util.net.ssl.ConfirmingTrustManager;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -12,12 +16,18 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
-class CheckIOConnectorsUtil {
+public class CheckIOConnectorsUtil {
+
+  private static final Logger LOG = Logger.getInstance(CheckIOConnectorsUtil.class);
 
   public static CloseableHttpClient getConfiguredClient() {
-    HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+    HttpClientBuilder clientBuilder = HttpClientBuilder.create().setSslcontext(CertificateManager.getInstance().getSslContext());
     HttpConfigurable proxy = HttpConfigurable.getInstance();
     if (proxy!= null && proxy.USE_HTTP_PROXY) {
       clientBuilder.setProxy(new HttpHost(proxy.PROXY_HOST, proxy.PROXY_PORT));
@@ -58,6 +68,30 @@ class CheckIOConnectorsUtil {
     }
     else {
       return new UsernamePasswordCredentials(login, password);
+    }
+  }
+
+  public static CloseableHttpClient createClient() {
+    addCertificate();
+    final CertificateManager manager = CertificateManager.getInstance();
+    return HttpClientBuilder.create().setSslcontext(manager.getSslContext()).build();
+  }
+
+  public static void addCertificate(){
+    final ConfirmingTrustManager.MutableTrustManager manager = CertificateManager.getInstance().getCustomTrustManager();
+    final CertificateFactory certificateFactory;
+    try {
+      certificateFactory = CertificateFactory.getInstance("X.509");
+      final InputStream certificateStream = CheckIOConnectorsUtil.class.getClassLoader().getResourceAsStream("/ca.crt");
+      final X509Certificate certificate = (X509Certificate)certificateFactory.generateCertificate(certificateStream);
+
+      final boolean containsCertificate = manager.containsCertificate(CertificateUtil.getCommonName(certificate));
+      if (!containsCertificate) {
+        manager.addCertificate(certificate);
+      }
+    }
+    catch (CertificateException e) {
+      LOG.warn(e.getMessage());
     }
   }
 }

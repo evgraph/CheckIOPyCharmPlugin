@@ -13,7 +13,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,7 +142,7 @@ public class CheckIOPublicationGetter {
   @Nullable
   private static CloseableHttpResponse executeRequestWithConfig(@NotNull final HttpRequestBase request) {
     try {
-      CloseableHttpClient client = HttpClientBuilder.create().build();
+      CloseableHttpClient client = CheckIOConnectorsUtil.createClient();
       if (CheckIOConnectorsUtil.isProxyUrl(request.getURI())) {
         client = CheckIOConnectorsUtil.getConfiguredClient();
       }
