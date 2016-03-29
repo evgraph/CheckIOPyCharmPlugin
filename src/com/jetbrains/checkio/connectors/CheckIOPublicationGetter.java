@@ -50,8 +50,9 @@ public class CheckIOPublicationGetter {
   }
 
   private static String createAddPublicationLinkParameter(@NotNull final String taskName) {
-    return String.join("/", new String[]{"", CheckIOConnectorBundle.message("mission.parameter.name"), taskName,
-      CheckIOConnectorBundle.message("publications.parameter.name"), CheckIOConnectorBundle.message("add.parameter.name"), ""});
+    return String.join("/", "", CheckIOConnectorBundle.message("mission.parameter.name"), taskName,
+                       CheckIOConnectorBundle.message("publications.parameter.name"), CheckIOConnectorBundle.message("add.parameter.name"),
+                       "");
   }
 
   public static HashMap<String, CheckIOPublication[]> getPublicationsForTaskAndCreatePublicationFiles(@NotNull final Task task)
