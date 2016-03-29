@@ -12,7 +12,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,7 +142,7 @@ public class CheckIOHintsInfoGetter {
   @Nullable
   private CloseableHttpResponse executeRequest(HttpRequestBase request) {
     try {
-      CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+      CloseableHttpClient httpClient = CheckIOConnectorsUtil.createClient();
       if (CheckIOConnectorsUtil.isProxyUrl(request.getURI())) {
         httpClient = CheckIOConnectorsUtil.getConfiguredClient();
       }
