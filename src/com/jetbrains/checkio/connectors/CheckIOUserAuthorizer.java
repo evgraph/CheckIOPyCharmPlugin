@@ -18,7 +18,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.sanselan.util.IOUtils;
@@ -225,7 +224,7 @@ public class CheckIOUserAuthorizer {
   }
 
   private CloseableHttpResponse executeRequest(@NotNull HttpRequestBase request) throws IOException {
-    CloseableHttpClient client = HttpClientBuilder.create().build();
+    CloseableHttpClient client = CheckIOConnectorsUtil.createClient();
     if (CheckIOConnectorsUtil.isProxyUrl(request.getURI())) {
       client = CheckIOConnectorsUtil.getConfiguredClient();
     }

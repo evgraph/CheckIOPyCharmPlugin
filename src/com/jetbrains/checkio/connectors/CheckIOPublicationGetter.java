@@ -13,7 +13,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,8 +49,9 @@ public class CheckIOPublicationGetter {
   }
 
   private static String createAddPublicationLinkParameter(@NotNull final String taskName) {
-    return String.join("/", new String[]{"", CheckIOConnectorBundle.message("mission.parameter.name"), taskName,
-      CheckIOConnectorBundle.message("publications.parameter.name"), CheckIOConnectorBundle.message("add.parameter.name"), ""});
+    return String.join("/", "", CheckIOConnectorBundle.message("mission.parameter.name"), taskName,
+                       CheckIOConnectorBundle.message("publications.parameter.name"), CheckIOConnectorBundle.message("add.parameter.name"),
+                       "");
   }
 
   public static HashMap<String, CheckIOPublication[]> getPublicationsForTaskAndCreatePublicationFiles(@NotNull final Task task)
@@ -142,7 +142,7 @@ public class CheckIOPublicationGetter {
   @Nullable
   private static CloseableHttpResponse executeRequestWithConfig(@NotNull final HttpRequestBase request) {
     try {
-      CloseableHttpClient client = HttpClientBuilder.create().build();
+      CloseableHttpClient client = CheckIOConnectorsUtil.createClient();
       if (CheckIOConnectorsUtil.isProxyUrl(request.getURI())) {
         client = CheckIOConnectorsUtil.getConfiguredClient();
       }
