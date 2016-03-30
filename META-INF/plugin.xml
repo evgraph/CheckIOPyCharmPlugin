@@ -1,7 +1,7 @@
 <idea-plugin version="1">
   <id>checkio.pycharm.plugin</id>
   <name>CheckiO plugin for PyCharm Edu</name>
-  <version>1.0.4</version>
+  <version>1.0.5</version>
   <vendor url="https://www.jetbrains.com">JetBrains</vendor>
 
   <description><![CDATA[
