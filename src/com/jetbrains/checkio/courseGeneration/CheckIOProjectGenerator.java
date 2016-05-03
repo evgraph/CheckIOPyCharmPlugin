@@ -97,12 +97,6 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
     return "CheckIO";
   }
 
-  @Nullable
-  @Override
-  public Object showGenerationSettings(VirtualFile baseDir) throws ProcessCanceledException {
-    return null;
-  }
-
   @Override
   public void generateProject(@NotNull final Project project, @NotNull final VirtualFile baseDir, Object settings, @NotNull Module module) {
     setParametersInTaskManager(project);
