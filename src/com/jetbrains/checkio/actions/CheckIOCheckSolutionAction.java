@@ -130,6 +130,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     catch (IOException e) {
       checkInProgress = false;
       CheckIOUtils.makeNoInternetConnectionNotifier(project);
+      LOG.warn(e.getMessage());
     }
   }
 
@@ -172,6 +173,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
             }
             catch (IOException e) {
               CheckIOUtils.makeNoInternetConnectionNotifier(myProject);
+              LOG.warn(e.getMessage());
             }
           }
         }

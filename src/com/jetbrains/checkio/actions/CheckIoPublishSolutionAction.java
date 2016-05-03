@@ -2,6 +2,7 @@ package com.jetbrains.checkio.actions;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class CheckIoPublishSolutionAction extends DumbAwareAction {
+  private static final Logger LOG = Logger.getInstance(CheckIoPublishSolutionAction.class);
   private Task myTask = null;
 
   public CheckIoPublishSolutionAction() {
@@ -42,6 +44,7 @@ public class CheckIoPublishSolutionAction extends DumbAwareAction {
     }
     catch (IOException e) {
       CheckIOUtils.makeNoInternetConnectionNotifier(project);
+      LOG.warn(e.getMessage());
     }
   }
 

@@ -234,6 +234,7 @@ public class CheckIOPublicationsPanel extends JPanel {
         }
         catch (IOException e) {
           CheckIOUtils.makeNoInternetConnectionNotifier(myProject);
+          LOG.warn(e.getMessage());
         }
         return url;
       }
@@ -292,6 +293,7 @@ public class CheckIOPublicationsPanel extends JPanel {
           }
           catch (IOException e1) {
             CheckIOUtils.makeNoInternetConnectionNotifier(myProject);
+            LOG.warn(e1.getMessage());
           }
         }
 
