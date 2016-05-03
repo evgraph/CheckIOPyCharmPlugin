@@ -14,7 +14,7 @@
         </constraints>
         <properties>
           <labelFor value="2c476"/>
-          <text value="Language"/>
+          <text value="&amp;Language"/>
         </properties>
       </component>
       <vspacer id="58f46">

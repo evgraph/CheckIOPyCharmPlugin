@@ -28,7 +28,6 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -46,7 +45,7 @@ public class CheckIOHintsPanel extends JPanel implements Disposable {
 
   public CheckIOHintsPanel(@NotNull final String forumLink,
                            @NotNull final ArrayList<String> hints,
-                           @NotNull final CheckIOToolWindow toolWindow) throws IOException {
+                           @NotNull final CheckIOToolWindow toolWindow) {
     removeAll();
     editors = new ArrayList<>();
     myCheckIOToolWindow = toolWindow;

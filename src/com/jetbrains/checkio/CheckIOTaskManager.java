@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+@SuppressWarnings("WeakerAccess")
 @State(
   name = "CheckIOTaskManager",
   storages = {
@@ -28,7 +29,6 @@ import java.util.Map;
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
   public String accessToken;
   public String refreshToken;
-  private static Project ourProject;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   public CheckIOUser myUser;
   public Map<String, Boolean> myPublicationStatusMap = new HashMap<>();
@@ -39,7 +39,6 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
   private CheckIOTaskManager() { }
 
   public static CheckIOTaskManager getInstance(@NotNull final Project project) {
-    ourProject = project;
     return ServiceManager.getService(project, CheckIOTaskManager.class);
   }
 
@@ -80,9 +79,9 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     XmlSerializerUtil.copyBean(state, this);
   }
 
-  public String getAccessTokenAndUpdateIfNeeded()
+  public String getAccessTokenAndUpdateIfNeeded(@NotNull final Project project)
     throws IOException {
-    if (!CheckIOMissionGetter.isTokenUpToDate(accessToken, CheckIOUtils.getInterpreterAsString(ourProject))) {
+    if (!CheckIOMissionGetter.isTokenUpToDate(accessToken, CheckIOUtils.getInterpreterAsString(project))) {
       final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
       authorizer.setTokensFromRefreshToken(refreshToken);
       accessToken = authorizer.getAccessToken();

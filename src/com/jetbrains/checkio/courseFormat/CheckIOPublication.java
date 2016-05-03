@@ -90,7 +90,7 @@ public class CheckIOPublication {
   }
 
   private String createPublicationLinkParameter(@NotNull final String taskName) {
-    return String.join("/", new String[]{"", MISSION_PARAMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, user.getUsername(),
-      interpreter, slug, ""});
+    return String.join("/", "", MISSION_PARAMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, user.getUsername(),
+                       interpreter, slug, "");
   }
 }

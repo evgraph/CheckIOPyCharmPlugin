@@ -53,7 +53,7 @@ class CheckIOTestResultsPanel extends JPanel {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String taskId = taskManager.getTaskId(task).toString();
     final String interpreter = CheckIOUtils.getInterpreterAsString(project);
-    final String token = taskManager.getAccessTokenAndUpdateIfNeeded();
+    final String token = taskManager.getAccessTokenAndUpdateIfNeeded(project);
 
     final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
     myBrowserWindow.addFormListenerWithRemoveListener(documentListener);

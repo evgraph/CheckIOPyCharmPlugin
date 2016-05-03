@@ -193,7 +193,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
   private static void checkAchievements(@NotNull final Project project) throws IOException {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
-    final CheckIOUser newUser = CheckIOUserAuthorizer.getInstance().getUser(taskManager.getAccessTokenAndUpdateIfNeeded());
+    final CheckIOUser newUser = CheckIOUserAuthorizer.getInstance().getUser(taskManager.getAccessTokenAndUpdateIfNeeded(project));
     final CheckIOUser oldUser = CheckIOTaskManager.getInstance(project).getUser();
     if (newUser.getLevel() != oldUser.getLevel()) {
       taskManager.setUser(newUser);
