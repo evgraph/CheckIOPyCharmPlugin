@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 public class CheckIOProjectGenerator extends PythonProjectGenerator implements DirectoryProjectGenerator {
   private static final Logger LOG = Logger.getInstance(CheckIOProjectGenerator.class.getName());
   private static final File ourCourseDir = new File(PathManager.getConfigPath(), "courses");
-  private CheckIOMissionGetter.MissionWrapper[] myMissionWrappers;
+  private CheckIOMissionGetter.MissionWrapper myMissionWrappers;
   private CheckIOUser user;
   private String accessToken;
   private String refreshToken;

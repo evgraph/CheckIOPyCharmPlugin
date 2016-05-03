@@ -48,16 +48,16 @@ public class CheckIOMissionGetter {
 
     final String sdk = CheckIOUtils.getInterpreterAsString(project);
     final CheckIOLanguage language = settings.getLanguage();
-    final MissionWrapper[] missionWrappers = getMissions(language, manager.getAccessTokenAndUpdateIfNeeded(), sdk);
+    final MissionWrapper missionWrappers = getMissions(language, manager.getAccessTokenAndUpdateIfNeeded(), sdk);
     return getCourseForProjectAndUpdateCourseInfo(project, missionWrappers);
   }
 
   @NotNull
   public static Course getCourseForProjectAndUpdateCourseInfo(@NotNull final Project project,
-                                                              @NotNull final MissionWrapper[] missionWrappers) {
+                                                              @NotNull final MissionWrapper missionWrappers) {
     final Course course = setCourseAndLessonByName();
     lessonsByName = new HashMap<>();
-    for (MissionWrapper missionWrapper : missionWrappers) {
+    for (Mission missionWrapper : missionWrappers.objects) {
       final Lesson lesson = getLessonOrCreateIfDoesntExist(course, missionWrapper.stationName);
       final Task task = getTaskFromMission(missionWrapper);
       lesson.addTask(task);
@@ -94,9 +94,9 @@ public class CheckIOMissionGetter {
     return !hasUnauthorizedStatusCode;
   }
 
-  public static MissionWrapper[] getMissions(@NotNull final CheckIOLanguage language, @NotNull final String token,
+  public static MissionWrapper getMissions(@NotNull final CheckIOLanguage language, @NotNull final String token,
                                              @NotNull final String sdk) throws IOException {
-    MissionWrapper[] missionWrapper = new MissionWrapper[]{};
+    MissionWrapper missionWrapper = new MissionWrapper();
     try {
       final String languageString = CheckIOLanguageBundle.message(language.toString().toLowerCase());
       final HttpGet request = makeMissionsRequest(languageString, token, sdk);
@@ -105,7 +105,7 @@ public class CheckIOMissionGetter {
       if (response != null) {
         String missions = EntityUtils.toString(response.getEntity());
         final Gson gson = new GsonBuilder().create();
-        missionWrapper = gson.fromJson(missions, MissionWrapper[].class);
+        missionWrapper = gson.fromJson(missions, MissionWrapper.class);
       }
     }
     catch (URISyntaxException e) {
@@ -125,7 +125,7 @@ public class CheckIOMissionGetter {
     return lesson;
   }
 
-  private static Task getTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
+  private static Task getTaskFromMission(@NotNull final Mission missionWrapper) {
     final Task task = createTaskFromMission(missionWrapper);
     final String name = CheckIOUtils.getTaskFileNameFromTask(task);
     TaskFile taskFile = new TaskFile();
@@ -138,7 +138,7 @@ public class CheckIOMissionGetter {
   }
 
   private static void setTaskInfoInTaskManager(@NotNull final Project project, @NotNull final Task task,
-                                               @NotNull final MissionWrapper missionWrapper) {
+                                               @NotNull final Mission missionWrapper) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyTaskManager studyManager = StudyTaskManager.getInstance(project);
     final StudyStatus oldStatus = studyManager.getStatus(task);
@@ -179,7 +179,7 @@ public class CheckIOMissionGetter {
   }
 
   @NotNull
-  private static Task createTaskFromMission(@NotNull final MissionWrapper missionWrapper) {
+  private static Task createTaskFromMission(@NotNull final Mission missionWrapper) {
     final Task task = new Task(missionWrapper.slug);
     task.setText(getDocumentTextWithoutCodeBlock(missionWrapper.description));
     return task;
@@ -203,6 +203,11 @@ public class CheckIOMissionGetter {
 
   @SuppressWarnings("unused")
   public static class MissionWrapper {
+    Mission[] objects;
+  }
+
+
+  public static class Mission {
     public boolean isPublished;
     public String code;
     public boolean isSolved;
