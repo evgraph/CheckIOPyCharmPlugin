@@ -297,7 +297,7 @@ public class CheckIOUtils {
   }
 
   public static void setTaskInfoInTaskManager(@NotNull final Project project, @NotNull final Task task,
-                                               @NotNull final CheckIOMissionGetter.MissionWrapper missionWrapper) {
+                                               @NotNull final CheckIOMissionGetter.Mission missionWrapper) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final StudyStatus oldStatus = task.getStatus();
     final StudyStatus newStatus = missionWrapper.isSolved ? StudyStatus.Solved : StudyStatus.Unchecked;
