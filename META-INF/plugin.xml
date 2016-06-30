@@ -1,7 +1,7 @@
 <idea-plugin version="1">
   <id>checkio.pycharm.plugin</id>
   <name>CheckiO plugin for PyCharm Edu</name>
-  <version>1.0.8</version>
+  <version>1.0.9</version>
   <vendor url="https://www.jetbrains.com">JetBrains</vendor>
 
   <description><![CDATA[
@@ -24,7 +24,7 @@
   <depends>com.intellij.modules.platform</depends>
   <depends>com.jetbrains.edu.interactivelearning</depends>
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="144.3891"/>
+  <idea-version since-build="162.*"/>
 
   <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
