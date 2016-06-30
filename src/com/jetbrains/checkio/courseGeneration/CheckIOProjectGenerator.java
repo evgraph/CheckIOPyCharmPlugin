@@ -109,7 +109,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
         deleteCourseDirectoryIfExists(courseDirectory);
         course.setCourseDirectory(courseDirectory.getAbsolutePath());
         FileUtil.delete(new File(ourCourseDir, course.getName()));
-        new StudyProjectGenerator().flushCourse(course);
+        StudyProjectGenerator.flushCourse(project, course);
         course.initCourse(true);
         StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
         openFirstTask(course, project);
@@ -169,7 +169,8 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
 
   @Nullable
   @Override
-  public BooleanFunction<PythonProjectGenerator> beforeProjectGenerated(@NotNull final Sdk sdk) {
+  public BooleanFunction<PythonProjectGenerator> beforeProjectGenerated(@Nullable final Sdk sdk) {
+    if (sdk == null) return generator -> false;
     final ProgressManager progressManager = ProgressManager.getInstance();
     final Project project = ProjectManager.getInstance().getDefaultProject();
     if (!CheckIOUtils.checkConnection()) {
@@ -179,6 +180,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
     try {
       return progressManager
         .runProcessWithProgressSynchronously((ThrowableComputable<BooleanFunction<PythonProjectGenerator>, IOException>)() -> {
+          progressManager.getProgressIndicator().setIndeterminate(true);
           final Future<?> future = SharedThreadPool.getInstance().executeOnPooledThread(() -> authorizeUserAndGetMissions(sdk));
 
           while (!future.isDone()) {

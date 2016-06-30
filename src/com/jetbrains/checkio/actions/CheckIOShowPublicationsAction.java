@@ -21,7 +21,7 @@ import com.jetbrains.checkio.courseFormat.CheckIOPublication;
 import com.jetbrains.checkio.ui.CheckIOIcons;
 import com.jetbrains.checkio.ui.CheckIOPublicationsPanel;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
-import com.jetbrains.edu.learning.actions.StudyToolbarAction;
+import com.jetbrains.edu.learning.actions.StudyActionWithShortcut;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import com.jetbrains.edu.learning.courseFormat.Task;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.Map;
 
 
-public class CheckIOShowPublicationsAction extends StudyToolbarAction {
+public class CheckIOShowPublicationsAction extends StudyActionWithShortcut {
   private static final Logger LOG = Logger.getInstance(CheckIOShowPublicationsAction.class);
   private static final String ACTION_ID = "CheckIOShowSolutionsAction";
   private static final String SHORTCUT = "ctrl shift pressed H";

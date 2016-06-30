@@ -61,7 +61,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
   public CheckIOCheckSolutionAction() {
     super("Run And Check Task (" + KeymapUtil.getShortcutText(new KeyboardShortcut(KeyStroke.getKeyStroke(SHORTCUT), null)) + ")",
-          CheckIOBundle.message("action.description.check.current.task"), InteractiveLearningIcons.Resolve);
+          CheckIOBundle.message("action.description.check.current.task"), InteractiveLearningIcons.CheckTask);
   }
 
   @NotNull
@@ -101,7 +101,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
           ModalityState.defaultModalityState());
       }
       else {
-        StudyTaskManager.getInstance(myProject).setStatus(myTask, StudyStatus.Failed);
+        myTask.setStatus(StudyStatus.Failed);
         ProjectView.getInstance(myProject).refresh();
         CheckIOUtils
           .showOperationResultPopUp(CheckIOBundle.message("run.error.message"), MessageType.ERROR.getPopupBackground(), myProject);
@@ -193,8 +193,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
 
     private void setStatusAndShowResults(int status) {
       StudyStatus studyStatus = status == 1 ? StudyStatus.Solved : StudyStatus.Failed;
-
-      StudyTaskManager.getInstance(myProject).setStatus(myTask, studyStatus);
+      myTask.setStatus(studyStatus);
       ProjectView.getInstance(myProject).refresh();
 
       final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(myProject);
