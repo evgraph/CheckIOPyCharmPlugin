@@ -1,9 +1,13 @@
 package com.jetbrains.checkio;
 
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.util.xmlb.annotations.Transient;
 import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
@@ -18,29 +22,20 @@ import java.util.Map;
 
 
 @SuppressWarnings("WeakerAccess")
-@State(
-  name = "CheckIOTaskManager",
-  storages = {
-    @Storage(
-      file = StoragePathMacros.PROJECT_CONFIG_DIR + "/checkio_project.xml",
-      scheme = StorageScheme.DIRECTORY_BASED
-    )}
-)
+@State(name = "CheckIOTaskManager", storages = @Storage("checkio_project.xml"))
 public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskManager>, DumbAware {
   public String accessToken;
   public String refreshToken;
-  private static Project ourProject;
   public Map<String, Integer> myTaskIds = new HashMap<>();
   public CheckIOUser myUser;
   public Map<String, Boolean> myPublicationStatusMap = new HashMap<>();
   public final Map<String, String> myInitialCodeForTask = new HashMap<>();
   public Task myLastSolvedTask;
-  public Map<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
+  @Transient private Map<String, CheckIOPublication[]> myPublicationsForLastSolvedTask;
 
   private CheckIOTaskManager() { }
 
   public static CheckIOTaskManager getInstance(@NotNull final Project project) {
-    ourProject = project;
     return ServiceManager.getService(project, CheckIOTaskManager.class);
   }
 
@@ -81,9 +76,9 @@ public class CheckIOTaskManager implements PersistentStateComponent<CheckIOTaskM
     XmlSerializerUtil.copyBean(state, this);
   }
 
-  public String getAccessTokenAndUpdateIfNeeded()
+  public String getAccessTokenAndUpdateIfNeeded(Project project)
     throws IOException {
-    if (!CheckIOMissionGetter.isTokenUpToDate(accessToken, CheckIOUtils.getInterpreterAsString(ourProject))) {
+    if (!CheckIOMissionGetter.isTokenUpToDate(accessToken, CheckIOUtils.getInterpreterAsString(project))) {
       final CheckIOUserAuthorizer authorizer = CheckIOUserAuthorizer.getInstance();
       authorizer.setTokensFromRefreshToken(refreshToken);
       accessToken = authorizer.getAccessToken();

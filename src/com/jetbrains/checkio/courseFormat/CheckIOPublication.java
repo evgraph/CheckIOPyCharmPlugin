@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class CheckIOPublication {
@@ -15,7 +16,7 @@ public class CheckIOPublication {
   private final static String MISSION_PARAMETER_NAME = "mission";
   private final static String PUBLICATION_PARAMETER_NAME = "publications";
   private static final Logger LOG = Logger.getInstance(CheckIOPublication.class);
-  private static final HashMap<String, LanguageLevel> LANGUAGE_LEVEL_MAP = new HashMap<String, LanguageLevel>() {{
+  private static final Map<String, LanguageLevel> LANGUAGE_LEVEL_MAP = new HashMap<String, LanguageLevel>() {{
     put("python-27", LanguageLevel.PYTHON27);
     put("python-3", LanguageLevel.PYTHON30);
   }};
@@ -90,7 +91,6 @@ public class CheckIOPublication {
   }
 
   private String createPublicationLinkParameter(@NotNull final String taskName) {
-    return String.join("/", new String[]{"", MISSION_PARAMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, user.getUsername(),
-      interpreter, slug, ""});
+    return String.join("/", "", MISSION_PARAMETER_NAME, taskName, PUBLICATION_PARAMETER_NAME, user.getUsername(), interpreter, slug, "");
   }
 }

@@ -224,7 +224,7 @@ public class CheckIOPublicationsPanel extends JPanel {
         try {
           if (myPublication != null) {
             if (kind == ListenerKind.Publication) {
-              final String token = CheckIOTaskManager.getInstance(myProject).getAccessTokenAndUpdateIfNeeded();
+              final String token = CheckIOTaskManager.getInstance(myProject).getAccessTokenAndUpdateIfNeeded(myProject);
               url = myPublication.getPublicationLink(token, task.getName());
             }
             else {
@@ -276,7 +276,7 @@ public class CheckIOPublicationsPanel extends JPanel {
           final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
 
           try {
-            final String token = CheckIOTaskManager.getInstance(myProject).getAccessTokenAndUpdateIfNeeded();
+            final String token = CheckIOTaskManager.getInstance(myProject).getAccessTokenAndUpdateIfNeeded(myProject);
             final Future<?> future =
               ApplicationManager.getApplication().executeOnPooledThread(() -> getPublicationInfoAndOpenFile(publication, token));
 

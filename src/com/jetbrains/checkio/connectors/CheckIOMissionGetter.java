@@ -45,7 +45,7 @@ public class CheckIOMissionGetter {
 
     final String sdk = CheckIOUtils.getInterpreterAsString(project);
     final CheckIOLanguage language = settings.getLanguage();
-    final MissionWrapper missionWrappers = getMissions(language, manager.getAccessTokenAndUpdateIfNeeded(), sdk);
+    final MissionWrapper missionWrappers = getMissions(language, manager.getAccessTokenAndUpdateIfNeeded(project), sdk);
     return getCourseForProjectAndUpdateCourseInfo(project, missionWrappers);
   }
 

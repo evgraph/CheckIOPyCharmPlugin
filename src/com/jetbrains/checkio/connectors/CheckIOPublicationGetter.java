@@ -33,7 +33,7 @@ public class CheckIOPublicationGetter {
     String publicationLink = "";
 
     final CheckIOTaskManager checkIOTaskManager = CheckIOTaskManager.getInstance(project);
-    final String token = checkIOTaskManager.getAccessTokenAndUpdateIfNeeded();
+    final String token = checkIOTaskManager.getAccessTokenAndUpdateIfNeeded(project);
     try {
       final URI uri = new URIBuilder(CheckIOPublication.PUBLICATION_URL)
         .addParameter(CheckIOBundle.message("token.parameter.name"), token)
