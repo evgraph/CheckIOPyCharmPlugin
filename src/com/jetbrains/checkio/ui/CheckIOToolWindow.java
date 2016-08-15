@@ -68,7 +68,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
       new String(Base64.decode(studyEditor.getTaskFile().getTask().getText()), StandardCharsets.UTF_8);
     myTaskInfoPanel = new CheckIOTaskInfoPanel(taskText);
     mySolutionsPanel = new CheckIOPublicationsPanel(project);
-    myTestResultsPanel = new CheckIOTestResultsPanel();
+    myTestResultsPanel = new CheckIOTestResultsPanel(project);
 
     myMyCardLayout = new JBCardLayout();
     myContentPanel = new JPanel(myMyCardLayout);

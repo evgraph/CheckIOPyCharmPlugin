@@ -316,4 +316,11 @@ public class CheckIOUtils {
       task.setStatus(newStatus);
     }
   }
+
+  public static void showResults(Project project) {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      final CheckIOToolWindow checkIOToolWindow = getToolWindow(project);
+      checkIOToolWindow.showTestResultsPanel();      
+    });
+  }
 }

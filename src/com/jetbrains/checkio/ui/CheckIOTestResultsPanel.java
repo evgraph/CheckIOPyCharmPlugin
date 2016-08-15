@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.NullUtils;
 import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOTaskManager;
@@ -28,16 +27,17 @@ import java.io.IOException;
 
 class CheckIOTestResultsPanel extends JPanel {
   private final CheckIOBrowserWindow myBrowserWindow;
+  private final Project myProject;
 
-  public CheckIOTestResultsPanel() {
+  public CheckIOTestResultsPanel(Project project) {
+    myProject = project;
     myBrowserWindow = new CheckIOBrowserWindow();
     myBrowserWindow.setShowProgress(true);
   }
 
   public void updateTestPanel(@NotNull final JPanel backButtonPanel, @NotNull final Task task, @NotNull final String code)
     throws IOException {
-    this.removeAll();
-    configureBrowserAndLoadTestForm(task, code);
+    configureBrowserAndLoadTestForm(task, code, myProject);
     addPanelContent(backButtonPanel, task);
   }
 
@@ -48,18 +48,18 @@ class CheckIOTestResultsPanel extends JPanel {
     add(myBrowserWindow.getPanel());
   }
 
-  private void configureBrowserAndLoadTestForm(@NotNull Task task, @NotNull String code) throws IOException {
-    final Project project = ProjectUtil.guessCurrentProject(this);
+  private void configureBrowserAndLoadTestForm(@NotNull Task task, @NotNull String code, Project project) throws IOException {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
     final String taskId = taskManager.getTaskId(task).toString();
     final String interpreter = CheckIOUtils.getInterpreterAsString(project);
     final String token = taskManager.getAccessTokenAndUpdateIfNeeded(project);
 
-    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
-    myBrowserWindow.addFormListenerWithRemoveListener(documentListener);
-    myBrowserWindow.addCheckProcessFinishedListener(project, task);
+    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code, project);
 
     final String url = getClass().getResource("/other/pycharm_api_test.html").toExternalForm();
+    
+    myBrowserWindow.addFormListenerWithRemoveListener(documentListener);
+    myBrowserWindow.addCheckProcessFinishedListener(project, task);
     myBrowserWindow.load(url);
   }
 
@@ -82,7 +82,7 @@ class CheckIOTestResultsPanel extends JPanel {
   private static ChangeListener<Document> createDocumentListener(@NotNull String token,
                                                                  @NotNull String taskId,
                                                                  @NotNull String interpreter,
-                                                                 @NotNull String code) {
+                                                                 @NotNull String code, Project project) {
     return (observable, oldDocument, newDocument) -> {
       if (newDocument != null) {
         if (newDocument.getElementsByTagName("form").getLength() > 0) {
@@ -137,6 +137,7 @@ class CheckIOTestResultsPanel extends JPanel {
               codeElement.setValue(code);
 
               form.submit();
+              CheckIOUtils.showResults(project);
             }
           }
         }

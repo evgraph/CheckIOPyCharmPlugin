@@ -25,8 +25,8 @@ import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
-import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.CheckIOUpdateProjectPolicy;
+import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.checkio.connectors.CheckIOPublicationGetter;
 import com.jetbrains.checkio.connectors.CheckIOUserAuthorizer;
@@ -36,13 +36,13 @@ import com.jetbrains.checkio.settings.CheckIOSettings;
 import com.jetbrains.checkio.ui.CheckIOTaskToolWindowFactory;
 import com.jetbrains.checkio.ui.CheckIOToolWindow;
 import com.jetbrains.checkio.ui.CheckIOUserInfoToolWindowFactory;
+import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.StudyUtils;
+import com.jetbrains.edu.learning.actions.StudyRunAction;
 import com.jetbrains.edu.learning.courseFormat.Course;
 import com.jetbrains.edu.learning.courseFormat.Lesson;
 import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import com.jetbrains.edu.learning.courseFormat.Task;
-import com.jetbrains.edu.learning.StudyTaskManager;
-import com.jetbrains.edu.learning.StudyUtils;
-import com.jetbrains.edu.learning.actions.StudyRunAction;
 import icons.InteractiveLearningIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -164,7 +164,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     public void handleTestEvent(int result) {
       ApplicationManager.getApplication().invokeLater(() -> {
         checkInProgress = false;
-        setStatusAndShowResults(result);
+        setStatus(result);
         com.intellij.openapi.progress.Task.Backgroundable task = getAfterCheckTask(result);
         ProgressManager.getInstance().run(task);
       });
@@ -191,13 +191,10 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       };
     }
 
-    private void setStatusAndShowResults(int status) {
+    private void setStatus(int status) {
       StudyStatus studyStatus = status == 1 ? StudyStatus.Solved : StudyStatus.Failed;
       myTask.setStatus(studyStatus);
       ProjectView.getInstance(myProject).refresh();
-
-      final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(myProject);
-      checkIOToolWindow.showTestResultsPanel();
     }
   }
 
