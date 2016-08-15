@@ -103,11 +103,13 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
     if (unlockedStationsNumber > 0) {
       ApplicationManager.getApplication()
         .invokeLater(() -> {
-          CheckIOUtils.createNewLessonsDirsAndFlush(oldCourse, newCourse, project);
-          final String message = CheckIOBundle.message("action.update.project.unlock.message", unlockedStationsNumber);
-          CheckIOUtils.showOperationResultPopUp(message, MessageType.INFO.getPopupBackground(), project);
-          ProjectView.getInstance(project).refresh();
-          oldCourse.initCourse(false);
+          if (!project.isDisposed()) {
+            CheckIOUtils.createNewLessonsDirsAndFlush(oldCourse, newCourse, project);
+            final String message = CheckIOBundle.message("action.update.project.unlock.message", unlockedStationsNumber);
+            CheckIOUtils.showOperationResultPopUp(message, MessageType.INFO.getPopupBackground(), project);
+            ProjectView.getInstance(project).refresh();
+            oldCourse.initCourse(false);
+          }
         });
     }
     else {
