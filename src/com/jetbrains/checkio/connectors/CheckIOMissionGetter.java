@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.Base64;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -160,7 +161,7 @@ public class CheckIOMissionGetter {
   @NotNull
   private static Task createTaskFromMission(@NotNull final Mission missionWrapper) {
     final Task task = new Task(missionWrapper.slug);
-    task.setText(getDocumentTextWithoutCodeBlock(missionWrapper.description));
+    task.setText(Base64.encode(getDocumentTextWithoutCodeBlock(missionWrapper.description).getBytes()));
     return task;
   }
 

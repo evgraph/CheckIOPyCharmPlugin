@@ -15,6 +15,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.OnePixelSplitter;
+import com.intellij.util.Base64;
 import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -32,6 +33,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,8 +64,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     StudyEditor studyEditor = StudyUtils.getSelectedStudyEditor(project);
 
     final String taskText =
-      studyEditor == null ? CheckIOBundle.message("task.info.non.study.file.task.text") : studyEditor.getTaskFile().getTask().getText();
-
+      studyEditor == null ? CheckIOBundle.message("task.info.non.study.file.task.text") : 
+      new String(Base64.decode(studyEditor.getTaskFile().getTask().getText()), StandardCharsets.UTF_8);
     myTaskInfoPanel = new CheckIOTaskInfoPanel(taskText);
     mySolutionsPanel = new CheckIOPublicationsPanel(project);
     myTestResultsPanel = new CheckIOTestResultsPanel();
@@ -245,7 +247,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
-      myTaskInfoPanel.setTaskText(task.getText());
+      myTaskInfoPanel.setTaskText(new String(Base64.decode(task.getText()), StandardCharsets.UTF_8));
       showTaskToolWindow();
       if (shouldSwipe) {
         myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
