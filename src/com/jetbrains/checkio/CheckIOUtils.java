@@ -299,17 +299,21 @@ public class CheckIOUtils {
   public static void setTaskInfoInTaskManager(@NotNull final Project project, @NotNull final Task task,
                                                @NotNull final CheckIOMissionGetter.Mission missionWrapper) {
     final CheckIOTaskManager taskManager = CheckIOTaskManager.getInstance(project);
+    setTaskStatus(task, missionWrapper.isSolved);
+
+    taskManager.setPublicationStatus(task, missionWrapper.isPublished);
+    taskManager.setTaskId(task, missionWrapper.id);
+    taskManager.addInitialCodeForTask(task.getName(), missionWrapper.initialCode);
+  }
+
+  public static void setTaskStatus(@NotNull Task task, boolean solved) {
     final StudyStatus oldStatus = task.getStatus();
-    final StudyStatus newStatus = missionWrapper.isSolved ? StudyStatus.Solved : StudyStatus.Unchecked;
+    final StudyStatus newStatus = solved ? StudyStatus.Solved : StudyStatus.Unchecked;
     if (oldStatus == StudyStatus.Failed && newStatus == StudyStatus.Unchecked) {
       task.setStatus(StudyStatus.Failed);
     }
     else {
       task.setStatus(newStatus);
     }
-
-    taskManager.setPublicationStatus(task, missionWrapper.isPublished);
-    taskManager.setTaskId(task, missionWrapper.id);
-    taskManager.addInitialCodeForTask(task.getName(), missionWrapper.initialCode);
   }
 }

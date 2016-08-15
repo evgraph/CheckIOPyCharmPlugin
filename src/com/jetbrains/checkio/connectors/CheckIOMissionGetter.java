@@ -57,9 +57,8 @@ public class CheckIOMissionGetter {
     lessonsByName = new HashMap<>();
     for (Mission missionWrapper : missionWrappers.objects) {
       final Lesson lesson = getLessonOrCreateIfDoesntExist(course, missionWrapper.stationName);
-      final Task task = getTaskFromMission(missionWrapper);
+      final Task task = getTaskFromMission(project, missionWrapper);
       lesson.addTask(task);
-      CheckIOUtils.setTaskInfoInTaskManager(project, task, missionWrapper);
     }
 
     return course;
@@ -123,7 +122,7 @@ public class CheckIOMissionGetter {
     return lesson;
   }
 
-  private static Task getTaskFromMission(@NotNull final Mission missionWrapper) {
+  private static Task getTaskFromMission(Project project, @NotNull final Mission missionWrapper) {
     final Task task = createTaskFromMission(missionWrapper);
     final String name = CheckIOUtils.getTaskFileNameFromTask(task);
     TaskFile taskFile = new TaskFile();
@@ -132,6 +131,8 @@ public class CheckIOMissionGetter {
     taskFile.setIndex(0);
     taskFile.setHighlightErrors(true);
     task.addTaskFile(taskFile);
+    CheckIOUtils.setTaskStatus(task, missionWrapper.isSolved);
+    CheckIOUtils.setTaskInfoInTaskManager(project, task, missionWrapper);
     return task;
   }
 
