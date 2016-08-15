@@ -19,11 +19,13 @@ import com.jetbrains.checkio.connectors.CheckIOMissionGetter;
 import com.jetbrains.edu.learning.courseFormat.Course;
 import com.jetbrains.edu.learning.courseFormat.Lesson;
 import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.courseFormat.StudyStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -98,6 +100,8 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
     final List<Lesson> oldLessons = oldCourse.getLessons();
     final List<Lesson> newLessons = newCourse.getLessons();
 
+    updateTaskStatuses(oldLessons, newLessons);
+
     final int unlockedStationsNumber = newLessons.size() - oldLessons.size();
 
     if (unlockedStationsNumber > 0) {
@@ -115,6 +119,21 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
     else {
       CheckIOUtils.showOperationResultPopUp(CheckIOBundle.message("action.update.project.success"), MessageType.INFO.getPopupBackground(),
                                             project);
+    }
+  }
+
+  private static void updateTaskStatuses(List<Lesson> oldLessons, List<Lesson> newLessons) {
+    final HashMap<String, StudyStatus> newStatuses= new HashMap<>();
+    for (Lesson lesson : newLessons) {
+      for (com.jetbrains.edu.learning.courseFormat.Task task : lesson.getTaskList()) {
+        newStatuses.put(task.getName(), task.getStatus());
+      }
+    }
+
+    for (Lesson lesson : oldLessons) {
+      for (com.jetbrains.edu.learning.courseFormat.Task task : lesson.getTaskList()) {
+        CheckIOUtils.setTaskStatus(task, newStatuses.get(task.getName()) == StudyStatus.Solved);
+      }
     }
   }
 
