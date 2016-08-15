@@ -238,13 +238,11 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
                   .yesNo(CheckIOBundle.message("ask.to.update.title.update.project"), CheckIOBundle.message("ask.to.update.message"))
                   .yesText("Yes")
                   .noText(CommonBundle.message("button.cancel"))
-                  .doNotAsk(option).show() != Messages.YES) {
-              return;
+                  .doNotAsk(option).show() == Messages.YES) {
+              CheckIOUpdateProjectAction.createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
             }
-            if (!(CheckIOSettings.getInstance().getProjectPolicy() == CheckIOUpdateProjectPolicy.Always)) {
-              return;
-            }
-
+          }
+          else if (CheckIOSettings.getInstance().getProjectPolicy() == CheckIOUpdateProjectPolicy.Always) {
             CheckIOUpdateProjectAction.createFilesIfNewStationsUnlockedAndShowNotification(project, newCourse);
           }
         });
