@@ -35,7 +35,7 @@ public class CheckIOConnectorsUtil {
       if (proxy.PROXY_AUTHENTICATION) {
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         AuthScope authScope = new AuthScope(proxy.PROXY_HOST, proxy.PROXY_PORT);
-        Credentials credentials = getCredentials(proxy.PROXY_LOGIN, proxy.getPlainProxyPassword(), proxy.PROXY_HOST);
+        Credentials credentials = getCredentials(proxy.getProxyLogin(), proxy.getPlainProxyPassword(), proxy.PROXY_HOST);
         credentialsProvider.setCredentials(authScope, credentials);
         clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
       }

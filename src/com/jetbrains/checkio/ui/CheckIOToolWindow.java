@@ -19,10 +19,10 @@ import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.actions.*;
-import com.jetbrains.edu.learning.courseFormat.Task;
 import com.jetbrains.edu.learning.StudyUtils;
-import com.jetbrains.edu.learning.actions.StudyNextStudyTaskAction;
-import com.jetbrains.edu.learning.actions.StudyPreviousStudyTaskAction;
+import com.jetbrains.edu.learning.actions.StudyNextTaskAction;
+import com.jetbrains.edu.learning.actions.StudyPreviousTaskAction;
+import com.jetbrains.edu.learning.courseFormat.Task;
 import com.jetbrains.edu.learning.editor.StudyEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,8 +85,8 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
   private static JPanel createToolbarPanel() {
     final DefaultActionGroup group = new DefaultActionGroup();
     group.add(new CheckIOCheckSolutionAction());
-    group.add(new StudyPreviousStudyTaskAction());
-    group.add(new StudyNextStudyTaskAction());
+    group.add(new StudyPreviousTaskAction());
+    group.add(new StudyNextTaskAction());
     group.add(new CheckIORefreshFileAction());
     group.add(new CheckIOShowHintAction());
     group.add(new CheckIOUpdateProjectAction());
