@@ -108,7 +108,7 @@ public class CheckIOUpdateProjectAction extends CheckIOTaskAction {
             final String message = CheckIOBundle.message("action.update.project.unlock.message", unlockedStationsNumber);
             CheckIOUtils.showOperationResultPopUp(message, MessageType.INFO.getPopupBackground(), project);
             ProjectView.getInstance(project).refresh();
-            oldCourse.initCourse(false);
+            oldCourse.initCourse(true);
           }
         });
     }
