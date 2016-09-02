@@ -7,6 +7,8 @@ import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.DefaultLogger;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -22,6 +24,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
+import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -39,6 +42,7 @@ import java.util.List;
 
 class CheckIOBrowserWindow extends JFrame {
   private static final String EVENT_TYPE_CLICK = "click";
+  private static final Logger LOG = DefaultLogger.getInstance(CheckIOBrowserWindow.class);
   private JFXPanel myPanel;
   private WebView myWebComponent;
   private StackPane myPane;
@@ -48,6 +52,7 @@ class CheckIOBrowserWindow extends JFrame {
   private ChangeListener<Document> myDocumentChangeListener;
   private boolean refInNewBrowser;
   private boolean showProgress = true;
+  private CheckIOCheckSolutionAction.TestResultHandler myHandler;
 
   public CheckIOBrowserWindow() {
     setSize(new Dimension(900, 800));
@@ -255,20 +260,27 @@ class CheckIOBrowserWindow extends JFrame {
   public void addCheckProcessFinishedListener(@NotNull final Project project, @NotNull final Task task) {
     Platform.runLater(() -> {
       final boolean[] visited = {false};
-      final ChangeListener<Worker.State> listener = (observable, oldValue, newValue) -> {
+      myEngine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
         if (myEngine.getLocation().contains("http") && newValue == Worker.State.SUCCEEDED && !visited[0]) {
-          visited[0] = true;
-          final JSObject jsObject = (JSObject)myEngine.executeScript("window");
-
-          CheckIOCheckSolutionAction checkSolutionAction = getCheckSolutionTaskAction(project);
-          jsObject.setMember("java", checkSolutionAction.createTestResultHandler(project, task));
-
-          final String checkResultHandleScript = "window.addEventListener(\"checkio:checkDone\",function (e) " +
-                                                 "{java.handleTestEvent(e.detail.success)}, false);";
-          myEngine.executeScript(checkResultHandleScript);
+          Platform.runLater(() -> {
+            visited[0] = true;
+            try {
+              final JSObject jsObject = (JSObject)myEngine.executeScript("window");
+              myHandler = getCheckSolutionTaskAction(project).createTestResultHandler(project, task);
+              jsObject.setMember("java", myHandler);
+              
+              final String checkResultHandleScript = "function handleEvent(e) {\n" +
+                                                     "\twindow.java.handleTestEvent(e.detail.success);\n" +
+                                                     "}\n" +
+                                                     "window.addEventListener(\"checkio:checkDone\", handleEvent, false)";
+              myEngine.executeScript(checkResultHandleScript);
+            }
+            catch (JSException e) {
+              LOG.warn(e.getMessage());
+            }
+          });          
         }
-      };
-      myEngine.getLoadWorker().stateProperty().addListener(listener);
+      });
     });
   }
 
