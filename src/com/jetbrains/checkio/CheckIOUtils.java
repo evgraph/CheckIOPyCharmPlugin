@@ -57,7 +57,7 @@ public class CheckIOUtils {
   public static final Key<LanguageLevel> CHECKIO_LANGUAGE_LEVEL_KEY = new Key<>("CheckIOLanguageLevel");
   public static final String PUBLICATION_FOLDER_NAME = "/.publications/";
   private static final String MISSION_URL = CheckIOConnectorBundle.message
-    ("http.www.checkio.org.mission", CheckIOConnectorBundle.message("checkio.url"));
+    ("http.www.checkio.org.mission", CheckIOConnectorBundle.message("checkio.py.url"));
   private static final String PUBLICATION_SUFFIX = "/publications/";
   private static final Logger LOG = Logger.getInstance(CheckIOUtils.class.getName());
 
@@ -264,7 +264,7 @@ public class CheckIOUtils {
     boolean result = false;
     try {
       CheckIOConnectorsUtil.addCertificate();
-      URL urlToPing = new URL (CheckIOConnectorBundle.message("checkio.url"));
+      URL urlToPing = new URL(CheckIOConnectorBundle.message("checkio.py.url"));
       HttpsURLConnection connection = (HttpsURLConnection)urlToPing.openConnection();
       connection.setSSLSocketFactory(CertificateManager.getInstance().getSslContext().getSocketFactory());
       
