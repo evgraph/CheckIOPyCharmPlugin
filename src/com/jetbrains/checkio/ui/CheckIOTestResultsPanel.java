@@ -54,12 +54,11 @@ class CheckIOTestResultsPanel extends JPanel {
     final String interpreter = CheckIOUtils.getInterpreterAsString(project);
     final String token = taskManager.getAccessTokenAndUpdateIfNeeded(project);
 
-    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code, project);
-
-    final String url = getClass().getResource("/other/pycharm_api_test.html").toExternalForm();
-    
+    final ChangeListener<Document> documentListener = createDocumentListener(token, taskId, interpreter, code);
     myBrowserWindow.addFormListenerWithRemoveListener(documentListener);
     myBrowserWindow.addCheckProcessFinishedListener(project, task);
+
+    final String url = getClass().getResource("/other/pycharm_api_test.html").toExternalForm();
     myBrowserWindow.load(url);
   }
 
@@ -82,7 +81,7 @@ class CheckIOTestResultsPanel extends JPanel {
   private static ChangeListener<Document> createDocumentListener(@NotNull String token,
                                                                  @NotNull String taskId,
                                                                  @NotNull String interpreter,
-                                                                 @NotNull String code, Project project) {
+                                                                 @NotNull String code) {
     return (observable, oldDocument, newDocument) -> {
       if (newDocument != null) {
         if (newDocument.getElementsByTagName("form").getLength() > 0) {
@@ -137,7 +136,6 @@ class CheckIOTestResultsPanel extends JPanel {
               codeElement.setValue(code);
 
               form.submit();
-              CheckIOUtils.showResults(project);
             }
           }
         }

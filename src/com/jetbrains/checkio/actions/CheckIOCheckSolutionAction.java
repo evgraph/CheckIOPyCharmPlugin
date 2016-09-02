@@ -164,7 +164,7 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
     public void handleTestEvent(int result) {
       ApplicationManager.getApplication().invokeLater(() -> {
         checkInProgress = false;
-        setStatus(result);
+        setStatusAndShowResults(result);
         com.intellij.openapi.progress.Task.Backgroundable task = getAfterCheckTask(result);
         ProgressManager.getInstance().run(task);
       });
@@ -191,10 +191,13 @@ public class CheckIOCheckSolutionAction extends CheckIOTaskAction {
       };
     }
 
-    private void setStatus(int status) {
+    private void setStatusAndShowResults(int status) {
       StudyStatus studyStatus = status == 1 ? StudyStatus.Solved : StudyStatus.Failed;
       myTask.setStatus(studyStatus);
       ProjectView.getInstance(myProject).refresh();
+
+      final CheckIOToolWindow checkIOToolWindow = CheckIOUtils.getToolWindow(myProject);
+      checkIOToolWindow.showTestResultsPanel();
     }
   }
 
