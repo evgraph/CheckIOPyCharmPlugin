@@ -36,7 +36,7 @@ public class CheckIOPublicationGetter {
     final String token = checkIOTaskManager.getAccessTokenAndUpdateIfNeeded(project);
     try {
       final URI uri = new URIBuilder(CheckIOPublication.PUBLICATION_URL)
-        .addParameter(CheckIOBundle.message("token.parameter.name"), token)
+        .addParameter(CheckIOConnectorBundle.message("token.parameter.name"), token)
         .addParameter(CheckIOConnectorBundle.message("interpreter.parameter.name"), CheckIOUtils.getInterpreterAsString(project))
         .addParameter(CheckIOConnectorBundle.message("next.parameter.name"), "")
         .build();

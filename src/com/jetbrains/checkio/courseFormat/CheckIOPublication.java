@@ -12,7 +12,7 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class CheckIOPublication {
-  public static final String PUBLICATION_URL = "http://www.checkio.org/oauth/authorize-token/";
+  public static final String PUBLICATION_URL = "http://py.checkio.org/oauth/authorize-token/";
   private final static String MISSION_PARAMETER_NAME = "mission";
   private final static String PUBLICATION_PARAMETER_NAME = "publications";
   private static final Logger LOG = Logger.getInstance(CheckIOPublication.class);
