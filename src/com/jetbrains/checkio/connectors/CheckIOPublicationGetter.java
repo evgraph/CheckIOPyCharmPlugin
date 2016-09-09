@@ -3,7 +3,6 @@ package com.jetbrains.checkio.connectors;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOTaskManager;
 import com.jetbrains.checkio.CheckIOUtils;
 import com.jetbrains.checkio.courseFormat.CheckIOPublication;
@@ -78,8 +77,10 @@ public class CheckIOPublicationGetter {
         CloseableHttpResponse httpResponse = executeRequestWithConfig(publicationByCategoryRequest);
         if (httpResponse != null) {
           final CheckIOPublication[] publications = getPublicationByCategory(httpResponse);
-          final CheckIOPublication[] publicationsSubset = subsetPublications(publications);
-          myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
+          if (publications.length > 0) {
+            final CheckIOPublication[] publicationsSubset = subsetPublications(publications);
+            myCategoryArrayListHashMap.put(categoryWrapper.slug, publicationsSubset);
+          }
         }
       }
     }
@@ -91,7 +92,7 @@ public class CheckIOPublicationGetter {
   }
 
   private static CheckIOPublication[] subsetPublications(CheckIOPublication[] publications) {
-    return Arrays.copyOfRange(publications, 0, displayedPublicationNumber);
+    return Arrays.copyOfRange(publications, 0, Math.min(displayedPublicationNumber, publications.length));
   }
 
   @NotNull

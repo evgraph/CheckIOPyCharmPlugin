@@ -169,8 +169,10 @@ public class CheckIOPublicationsPanel extends JPanel {
       if (leaf) {
         final DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         final CheckIOPublication publication = (CheckIOPublication)node.getUserObject();
-        final Icon icon = myIconsForRunners.get(publication.getInterpreter());
-        setIcon(icon);
+        if (publication != null) {
+          final Icon icon = myIconsForRunners.get(publication.getInterpreter());
+          setIcon(icon);
+        }
       }
       else {
         setIcon(CheckIOIcons.SHOW_SOLUTIONS);
