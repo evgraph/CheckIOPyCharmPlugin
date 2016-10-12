@@ -64,8 +64,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     StudyEditor studyEditor = StudyUtils.getSelectedStudyEditor(project);
 
     final String taskText =
-      studyEditor == null ? CheckIOBundle.message("task.info.non.study.file.task.text") : 
-      new String(Base64.decode(studyEditor.getTaskFile().getTask().getText()), StandardCharsets.UTF_8);
+      studyEditor == null ? CheckIOBundle.message("task.info.non.study.file.task.text") : studyEditor.getTaskFile().getTask().getText();
     myTaskInfoPanel = new CheckIOTaskInfoPanel(taskText);
     mySolutionsPanel = new CheckIOPublicationsPanel(project);
     myTestResultsPanel = new CheckIOTestResultsPanel(project);
