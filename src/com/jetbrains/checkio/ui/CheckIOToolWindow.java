@@ -15,7 +15,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.OnePixelSplitter;
-import com.intellij.util.Base64;
 import com.intellij.util.ui.JBUI;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.checkio.CheckIOUtils;
@@ -33,7 +32,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -246,7 +244,7 @@ public class CheckIOToolWindow extends SimpleToolWindowPanel implements DataProv
     }
 
     private void setTaskInfoPanelAndSwipeIfNeeded(@NotNull final Task task, boolean shouldSwipe) {
-      myTaskInfoPanel.setTaskText(new String(Base64.decode(task.getText()), StandardCharsets.UTF_8));
+      myTaskInfoPanel.setTaskText(task.getText());
       showTaskToolWindow();
       if (shouldSwipe) {
         myMyCardLayout.swipe(myContentPanel, TASK_DESCRIPTION, JBCardLayout.SwipeDirection.AUTO);
