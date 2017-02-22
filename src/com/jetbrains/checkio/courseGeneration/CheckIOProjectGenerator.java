@@ -109,7 +109,7 @@ public class CheckIOProjectGenerator extends PythonProjectGenerator implements D
         deleteCourseDirectoryIfExists(courseDirectory);
         course.setCourseDirectory(courseDirectory.getAbsolutePath());
         FileUtil.delete(new File(ourCourseDir, course.getName()));
-        StudyProjectGenerator.flushCourse(project, course);
+        StudyProjectGenerator.flushCourse(course);
         course.initCourse(true);
         StudyGenerator.createCourse(course, baseDir, courseDirectory, project);
         openFirstTask(course, project);

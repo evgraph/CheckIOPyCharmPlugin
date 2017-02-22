@@ -6,7 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
 import com.jetbrains.checkio.CheckIOBundle;
 import com.jetbrains.edu.learning.courseFormat.Course;
-import com.jetbrains.edu.learning.StudyTaskManager;
+import com.jetbrains.edu.learning.projectView.CourseDirectoryNode;
 import com.jetbrains.edu.learning.projectView.StudyTreeStructureProvider;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,13 +15,12 @@ public class CheckIOTreeStructureProvider extends StudyTreeStructureProvider {
 
   @NotNull
   @Override
-  protected AbstractTreeNode createStudyDirectoryNode(ViewSettings settings, Project project, PsiDirectory nodeValue) {
-    final Course course = StudyTaskManager.getInstance(project).getCourse();
+  protected CourseDirectoryNode createCourseNode(Project project, AbstractTreeNode node, ViewSettings settings, Course course) {
     if (course != null && course.getCourseType().equals(CheckIOBundle.message("check.io.course.type"))) {
-      return new CheckIOStudyNode(project, nodeValue, settings);
+      return new CheckIOCourseNode(project, ((PsiDirectory)node.getValue()), settings, course);
     }
     else {
-      return super.createStudyDirectoryNode(settings, project, nodeValue);
+      return super.createCourseNode(project, node, settings, course);    
     }
   }
 }
